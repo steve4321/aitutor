@@ -1,54 +1,56 @@
-"use client";
+import * as React from 'react';
+import { cn } from '@/lib/utils';
 
-import { forwardRef, HTMLAttributes } from "react";
-import { cn } from "@/lib/utils";
-
-export interface AvatarProps extends HTMLAttributes<HTMLDivElement> {
+interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
   src?: string;
   alt?: string;
-  size?: "sm" | "md" | "lg";
+  fallback?: string;
+  size?: 'sm' | 'md' | 'lg';
 }
 
-function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) {
-    return parts[0].slice(0, 2).toUpperCase();
-  }
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+const sizeClasses = {
+  sm: 'h-8 w-8 text-xs',
+  md: 'h-10 w-10 text-sm',
+  lg: 'h-14 w-14 text-lg',
+};
+
+function Avatar({
+  className,
+  src,
+  alt = '',
+  fallback,
+  size = 'md',
+  ...props
+}: AvatarProps) {
+  const initials = fallback
+    ? fallback
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
+    : '?';
+
+  return (
+    <div
+      className={cn(
+        'relative inline-flex items-center justify-center overflow-hidden rounded-full bg-blue-100 text-blue-700 font-medium',
+        sizeClasses[size],
+        className
+      )}
+      {...props}
+    >
+      {src ? (
+        <img
+          src={src}
+          alt={alt}
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        <span>{initials}</span>
+      )}
+    </div>
+  );
 }
-
-const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
-  ({ className, src, alt = "", size = "md", ...props }, ref) => {
-    const sizeClasses = {
-      sm: "h-8 w-8 text-xs",
-      md: "h-10 w-10 text-sm",
-      lg: "h-12 w-12 text-base",
-    };
-
-    return (
-      <div
-        ref={ref}
-        className={cn(
-          "relative flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary-light text-primary font-medium",
-          sizeClasses[size],
-          className
-        )}
-        {...props}
-      >
-        {src ? (
-          <img
-            src={src}
-            alt={alt}
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <span>{alt ? getInitials(alt) : "?"}</span>
-        )}
-      </div>
-    );
-  }
-);
-
-Avatar.displayName = "Avatar";
 
 export { Avatar };

@@ -7,7 +7,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -17,7 +17,7 @@ class KnowledgePoint(Base):
     __tablename__ = "knowledge_points"
 
     id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid4
+        Uuid(), primary_key=True, default=uuid4
     )
     code: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     subject: Mapped[str] = mapped_column(String(20), nullable=False)
@@ -30,7 +30,7 @@ class KnowledgePoint(Base):
     )
     amc_level: Mapped[int] = mapped_column(SmallInteger, nullable=False, default=8)
     lesson_id: Mapped[UUID | None] = mapped_column(
-        UUID(as_uuid=True), nullable=True
+        Uuid(), nullable=True
     )
     sort_order: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
     estimated_minutes: Mapped[int | None] = mapped_column(
@@ -61,13 +61,13 @@ class KnowledgeDependency(Base):
     )
 
     id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid4
+        Uuid(), primary_key=True, default=uuid4
     )
     prerequisite_id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("knowledge_points.id")
+        Uuid(), ForeignKey("knowledge_points.id")
     )
     target_id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("knowledge_points.id")
+        Uuid(), ForeignKey("knowledge_points.id")
     )
     dependency_type: Mapped[str] = mapped_column(
         String(20), default="requires"

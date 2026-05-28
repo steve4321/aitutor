@@ -1,7 +1,7 @@
 from uuid import UUID, uuid4
 
 from sqlalchemy import Boolean, ForeignKey, SmallInteger, String, Text
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy import JSON as JSONB, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -11,7 +11,7 @@ class Course(Base):
     __tablename__ = "courses"
 
     id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid4
+        Uuid(), primary_key=True, default=uuid4
     )
     code: Mapped[str | None] = mapped_column(String(50), unique=True, nullable=True)
     subject: Mapped[str] = mapped_column(String(20), nullable=False)
@@ -30,10 +30,10 @@ class Unit(Base):
     __tablename__ = "units"
 
     id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid4
+        Uuid(), primary_key=True, default=uuid4
     )
     course_id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("courses.id")
+        Uuid(), ForeignKey("courses.id")
     )
     code: Mapped[str | None] = mapped_column(String(50), nullable=True)
     name: Mapped[str] = mapped_column(String(200), nullable=False)
@@ -49,13 +49,13 @@ class Lesson(Base):
     __tablename__ = "lessons"
 
     id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid4
+        Uuid(), primary_key=True, default=uuid4
     )
     unit_id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("units.id")
+        Uuid(), ForeignKey("units.id")
     )
     knowledge_point_id: Mapped[UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("knowledge_points.id"), nullable=True
+        Uuid(), ForeignKey("knowledge_points.id"), nullable=True
     )
     code: Mapped[str | None] = mapped_column(String(50), nullable=True)
     title: Mapped[str] = mapped_column(String(200), nullable=False)

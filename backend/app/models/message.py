@@ -1,7 +1,10 @@
+from __future__ import annotations
+
+# ruff: noqa: F821
 from uuid import UUID, uuid4
 
 from sqlalchemy import ForeignKey, String, Text
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy import JSON as JSONB, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -11,10 +14,10 @@ class Message(Base):
     __tablename__ = "messages"
 
     id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid4
+        Uuid(), primary_key=True, default=uuid4
     )
     session_id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("learning_sessions.id")
+        Uuid(), ForeignKey("learning_sessions.id")
     )
     role: Mapped[str] = mapped_column(String(20), nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)

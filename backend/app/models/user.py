@@ -11,7 +11,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
 )
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy import JSON as JSONB, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -49,10 +49,10 @@ class StudentProfile(Base):
     __table_args__ = ({"extend_existing": True},)
 
     id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid4
+        Uuid(), primary_key=True, default=uuid4
     )
     user_id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id"), unique=True
+        Uuid(), ForeignKey("users.id"), unique=True
     )
     grade_level: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
     target_exam: Mapped[str | None] = mapped_column(
@@ -86,13 +86,13 @@ class ParentLink(Base):
     )
 
     id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid4
+        Uuid(), primary_key=True, default=uuid4
     )
     parent_id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id")
+        Uuid(), ForeignKey("users.id")
     )
     student_id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id")
+        Uuid(), ForeignKey("users.id")
     )
     relation: Mapped[str | None] = mapped_column(String(20), nullable=True)
     notify_settings: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
