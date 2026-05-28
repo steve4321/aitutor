@@ -1,23 +1,31 @@
 from datetime import datetime, timedelta, timezone
+from hashlib import pbkdf2_hmac
+from secrets import compare_digest, token_hex
 from typing import Any
 
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 
 from app.config import settings
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 hours
+PBKDF2_ITERATIONS = 600_000
+SALT_LENGTH = 32
 
 
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    salt = token_hex(SALT_LENGTH)
+    dk = pbkdf2_hmac("sha256", password.encode(), salt.encode(), PBKDF2_ITERATIONS)
+    return f"{salt}${dk.hex()}"
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        salt, dk_hex = hashed_password.split("$")
+        dk = pbkdf2_hmac("sha256", plain_password.encode(), salt.encode(), PBKDF2_ITERATIONS)
+        return compare_digest(dk.hex(), dk_hex)
+    except (ValueError, AttributeError):
+        return False
 
 
 def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = None) -> str:
