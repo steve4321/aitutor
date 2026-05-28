@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+# ruff: noqa: F821
 from datetime import datetime
 from uuid import UUID, uuid4
 
@@ -10,7 +13,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -25,13 +28,13 @@ class KnowledgeState(Base):
     )
 
     id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid4
+        Uuid(), primary_key=True, default=uuid4
     )
     student_id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id")
+        Uuid(), ForeignKey("users.id")
     )
     knowledge_point_id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("knowledge_points.id")
+        Uuid(), ForeignKey("knowledge_points.id")
     )
     mastery: Mapped[float] = mapped_column(Float, default=0)
     mastery_level: Mapped[str] = mapped_column(String(20), default="not_started")
@@ -50,15 +53,15 @@ class LearningSession(Base):
     __tablename__ = "learning_sessions"
 
     id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid4
+        Uuid(), primary_key=True, default=uuid4
     )
     student_id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id")
+        Uuid(), ForeignKey("users.id")
     )
     session_type: Mapped[str] = mapped_column(String(30), nullable=False)
     subject: Mapped[str] = mapped_column(String(20), nullable=False)
     knowledge_point_id: Mapped[UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("knowledge_points.id"), nullable=True
+        Uuid(), ForeignKey("knowledge_points.id"), nullable=True
     )
     started_at: Mapped[datetime] = mapped_column(nullable=False)
     ended_at: Mapped[datetime | None] = mapped_column(nullable=True)
@@ -82,16 +85,16 @@ class StudentAttempt(Base):
     __tablename__ = "student_attempts"
 
     id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid4
+        Uuid(), primary_key=True, default=uuid4
     )
     session_id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("learning_sessions.id")
+        Uuid(), ForeignKey("learning_sessions.id")
     )
     student_id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id")
+        Uuid(), ForeignKey("users.id")
     )
     problem_id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("problems.id")
+        Uuid(), ForeignKey("problems.id")
     )
     answer: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_correct: Mapped[bool | None] = mapped_column(nullable=True)

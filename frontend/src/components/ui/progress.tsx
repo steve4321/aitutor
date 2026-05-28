@@ -1,41 +1,40 @@
-"use client";
+import * as React from 'react';
+import { cn } from '@/lib/utils';
 
-import { HTMLAttributes, forwardRef } from "react";
-import { cn } from "@/lib/utils";
-
-interface ProgressProps extends HTMLAttributes<HTMLDivElement> {
+interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
   value: number;
   max?: number;
-  label?: string;
-  showValue?: boolean;
+  indicatorClassName?: string;
 }
 
-const Progress = forwardRef<HTMLDivElement, ProgressProps>(
-  (
-    { className, value, max = 100, label, showValue = true, ...props },
-    ref
-  ) => {
+const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
+  ({ className, value, max = 100, indicatorClassName, ...props }, ref) => {
     const percentage = Math.min(Math.max((value / max) * 100, 0), 100);
 
     return (
-      <div ref={ref} className={cn("w-full", className)} {...props}>
-        {(label || showValue) && (
-          <div className="mb-1.5 flex justify-between text-xs text-muted-foreground">
-            {label && <span>{label}</span>}
-            {showValue && <span>{Math.round(percentage)}%</span>}
-          </div>
+      <div
+        ref={ref}
+        className={cn(
+          'relative h-2 w-full overflow-hidden rounded-full bg-gray-200',
+          className
         )}
-        <div className="h-2 bg-surface-muted rounded-full overflow-hidden">
-          <div
-            className="h-full bg-primary rounded-full transition-all duration-500 ease-out"
-            style={{ width: `${percentage}%` }}
-          />
-        </div>
+        role="progressbar"
+        aria-valuenow={value}
+        aria-valuemin={0}
+        aria-valuemax={max}
+        {...props}
+      >
+        <div
+          className={cn(
+            'h-full rounded-full bg-blue-600 transition-all duration-300 ease-in-out',
+            indicatorClassName
+          )}
+          style={{ width: `${percentage}%` }}
+        />
       </div>
     );
   }
 );
-
-Progress.displayName = "Progress";
+Progress.displayName = 'Progress';
 
 export { Progress };
