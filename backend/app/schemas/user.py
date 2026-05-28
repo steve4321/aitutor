@@ -41,6 +41,18 @@ class StudentProfileResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+class RegisterRequest(BaseModel):
+    username: str
+    email: str | None = None
+    password: str
+    display_name: str | None = None
