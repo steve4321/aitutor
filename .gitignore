@@ -18,3 +18,5 @@ build/
 .DS_Store
 *.swp
 *.swo
+*.db
+backend/data/
