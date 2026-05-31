@@ -32,6 +32,7 @@
 - [附录 A: Block 字段完整参考](#附录-a-block-字段完整参考)
 - [附录 C: 评估范式对照表](#附录-c-评估范式对照表)
 - [附录 D: Schema 版本迁移策略](#附录-d-schema-版本迁移策略)
+- [附录 E: 墨水屏适配规范](#附录-e-墨水屏-eink-适配规范)
 
 ---
 
@@ -327,6 +328,20 @@ interface GeoGebraBlock {
   width?: number;
   /** 高度 */
   height?: number;
+  /** 墨水屏降级方案（GeoGebra 在墨水屏上无法拖拽，用静态分步截图替代） */
+  eink_fallback?: {
+    /** 分步静态截图 */
+    steps: Array<{
+      /** 截图 URL */
+      image_url: string;
+      /** 该步骤说明 */
+      caption: string;
+      /** 该步骤关键发现 */
+      insight?: string;
+    }>;
+    /** 降级说明文字 */
+    fallback_note?: string;
+  };
 }
 ```
 
@@ -345,6 +360,16 @@ interface VideoBlock {
   title?: string;
   /** 是否自动播放 */
   autoplay?: boolean;
+  /** 墨水屏降级方案（视频在墨水屏上无法播放，用关键帧截图 + 文字摘要替代） */
+  eink_fallback?: {
+    /** 关键帧截图 */
+    keyframes: Array<{
+      image_url: string;
+      caption: string;
+    }>;
+    /** 视频内容文字摘要 */
+    text_summary: string;
+  };
 }
 ```
 
@@ -365,6 +390,16 @@ interface AnimationBlock {
   thumbnail_url?: string;
   /** CSS/Canvas 动画的内联配置 */
   inline_config?: Record<string, unknown>;
+  /** 墨水屏降级方案（动画在墨水屏上无法播放，用关键帧截图替代） */
+  eink_fallback?: {
+    /** 关键帧截图（3-8帧） */
+    keyframes: Array<{
+      /** 截图 URL */
+      image_url: string;
+      /** 帧说明 */
+      caption: string;
+    }>;
+  };
 }
 ```
 
@@ -769,6 +804,11 @@ interface SpeakingBlock {
   }>;
   /** 评分维度 */
   assessment_criteria?: Array<"grammar_vocabulary" | "pronunciation" | "interactive_communication" | "global_achievement">;
+  /** 墨水屏降级方案（口语波形动画不可用） */
+  eink_fallback?: {
+    /** 用文字提示替代波形 */
+    status_text: string;
+  };
 }
 ```
 
@@ -1734,6 +1774,8 @@ class LessonState(TypedDict):
 | `poetry_recitation` | **阻塞**。等待朗读/背诵录音。ASR 转录后与原文对比，评估完整度和节奏。 |
 | `draft` | **阻塞**（当 submit_to_ai=true）。不阻塞（当 submit_to_ai=false）。记录草稿版本。 |
 
+> **墨水屏模式**: 当检测到墨水屏设备时，`geogebra`、`animation`、`video` Block 自动使用 `eink_fallback` 降级方案渲染。Agent 仍按正常流程推进，但交互方式从拖拽/播放变为分步翻页。
+
 ### 8.4 Agent Instruction 使用
 
 每个 Step 的 `agent_instruction` 字段注入到 System Prompt 中：
@@ -1938,3 +1980,100 @@ function loadLessonContent(raw: unknown): LessonContent {
 ```
 
 数据库中的存量课程数据通过后台迁移脚本批量升级 `schema_version`。
+
+---
+
+## 附录 E: 墨水屏 (E-Ink) 适配规范
+
+### E.1 背景
+
+目标设备: Boox 10寸墨水屏平板
+- 屏幕: 1404×1872, 227 PPI, 16级灰度
+- 刷新率: 15-30Hz (vs LCD 60-120Hz)
+- 限制: 无流畅动画、无拖拽交互、16级灰度、残影(ghosting)
+
+### E.2 需要 eink_fallback 的 Block 类型
+
+| Block 类型 | 问题 | 降级方案 |
+|-----------|------|---------|
+| `geogebra` | 拖拽交互在墨水屏上不可用 | 静态分步截图 + 上/下一步按钮 |
+| `animation` | 视频/动画无法流畅播放 | 关键帧截图 + 翻页浏览 |
+| `video` | 视频极度卡顿 | 关键帧截图 + 文字摘要 |
+| `speaking` | 波形动画不可见 | 文字状态提示 |
+
+### E.3 不需要 fallback 的 Block 类型
+
+以下 Block 在墨水屏上天然可用，无需降级：
+
+| Block 类型 | 说明 |
+|-----------|------|
+| `text` | 纯文字，墨水屏最佳场景 |
+| `image` | 静态图片，自动转灰度 |
+| `formula` | 公式卡片，黑白高对比 |
+| `problem` | 选择题/填空题，文字为主 |
+| `writing` / `chn_writing` | 写作编辑器，纯文本 |
+| `gap_fill` | 填空题，静态交互 |
+| `matching` | 拖拽匹配 → 需改为点击选择模式 |
+| `poetry_dictation` | 默写填空，纯文字 |
+| `poetry_appreciation` | 赏析问答，纯文字 |
+| `scratchpad` | 草稿板 → Boox 手写笔天然支持 |
+| `vocab_card` | 词汇卡片，静态展示 |
+
+### E.4 前端检测逻辑
+
+```typescript
+// 检测墨水屏设备
+function isEInkDevice(): boolean {
+  // 方法1: monochrome 媒体查询
+  const monochrome = window.matchMedia('(monochrome)').matches;
+  
+  // 方法2: 用户手动设置（存储在 localStorage）
+  const manualSetting = localStorage.getItem('eink_mode');
+  
+  // 方法3: User-Agent 检测 (Boox 设备)
+  const isBoox = /boox|onyx/i.test(navigator.userAgent);
+  
+  return monochrome || manualSetting === 'true' || isBoox;
+}
+
+// 渲染 Block 时选择 fallback
+function renderBlock(block: ContentBlock) {
+  if (isEInkDevice() && block.eink_fallback) {
+    return renderEInkFallback(block);
+  }
+  return renderNormal(block);
+}
+```
+
+### E.5 CSS 媒体查询适配
+
+```css
+/* 墨水屏全局适配 */
+@media (monochrome) {
+  /* 关闭所有动画 */
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+  
+  /* 强制高对比 */
+  body {
+    background: #fff;
+    color: #000;
+    font-size: 18px;
+  }
+  
+  /* 图片转灰度 */
+  img {
+    filter: grayscale(100%) contrast(1.2);
+  }
+  
+  /* MatchingBlock: 拖拽改为点击选择 */
+  .matching-exercise {
+    /* 隐藏拖拽相关样式 */
+  }
+  .matching-exercise .click-select {
+    display: block;
+  }
+}
+```

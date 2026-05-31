@@ -1,6 +1,7 @@
 # AI私人家教系统 — 完整设计文档
 
-> 覆盖 AMC 数学竞赛 + KET 英语考试
+> 覆盖 AMC 数学竞赛 + KET 英语考试 + 语文（作文/古诗词）
+> 适配 Boox 10寸墨水屏平板
 > 版本：v1.0 | 日期：2026-05-27
 
 ---
@@ -54,6 +55,10 @@
 │   └───────────────────────────────────────────────────────┘     │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+> **墨水屏适配**: 所有 UI 设计需同时满足 LCD 和墨水屏（e-ink）两种显示环境。
+> 墨水屏模式下：关闭所有动画、使用分页翻页、GeoGebra 降级为静态分步图解。
+> 详见 §6.9。
 
 ### 1.3 双模式切换逻辑
 
@@ -1496,6 +1501,347 @@ CREATE INDEX ON knowledge_points USING ivfflat (embedding vector_cosine_ops) WIT
 | 触摸区域 | 最小44×44px |
 | 屏幕阅读器 | 所有元素有accessibility label |
 | 色盲友好 | 不依赖颜色传达信息, 使用图标+文字 |
+| 墨水屏适配 | 检测 `@media (monochrome)` 自动启用 e-ink 模式 |
+| 字号 (墨水屏) | 墨水屏模式最小 16px, 正文 18px |
+| 对比度 (墨水屏) | 仅使用 #000/#fff/#333/#eee 四色 |
+| 触控区域 (墨水屏) | 最小 44×44px |
+
+---
+
+### 6.9 墨水屏适配设计
+
+> 目标设备: Boox 10寸墨水屏平板 (Note Air 3 / Go 10.3 / Tab Ultra)
+> 屏幕参数: 1404×1872, 227 PPI, 16级灰度, 刷新率 15-30Hz
+> 系统: Android 11-15, 支持 Chrome/Firefox, 可安装第三方 APK
+> 部署方式: Web App (Next.js) + PWA (添加到桌面)
+
+#### 6.9.1 设备能力与限制
+
+| 能力 | 支持 | 说明 |
+|------|------|------|
+| Web App 浏览器访问 | ✅ | Chrome / Firefox / NeoBrowser |
+| PWA 添加到桌面 | ✅ | Chrome 支持 |
+| APK 安装 | ✅ | Google Play + 侧载 |
+| 触控操作 | ✅ | 但响应比 LCD 慢 |
+| 手写笔 | ✅ | Wacom/EMR 触控笔 |
+| 音频播放 | ✅ | TTS/听力材料正常 |
+| 语音输入 | ⚠️ | 可用但 ASR 可能有延迟 |
+| 视频播放 | ❌ | 极度卡顿，不可用 |
+| 动画/拖拽 | ❌ | 刷新率不足以支持流畅动画 |
+| 彩色显示 | ❌ | 16级灰度，颜色不可区分 |
+
+#### 6.9.2 核心适配策略
+
+**原则：检测到墨水屏时，启用 e-ink 模式，降级所有动态交互为静态分步展示。**
+
+```css
+/* 墨水屏检测与全局适配 */
+@media (monochrome) {
+  :root {
+    --eink-bg: #ffffff;
+    --eink-text: #000000;
+    --eink-border: #000000;
+    --eink-accent: #333333;
+    --eink-alt-bg: #f0f0f0;
+  }
+
+  /* 全局：关闭所有动画和过渡 */
+  * {
+    animation: none !important;
+    transition: none !important;
+    box-shadow: none !important;
+    filter: none !important;
+    transform: none !important;
+  }
+
+  /* 强制白底黑字 */
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 18px;
+    line-height: 1.6;
+  }
+
+  /* 图片转高对比灰度 */
+  img {
+    filter: grayscale(100%) contrast(1.2);
+  }
+
+  /* 按钮：粗边框替代填充 */
+  button, .btn {
+    border: 2px solid #000;
+    background: #fff;
+    color: #000;
+    min-height: 44px;
+    font-weight: 600;
+    border-radius: 0;
+  }
+
+  button:active {
+    background: #000;
+    color: #fff;
+  }
+
+  /* 输入框：粗边框 */
+  input, textarea, select {
+    border: 2px solid #000;
+    border-radius: 0;
+    font-size: 16px;
+  }
+
+  /* 隐藏所有动画元素 */
+  .animate, .spinner, .loading-dots {
+    display: none !important;
+  }
+
+  /* 改用文字提示加载状态 */
+  .loading-text-eink {
+    display: block !important;
+  }
+}
+
+/* 同时支持 prefers-reduced-motion（墨水屏始终为 reduce） */
+@media (prefers-reduced-motion: reduce) {
+  .spinner, .loading-animation {
+    display: none;
+  }
+  .loading-text-fallback {
+    display: block;
+  }
+}
+```
+
+#### 6.9.3 各模块墨水屏适配方案
+
+| 模块 | 普通屏幕 | 墨水屏适配 | 优先级 |
+|------|---------|-----------|--------|
+| **GeoGebra 交互** | 可拖拽图形 | 静态图解 + 分步切换按钮（上一步/下一步） | P0 |
+| **动画演示 (Manim/Lottie)** | 视频动画播放 | 逐帧截图 + 前后翻页 | P0 |
+| **语音播放** | 自动播放 + 文字同步高亮 | 点击播放 + 静态文字展示（不高亮动画） | P1 |
+| **进度条** | 彩色填充动画 | 黑白粗边框 + 文字百分比 | P1 |
+| **成就徽章** | 彩色图标 | 黑白线条图标 + 文字标签 | P2 |
+| **知识雷达图** | 彩色雷达图 | 黑白条形图（各支柱竖条） | P2 |
+| **底部导航** | 图标+文字 | 纯文字 Tab（图标在灰度下难辨认） | P1 |
+| **课程内容** | 连续滚动 | **分页翻页**模式（减少残影） | P0 |
+| **草稿板** | 手写板 | Boox 手写笔原生支持（最佳体验） | P0 |
+| **写作编辑器** | 富文本编辑 | 纯文本编辑 + 字数统计 | P1 |
+| **口语录音** | 波形动画 | 录音按钮 + 文字状态 | P2 |
+| **选择题** | 点击选项高亮 | 选中项反转色（白→黑，黑→白） | P0 |
+
+#### 6.9.4 GeoGebra / 动画降级方案
+
+GeoGebra 和 Manim 动画在墨水屏上无法流畅运行。需要准备静态替代方案：
+
+```
+普通屏幕:
+  GeoGebra 可拖拽图形 → 学生自由探索
+
+墨水屏降级:
+  Step 1/5: [静态截图] 初始状态
+  Step 2/5: [静态截图] 拖动到位置 A
+  Step 3/5: [静态截图] 拖动到位置 B
+  Step 4/5: [静态截图] 关键发现
+  Step 5/5: [静态截图] 结论
+  
+  [< 上一步]  3/5  [下一步 >]
+```
+
+**实现方式**:
+- 每个 GeoGebra/Animation Block 增加可选的 `eink_fallback` 字段
+- `eink_fallback` 包含一组静态截图 + 分步说明
+- 前端检测 `@media (monochrome)` 或用户手动切换 e-ink 模式时，渲染 fallback
+
+```typescript
+// GeoGebra Block 扩展
+interface GeoGebraBlock {
+  // ... existing fields ...
+  
+  /** 墨水屏降级方案（可选） */
+  eink_fallback?: {
+    /** 分步静态截图 */
+    steps: Array<{
+      /** 截图 URL */
+      image_url: string;
+      /** 该步骤说明 */
+      caption: string;
+      /** 该步骤关键发现 */
+      insight?: string;
+    }>;
+    /** 降级说明文字 */
+    fallback_note?: string;
+  };
+}
+
+// Animation Block 扩展
+interface AnimationBlock {
+  // ... existing fields ...
+  
+  /** 墨水屏降级方案（可选） */
+  eink_fallback?: {
+    /** 关键帧截图（3-8帧） */
+    keyframes: Array<{
+      /** 截图 URL */
+      image_url: string;
+      /** 时间点标注 */
+      timestamp?: string;
+      /** 帧说明 */
+      caption: string;
+    }>;
+  };
+}
+```
+
+#### 6.9.5 分页翻页模式
+
+墨水屏上连续滚动会产生严重残影（ghosting）。课程内容采用**分页翻页**：
+
+```css
+/* 墨水屏：强制分页 */
+@media (monochrome) {
+  .lesson-content {
+    /* 禁用滚动 */
+    overflow: hidden;
+    height: 100vh;
+  }
+  
+  .lesson-page {
+    display: none;
+    height: 100%;
+    padding: 1rem;
+  }
+  
+  .lesson-page.active {
+    display: block;
+  }
+  
+  /* 翻页按钮 */
+  .page-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+    background: #fff;
+    border-top: 2px solid #000;
+  }
+}
+```
+
+每 5 页触发一次全刷（full refresh）清除残影：
+
+```javascript
+class EInkPageManager {
+  constructor() {
+    this.pageCount = 0;
+    this.fullRefreshInterval = 5;
+  }
+
+  turnPage() {
+    this.pageCount++;
+    if (this.pageCount >= this.fullRefreshInterval) {
+      this.fullRefresh();
+      this.pageCount = 0;
+    }
+  }
+
+  fullRefresh() {
+    // 触发全刷清除残影
+    document.body.style.opacity = '0.99';
+    requestAnimationFrame(() => {
+      document.body.style.opacity = '1';
+    });
+  }
+}
+```
+
+#### 6.9.6 触控优化
+
+```css
+/* 墨水屏触控优化 */
+@media (monochrome) {
+  /* 最小触控区域 44px */
+  button, a, .clickable {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0.75rem 1rem;
+  }
+
+  /* 选项间距加大（减少误触） */
+  .option-list > li {
+    margin-bottom: 0.75rem;
+    padding: 0.75rem;
+    border: 2px solid #000;
+  }
+
+  /* 选中项：反转色（最清晰的反馈） */
+  .option-list > li.selected {
+    background: #000;
+    color: #fff;
+  }
+
+  /* 禁用 hover（墨水屏无 hover） */
+  *:hover {
+    /* 不做任何视觉变化 */
+  }
+
+  /* 使用 :active 替代 */
+  *:active {
+    outline: 3px solid #000;
+  }
+}
+```
+
+#### 6.9.7 排版规范
+
+| 参数 | 墨水屏推荐值 | 原因 |
+|------|------------|------|
+| 正文字号 | 18px（最小 16px） | 墨水屏需要更大字号保证清晰 |
+| 标题字号 | H1: 28px / H2: 22px / H3: 18px | 层次区分 |
+| 字重 | 最小 400（regular），标题 600 | 细体在墨水屏上消失 |
+| 行高 | 1.6-1.8 | 墨水屏需要更多呼吸空间 |
+| 字体 | system-ui, sans-serif | 系统字体避免额外渲染开销 |
+| 段落间距 | 1.5em | 清晰分隔段落 |
+| 颜色 | 仅用 #000 / #fff / #333 / #eee | 4色灰度系统 |
+| 边框 | 2px solid #000 | 粗边框替代填充色区分 |
+
+#### 6.9.8 墨水屏模式切换
+
+用户可手动开关墨水屏模式（部分 Boox 彩色版可能不需要）：
+
+```typescript
+// 检测与切换逻辑
+const useEInkMode = () => {
+  // 自动检测
+  const mediaQuery = window.matchMedia('(monochrome)');
+  const [isEInk, setIsEInk] = useState(mediaQuery.matches);
+
+  useEffect(() => {
+    const handler = (e: MediaQueryListEvent) => setIsEInk(e.matches);
+    mediaQuery.addEventListener('change', handler);
+    return () => mediaQuery.removeEventListener('change', handler);
+  }, []);
+
+  // 同时允许手动切换（设置页面）
+  const toggleEInkMode = () => setIsEInk(prev => !prev);
+
+  return { isEInk, toggleEInkMode };
+};
+```
+
+设置页面增加：
+```
+┌─────────────────────────────────────┐
+│ ⚙️ 设置                             │
+├─────────────────────────────────────┤
+│ 显示模式:                            │
+│ ◉ 标准模式                          │
+│ ○ 墨水屏模式 (高对比/无动画/分页)    │
+│                                     │
+│ [自动检测设备] ← 点击自动判断         │
+└─────────────────────────────────────┘
+```
 
 ---
 
