@@ -14,9 +14,24 @@
 3. [Step 定义](#3-step-定义)
 4. [ContentBlock 完整类型](#4-contentblock-完整类型)
 5. [Step 流程模板](#5-step-流程模板)
+   - [5.1 AMC 数学 — 概念新授](#51-amc-数学--概念新授)
+   - [5.2 AMC 数学 — 练习/刷题](#52-amc-数学--练习刷题)
+   - [5.3 AMC 数学 — 阶段测试](#53-amc-数学--阶段测试)
+   - [5.4 KET 英语 — 阅读课](#54-ket-英语--阅读课)
+   - [5.5 KET 英语 — 写作课](#55-ket-英语--写作课)
+   - [5.6 KET 英语 — 听力课](#56-ket-英语--听力课)
+   - [5.7 KET 英语 — 口语课](#57-ket-英语--口语课)
+   - [5.8 KET 英语 — 词汇](#58-ket-英语--词汇)
+   - [5.9 语文 — 作文课](#59-语文--作文课)
+   - [5.10 语文 — 古诗词赏析课](#510-语文--古诗词赏析课)
 6. [完整示例](#6-完整示例)
 7. [前端组件映射](#7-前端组件映射)
 8. [AI Agent 驱动约定](#8-ai-agent-驱动约定)
+   - [8.4.1 语文作文 Agent Instruction 示例](#841-语文作文-agent-instruction-示例)
+   - [8.4.2 古诗词 Agent Instruction 示例](#842-古诗词-agent-instruction-示例)
+- [附录 A: Block 字段完整参考](#附录-a-block-字段完整参考)
+- [附录 C: 评估范式对照表](#附录-c-评估范式对照表)
+- [附录 D: Schema 版本迁移策略](#附录-d-schema-版本迁移策略)
 
 ---
 
@@ -40,7 +55,7 @@ interface LessonContent {
   schema_version: "1.0";
 
   /** 学科 */
-  subject: "amc_math" | "ket_english";
+  subject: "amc_math" | "ket_english" | "chn_composition" | "chn_poetry";
 
   /** 课程类型 */
   lesson_type:
@@ -53,7 +68,10 @@ interface LessonContent {
     | "vocab_drill"   // 词汇训练（KET 专用）
     | "grammar_drill" // 语法训练（KET 专用）
     | "mock_speaking" // 口语模拟（KET 专用）
-    | "mock_listening"; // 听力模拟（KET 专用）
+    | "mock_listening"   // 听力模拟（KET 专用）
+    | "composition"         // 作文课（语文专用）
+    | "poetry_reading"      // 古诗词赏析（语文专用）
+    | "poetry_dictation";    // 诗词默写训练（语文专用）
 
   /** 学习目标（2-5 条） */
   objectives: string[];
@@ -70,6 +88,9 @@ interface LessonContent {
   /** KET 技能标记（仅 KET 英语） */
   ket_skill?: "reading" | "writing" | "listening" | "speaking" | "vocabulary" | "grammar";
 
+  /** 语文年级标记（仅语文课程） */
+  chn_grade?: 4 | 5 | 6;
+
   /** 预计时长（分钟） */
   estimated_minutes: number;
 
@@ -80,10 +101,17 @@ interface LessonContent {
   passing_criteria: {
     /** 需要达到的掌握度 */
     min_mastery: number;        // 0.0 - 1.0
-    /** 评估题正确率 */
+    /**
+     * 评估题正确率。
+     * - AMC 数学：题目正确率
+     * - chn_composition：最低得分百分比 min_score_pct（100分制，如 0.6 = 60/100）
+     * - chn_poetry：默写正确率
+     */
     min_accuracy: number;       // 0.0 - 1.0
     /** 评估题最少完成数 */
     min_problems: number;
+    /** 诗词赏析最低理解率（仅 chn_poetry） */
+    min_appreciation_score?: number;  // 0.0 - 1.0
   };
 
   /** 课程步骤序列 */
@@ -193,7 +221,21 @@ type StepPhase =
   | "assessment"  // 测验（用于 assessment 类型课程）
   | "diagnostic"  // 诊断（用于 diagnostic 类型课程）
   | "test"        // 模拟考试（用于 mock_exam 类型课程）
-  | "summary";    // 总结
+  | "summary"     // 总结
+
+  // ---- 语文作文（写作过程模型 Writing Process Model）----
+  | "observe"      // 观察：用五官感受，积累素材
+  | "conceive"     // 构思：确定主题、选材、列提纲
+  | "express"      // 表达：起草初稿
+  | "polish"       // 润色：修改语言、调整结构
+  | "assess_write" // 评估：AI评分+反思
+
+  // ---- 语文古诗词（分层深化模型 Iterative Deepening）----
+  | "read_poem"    // 读：朗读节奏、整体感知
+  | "decipher"     // 解：字词释义、疏通大意
+  | "appreciate"   // 赏：意象分析、手法识别
+  | "comprehend"   // 悟：情感把握、主旨理解
+  | "verify";      // 测：默写检测、理解性填空
 ```
 
 ---
@@ -529,6 +571,152 @@ interface WritingBlock {
 }
 ```
 
+#### ChineseWritingBlock — 中文作文编辑器（语文）
+
+```typescript
+interface ChineseWritingBlock {
+  type: "chn_writing";
+  /** 写作任务描述 */
+  task: string;
+  /** 题目要求/提示 */
+  prompt?: string;
+  /** 写作类型 */
+  writing_type: "narrative" | "descriptive" | "imaginative" | "practical" | "expository";
+  /** 目标字数 */
+  target_chars: number;
+  /** 最少字数 */
+  min_chars: number;
+  /** 最多字数 */
+  max_chars: number;
+  /** 评分标准（100分制，4维度） */
+  rubric: {
+    content_max: 40;        // 内容分
+    structure_max: 20;      // 结构分
+    language_max: 30;       // 语言分
+    handwriting_max: 10;    // 书写分
+  };
+  /** 是否允许修改重写 */
+  allow_revision: boolean;
+  /** 最多修改次数 */
+  max_revisions?: number;
+  /** 作文评分 Prompt ID（引用 system-design.md 中的 Prompt） */
+  scoring_prompt_id: string;
+}
+```
+
+#### PoetryDictationBlock — 诗词默写（语文）
+
+```typescript
+interface PoetryDictationBlock {
+  type: "poetry_dictation";
+  /** 诗歌标题 */
+  poem_title: string;
+  /** 诗人 */
+  poet: string;
+  /** 默写模式 */
+  dictation_mode: "full" | "partial" | "fill_blank";
+  /** 完整原文（用于对照） */
+  full_text: string;
+  /** 填空模式的模板，用 {{gap:N}} 标记空缺 */
+  template?: string;
+  /** 每个空缺的配置 */
+  gaps?: Array<{
+    index: number;
+    /** 正确答案（严格匹配） */
+    answer: string;
+    /** 可接受的异体字/通假字 */
+    acceptable_variants?: string[];
+  }>;
+  /** 藏字模式：哪些字需要填写 */
+  hidden_indices?: number[];
+  /** 关联知识点 code */
+  knowledge_point_codes: string[];
+  /** XP 奖励 */
+  xp_reward: number;
+}
+```
+
+#### PoetryAppreciationBlock — 诗词赏析（语文）
+
+```typescript
+interface PoetryAppreciationBlock {
+  type: "poetry_appreciation";
+  /** 诗歌标题 */
+  poem_title: string;
+  /** 诗人 */
+  poet: string;
+  /** 朝代 */
+  dynasty: string;
+  /** 完整原文（带注释标注） */
+  full_text: string;
+  /** 赏析题目 */
+  questions: Array<{
+    id: string;
+    /** 题目类型 */
+    question_type: "imagery_analysis" | "technique_identification" | "emotion_understanding" | "language_appreciation" | "comparison";
+    /** 题目 */
+    question: string;
+    /** 参考答案要点（非精确匹配，AI评估） */
+    reference_points: string[];
+    /** 分值 */
+    score: number;
+  }>;
+  /** 关联知识点 code */
+  knowledge_point_codes: string[];
+  /** XP 奖励 */
+  xp_reward: number;
+}
+```
+
+#### PoetryRecitationBlock — 诗词朗读/背诵（语文）
+
+```typescript
+interface PoetryRecitationBlock {
+  type: "poetry_recitation";
+  /** 诗歌标题 */
+  poem_title: string;
+  /** 诗人 */
+  poet: string;
+  /** 原文（用于语音对比） */
+  full_text: string;
+  /** 朗读模式 */
+  recitation_mode: "read_aloud" | "recite_from_memory";
+  /** 节奏标注（用于高亮引导） */
+  rhythm_marks?: Array<{
+    position: number;     // 字的位置
+    type: "pause" | "emphasis" | "prolong";
+  }>;
+  /** 是否要求声调评分 */
+  assess_tone?: boolean;
+  /** 参考朗读音频 URL */
+  reference_audio_url?: string;
+  /** 关联知识点 code */
+  knowledge_point_codes: string[];
+  /** XP 奖励 */
+  xp_reward: number;
+}
+```
+
+#### DraftBlock — 草稿版本管理（语文作文专用）
+
+```typescript
+interface DraftBlock {
+  type: "draft";
+  /** 草稿用途 */
+  draft_purpose: "composition_planning" | "composition_draft" | "composition_revision";
+  /** 提示文字 */
+  instructions: string;
+  /** 关联的 ChineseWritingBlock 的 ID */
+  target_writing_id?: string;
+  /** 版本号（每次修改递增） */
+  version?: number;
+  /** AI 反馈摘要（修改后由 AI 填充） */
+  ai_feedback?: string;
+  /** 是否提交到 AI 评分 */
+  submit_to_ai: boolean;
+}
+```
+
 #### ListeningBlock — 听力练习（KET）
 
 ```typescript
@@ -720,7 +908,13 @@ type ContentBlock =
   | MatchingBlock
   | GapFillBlock
   | ReadingPassageBlock
-  | VocabCardBlock;
+  | VocabCardBlock
+  // 交互型 — 语文
+  | ChineseWritingBlock
+  | PoetryDictationBlock
+  | PoetryAppreciationBlock
+  | PoetryRecitationBlock
+  | DraftBlock;
 ```
 
 ---
@@ -832,6 +1026,32 @@ Step 1: present       (5-8 min)  呈现：5-10 个新词（卡片 + 图片 + 发
 Step 2: practice      (8-12 min) 练习：认词 → 回忆 → 拼写 → 造句
 Step 3: review        (2-3 min)  复习：间隔重复安排
 ```
+
+### 5.9 语文 — 作文课 (`subject: "chn_composition"`)
+
+```
+Step 1: observe       (3-5 min)  观察：展示场景/图片/文字，引导学生用五官感受
+Step 2: conceive      (3-5 min)  构思：确定主题，选择素材，列写作提纲
+Step 3: express       (8-15 min) 表达：学生独立写作初稿（目标300-500字）
+Step 4: polish        (5-8 min)  润色：AI反馈后修改语言和结构
+Step 5: assess_write  (3-5 min)  评估：AI多维评分+优秀段落展示+总结
+```
+
+> 作文课总时长 30-45 分钟。`express` 步骤支持跨会话续写（通过 DraftBlock 版本管理）。
+> 与数学不同：语文作文的 AI 教学**必须主动示范**（展示范文、好句），而非苏格拉底式引导。
+
+### 5.10 语文 — 古诗词赏析课 (`subject: "chn_poetry"`)
+
+```
+Step 1: read_poem    (3-4 min)  读：节奏标注+朗读指导+AI朗读示范
+Step 2: decipher     (3-5 min)  解：关键字词释义+背景故事+疏通大意
+Step 3: appreciate   (5-8 min)  赏：意象解读+手法分析+名句品鉴
+Step 4: comprehend   (3-5 min)  悟：情感把握+主旨归纳+联系生活
+Step 5: verify       (3-5 min)  测：默写检测+理解性填空+赏析题
+```
+
+> 古诗词采用**分层深化**学习：背诵(机械) → 理解(语义) → 赏析(审美)逐层递进。
+> 掌握度分两个维度追踪：背诵掌握度（FSRS二元）和赏析能力（等级制）。
 
 ---
 
@@ -1378,6 +1598,11 @@ Step 3: review        (2-3 min)  复习：间隔重复安排
 | `gap_fill` | `<GapFillExercise />` | 需新建 |
 | `reading_passage` | `<ReadingPassage />` | 需新建 |
 | `vocab_card` | `<VocabCard />` | 需新建 |
+| `chn_writing` | `<ChineseWritingEditor />` | 需新建（中文写作编辑器+多维评分展示） |
+| `poetry_dictation` | `<PoetryDictation />` | 需新建（默写填空+异体字容错） |
+| `poetry_appreciation` | `<PoetryAppreciation />` | 需新建（赏析题目+AI评估） |
+| `poetry_recitation` | `<PoetryRecitation />` | 需新建（朗读评分+节奏标注） |
+| `draft` | `<DraftEditor />` | 需新建（草稿编辑+版本对比） |
 
 ### 7.2 Block 渲染器（核心路由组件）
 
@@ -1413,6 +1638,11 @@ const BLOCK_RENDERERS: Record<ContentBlock['type'], React.ComponentType<any>> = 
   gap_fill: GapFillExercise,
   reading_passage: ReadingPassage,
   vocab_card: VocabCard,
+  chn_writing: ChineseWritingEditor,
+  poetry_dictation: PoetryDictation,
+  poetry_appreciation: PoetryAppreciation,
+  poetry_recitation: PoetryRecitation,
+  draft: DraftEditor,
 };
 
 export function BlockRenderer({ block }: { block: ContentBlock }) {
@@ -1498,6 +1728,11 @@ class LessonState(TypedDict):
 | `reading_passage` | 展示型 + 内嵌 questions 阻塞。 |
 | `vocab_card` | 展示型。配合间隔重复系统。 |
 | `photo_upload` | **阻塞**。等待上传。OCR 处理后继续。 |
+| `chn_writing` | **阻塞**。等待学生写作并提交。支持多轮修改（通过 DraftBlock）。调用 Assessor Agent 使用4维度100分制评分。 |
+| `poetry_dictation` | **阻塞**。等待默写完成。逐字/逐句校验，支持异体字容错。更新背诵掌握度（FSRS）。 |
+| `poetry_appreciation` | **阻塞**。等待赏析题作答。AI 评估参考答案要点覆盖率。更新赏析能力等级。 |
+| `poetry_recitation` | **阻塞**。等待朗读/背诵录音。ASR 转录后与原文对比，评估完整度和节奏。 |
+| `draft` | **阻塞**（当 submit_to_ai=true）。不阻塞（当 submit_to_ai=false）。记录草稿版本。 |
 
 ### 8.4 Agent Instruction 使用
 
@@ -1518,6 +1753,61 @@ class LessonState(TypedDict):
 - 每次只问一个问题
 - 学生说对了要肯定，追问"为什么"
 ```
+
+### 8.4.1 语文作文 Agent Instruction 示例
+
+```
+你正在教授语文作文课 "把句子写生动" 的 "express" 阶段。
+
+## Agent 指令
+学生正在练习使用比喻和拟人修辞。请主动展示好的例子，不要等学生犯错才纠正。
+如果学生的句子比较平淡，给出具体的改进建议和示范。
+
+## 当前步骤
+表达：学生独立写作初稿
+学生需要完成 1 个写作任务。
+
+## 通用教学规则（语文作文专用）
+- **主动示范**：展示好词好句、范文片段，不要隐藏
+- **鼓励为主**：先肯定写得好的地方，再建议改进
+- **具体反馈**：不说"写得不够生动"，而是说"试试把'风很大'改成'风像一只大手猛推着窗户'"
+- **不要求完美**：小学作文允许有小毛病，关注进步
+```
+
+### 8.4.2 古诗词 Agent Instruction 示例
+
+```
+你正在教授古诗词课 "春之声" 的 "appreciate" 阶段。
+
+## Agent 指令
+引导学生赏析《春晓》的意象和情感。先展示赏析的角度（意象→手法→情感），再引导学生自己发现。
+
+## 当前步骤
+赏析：意象解读+手法分析+名句品鉴
+学生需要完成 1-2 道赏析题。
+
+## 通用教学规则（古诗词专用）
+- **展示赏析框架**：给学生思考的脚手架，而非直接给答案
+- **联系生活**："你有没有春天早上被鸟叫醒的经历？"
+- **朗读引导**：标注节奏，鼓励有感情地朗读
+- **允许个性化理解**：同一首诗可以有不同的感受
+```
+
+---
+
+## 附录 C: 评估范式对照表
+
+| 维度 | AMC 数学 | KET 英语写作 | 语文作文 | 古诗词 |
+|------|---------|------------|---------|--------|
+| **评分模型** | 二元（对/错） | Band 0-5 | 100分制（4维度） | 分层制 |
+| **评分维度** | 正确性 | Content/Organisation/Language | 内容40/结构20/语言30/书写10 | 背诵(二元) + 理解(正确率) + 赏析(等级) |
+| **掌握度追踪** | FSRS + mastery | FSRS + Band | 多维追踪（内容/结构/语言分列） | 分层追踪（背诵FSRS + 理解渐进度 + 赏析等级） |
+| **AI 教学策略** | 苏格拉底式（永不给答案） | 范文展示+修改反馈 | **必须示范**（范文/好句/技巧） | 示范+引导（展示赏析角度+引导发现） |
+| **知识结构** | 严格 DAG | 模块化 | 螺旋式（反复练习提升） | 分层式（背诵→理解→赏析） |
+| **错误类型** | 计算/概念/方法/误解 | 语法/拼写/结构 | 偏题/空洞/结构差/语言平淡/字数不足 | 错别字/漏句/意象误解/赏析浅 |
+| **课时长度** | 20-30 min | 20-30 min | 30-45 min | 20-30 min |
+| **草稿/修改** | 草稿板辅助 | 单次提交+可选修改 | **核心流程**（构思→初稿→修改→定稿） | 默写可重做 |
+| **XP 基准** | 80-120 | 60-100 | 100-150 | 60-100 |
 
 ---
 
@@ -1566,9 +1856,68 @@ class LessonState(TypedDict):
 | `transcript` | `string?` | | 答题后展示 |
 | `questions` | `ListeningQuestion[]` | ✅ | 配套题目 |
 
+### ChineseWritingBlock 字段
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `type` | `"chn_writing"` | ✅ | |
+| `task` | `string` | ✅ | 写作任务描述 |
+| `prompt` | `string?` | | 题目要求/提示 |
+| `writing_type` | `enum` | ✅ | `"narrative"` \| `"descriptive"` \| `"imaginative"` \| `"practical"` \| `"expository"` |
+| `target_chars` | `number` | ✅ | 目标字数 |
+| `min_chars` | `number` | ✅ | 最少字数 |
+| `max_chars` | `number` | ✅ | 最多字数 |
+| `rubric` | `object` | ✅ | 100分制4维度评分标准 |
+| `allow_revision` | `boolean` | ✅ | 是否允许修改重写 |
+| `max_revisions` | `number?` | | 最多修改次数 |
+| `scoring_prompt_id` | `string` | ✅ | 作文评分 Prompt ID |
+
+### PoetryDictationBlock 字段
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `type` | `"poetry_dictation"` | ✅ | |
+| `poem_title` | `string` | ✅ | 诗歌标题 |
+| `poet` | `string` | ✅ | 诗人 |
+| `dictation_mode` | `enum` | ✅ | `"full"` \| `"partial"` \| `"fill_blank"` |
+| `full_text` | `string` | ✅ | 完整原文（用于对照） |
+| `template` | `string?` | | 填空模式的模板 |
+| `gaps` | `Array?` | | 每个空缺的配置（含 answer、acceptable_variants） |
+| `hidden_indices` | `number[]?` | | 藏字模式需填写的字位置 |
+| `knowledge_point_codes` | `string[]` | ✅ | 关联知识点 |
+| `xp_reward` | `number` | ✅ | XP 奖励 |
+
+### PoetryAppreciationBlock 字段
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `type` | `"poetry_appreciation"` | ✅ | |
+| `poem_title` | `string` | ✅ | 诗歌标题 |
+| `poet` | `string` | ✅ | 诗人 |
+| `dynasty` | `string` | ✅ | 朝代 |
+| `full_text` | `string` | ✅ | 完整原文（带注释标注） |
+| `questions` | `Array` | ✅ | 赏析题目（含 question_type、reference_points、score） |
+| `knowledge_point_codes` | `string[]` | ✅ | 关联知识点 |
+| `xp_reward` | `number` | ✅ | XP 奖励 |
+
+### PoetryRecitationBlock 字段
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `type` | `"poetry_recitation"` | ✅ | |
+| `poem_title` | `string` | ✅ | 诗歌标题 |
+| `poet` | `string` | ✅ | 诗人 |
+| `full_text` | `string` | ✅ | 原文（用于语音对比） |
+| `recitation_mode` | `enum` | ✅ | `"read_aloud"` \| `"recite_from_memory"` |
+| `rhythm_marks` | `Array?` | | 节奏标注（含 position、type） |
+| `assess_tone` | `boolean?` | | 是否要求声调评分 |
+| `reference_audio_url` | `string?` | | 参考朗读音频 URL |
+| `knowledge_point_codes` | `string[]` | ✅ | 关联知识点 |
+| `xp_reward` | `number` | ✅ | XP 奖励 |
+
 ---
 
-## 附录 B: Schema 版本迁移策略
+## 附录 D: Schema 版本迁移策略
 
 ```typescript
 // 前端渲染时检查版本
