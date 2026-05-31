@@ -16,6 +16,13 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     CORS_ORIGINS: list[str] = ["http://localhost:3000"]
 
+    # LLM Configuration
+    STRONG_MODEL: str = "gpt-4o"
+    FAST_MODEL: str = "gpt-4o-mini"
+    LLM_MAX_TOKENS: int = 1024
+    LLM_TEMPERATURE_STRONG: float = 0.7
+    LLM_TEMPERATURE_FAST: float = 0.1
+
     model_config = {
         "env_file": ".env",
         "env_file_encoding": "utf-8",
