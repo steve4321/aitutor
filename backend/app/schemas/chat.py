@@ -13,5 +13,6 @@ class ChatMessageResponse(BaseModel):
     id: UUID
     role: str
     content: str
+    session_id: UUID | None = None
 
     model_config = {"from_attributes": True}
