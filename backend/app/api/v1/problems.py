@@ -1,10 +1,14 @@
-from uuid import UUID
+from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select
 
-from app.api.deps import DbSession
+from app.agents import run_agent
+from app.api.deps import DbSession, get_current_user
+from app.models.learning import StudentAttempt
+from app.models.user import User
 from app.schemas.problem import AttemptRequest, AttemptResponse, ProblemResponse
+from app.services import problem_service
 
 router = APIRouter(prefix="/problems", tags=["problems"])
 
@@ -18,16 +22,58 @@ async def list_problems(
     limit: int = 20,
     offset: int = 0,
 ):
-    ...
+    problems = await problem_service.list_problems(
+        db, subject=subject, knowledge_point_id=knowledge_point_id, difficulty=difficulty, limit=limit, offset=offset
+    )
+    return problems
 
 
 @router.get("/{problem_id}", response_model=ProblemResponse)
 async def get_problem(problem_id: UUID, db: DbSession):
-    ...
+    problem = await problem_service.get_problem(db, problem_id)
+    if not problem:
+        raise HTTPException(status_code=404, detail="Problem not found")
+    return problem
 
 
 @router.post("/{problem_id}/attempt", response_model=AttemptResponse)
 async def submit_attempt(
-    problem_id: UUID, body: AttemptRequest, db: DbSession
+    problem_id: UUID,
+    body: AttemptRequest,
+    db: DbSession,
+    current_user: User = Depends(get_current_user),
 ):
-    ...
+    agent_result = await run_agent(
+        session_id=body.session_id or uuid4(),
+        student_id=current_user.id,
+        user_message=body.answer,
+        request_type="attempt",
+        problem_id=problem_id,
+        student_answer=body.answer,
+    )
+
+    structured = agent_result.get("structured_data", {}) or {}
+
+    result = await db.execute(
+        select(StudentAttempt)
+        .where(
+            StudentAttempt.student_id == current_user.id,
+            StudentAttempt.problem_id == problem_id,
+        )
+        .order_by(StudentAttempt.created_at.desc())
+        .limit(1)
+    )
+    attempt = result.scalar_one_or_none()
+
+    if attempt is None:
+        attempt_id = uuid4()
+    else:
+        attempt_id = attempt.id
+
+    return AttemptResponse(
+        id=attempt_id,
+        is_correct=structured.get("is_correct"),
+        ai_feedback=agent_result.get("agent_response"),
+        error_type=structured.get("error_type"),
+        attempt_number=1,
+    )

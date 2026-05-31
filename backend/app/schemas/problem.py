@@ -1,4 +1,3 @@
-from datetime import datetime
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -19,6 +18,7 @@ class ProblemResponse(BaseModel):
 
 class AttemptRequest(BaseModel):
     answer: str
+    session_id: UUID | None = None
     time_spent_sec: int | None = None
 
 
@@ -26,6 +26,7 @@ class AttemptResponse(BaseModel):
     id: UUID
     is_correct: bool | None
     ai_feedback: str | None
+    error_type: str | None = None
     attempt_number: int
 
     model_config = {"from_attributes": True}
