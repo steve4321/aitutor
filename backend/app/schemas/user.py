@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field
@@ -29,7 +29,7 @@ class StudentProfileResponse(BaseModel):
     user_id: UUID
     grade_level: int | None
     target_exam: str | None
-    target_date: str | None
+    target_date: date | None
     daily_goal_minutes: int
     timezone: str
     preferred_lang: str
