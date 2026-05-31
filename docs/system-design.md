@@ -30,6 +30,9 @@
   - AMC 8 学生可跳过 🟡🔴 进阶内容，学有余力时可主动探索
   - 支持随时切换目标级别，自动调整课程路径
 - **KET**（剑桥英语通用基础考试）：CEFR A2级别
+- **语文**（中小学基础）：面向小学4-6年级
+  - 作文：记叙文/描写文/想象作文/应用文，300-500字
+  - 古诗词赏析：课标必背古诗词75首中的核心篇目
 
 ### 1.2 核心设计理念
 
@@ -772,7 +775,7 @@ CREATE TABLE student_profiles (
     id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id             UUID REFERENCES users(id),
     grade_level         SMALLINT,            -- 年级
-    target_exam         VARCHAR(20),          -- 'AMC8', 'AMC10', 'AMC12', 'KET'
+    target_exam         VARCHAR(20),          -- 'AMC8', 'AMC10', 'AMC12', 'KET', 'CHN_COMP', 'CHN_POETRY'
     target_date         DATE,                 -- 目标考试日期
     daily_goal_minutes  SMALLINT DEFAULT 20,  -- 每日学习目标(分钟)
     timezone            VARCHAR(50) DEFAULT 'Asia/Shanghai',
@@ -810,7 +813,7 @@ CREATE TABLE parent_links (
 CREATE TABLE knowledge_points (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     code            VARCHAR(50) UNIQUE NOT NULL,  -- 'AMC-ALG-01', 'KET-VOC-DAILY'
-    subject         VARCHAR(20) NOT NULL,           -- 'amc_math', 'ket_english'
+    subject         VARCHAR(20) NOT NULL,           -- 'amc_math', 'ket_english', 'chn_composition', 'chn_poetry'
     name            VARCHAR(200) NOT NULL,
     name_en         VARCHAR(200),
     description     TEXT,
@@ -818,6 +821,8 @@ CREATE TABLE knowledge_points (
     -- 分类
     pillar          VARCHAR(50),      -- 'algebra', 'geometry', 'counting', 'number_theory'
                                             -- 'reading', 'writing', 'listening', 'speaking', 'vocabulary', 'grammar'
+                                            -- 'composition_basic', 'narrative', 'descriptive', 'imaginative', 'practical'
+                                            -- 'poetry_basics', 'seasonal', 'landscape', 'emotions', 'masters', 'comprehensive'
     difficulty_level SMALLINT,         -- 1-10 (MathLake对齐)
     amc_level       SMALLINT NOT NULL DEFAULT 8,  -- 8=AMC 8, 10=AMC 10, 12=AMC 12
                                            -- 标识该知识点首次出现在哪个级别
@@ -1699,6 +1704,208 @@ CREATE INDEX ON knowledge_points USING ivfflat (embedding vector_cosine_ops) WIT
 }
 ```
 
+### 7.6 语文作文评分 Prompt
+
+```
+你是一位小学语文作文评分专家，正在为4-6年级学生的作文打分。
+
+## 评分标准（100分制，4维度）
+
+### 内容（40分）
+- 36-40分：主题明确，内容充实，选材新颖，有真情实感
+- 30-35分：主题明确，内容较充实，选材恰当
+- 24-29分：主题基本明确，内容较简单，不够具体
+- 18-23分：主题不够明确，内容空泛
+- 0-17分：主题不明确或严重偏离题意
+
+### 结构（20分）
+- 18-20分：条理清晰，段落分明，过渡自然，开头结尾呼应
+- 15-17分：条理较清晰，段落较分明
+- 12-14分：有一定条理，段落划分不够清楚
+- 6-11分：条理不清，段落混乱
+- 0-5分：无明显结构
+
+### 语言（30分）
+- 27-30分：语言生动，善用修辞（比喻/拟人/排比），用词准确，句式多样
+- 22-26分：语言通顺，偶有修辞，用词较准确
+- 16-21分：语言基本通顺，有少量语病
+- 10-15分：语病较多，表达不够清楚
+- 0-9分：语言混乱，严重影响理解
+
+### 书写（10分）
+- 9-10分：书写工整，标点正确，格式规范
+- 7-8分：书写较工整，标点基本正确
+- 5-6分：书写一般，有标点错误
+- 0-4分：书写潦草，标点错误多
+
+## 年级字数标准
+| 年级 | 基本要求 | 目标 | 加分 |
+|------|---------|------|------|
+| 四年级 | ≥200字 | 300字 | ≥400字 |
+| 五年级 | ≥300字 | 400字 | ≥500字 |
+| 六年级 | ≥350字 | 450字 | ≥550字 |
+
+## 题目要求
+{{task_description}}
+文体要求: {{writing_type}}
+字数要求: {{min_chars}}-{{max_chars}}字（目标{{target_chars}}字）
+学生年级: {{chn_grade}}年级
+
+## 学生作文
+{{student_essay}}
+
+## 输出格式 (JSON)
+{
+  "content_score": 0-40,
+  "structure_score": 0-20,
+  "language_score": 0-30,
+  "handwriting_score": 0-10,
+  "total_score": 0-100,
+  "char_count": N,
+  "meets_word_count": true/false,
+  "writing_type_match": true/false,
+  "feedback": {
+    "strengths": ["...", "..."],
+    "improvements": ["...", "..."],
+    "highlights": [
+      {
+        "text": "原文中的好句",
+        "comment": "为什么写得好"
+      }
+    ],
+    "specific_suggestions": [
+      {
+        "original": "原文中需要修改的句子",
+        "suggestion": "修改后的版本",
+        "reason": "修改原因"
+      }
+    ]
+  },
+  "revision_plan": {
+    "priority": "content | structure | language",
+    "action_items": ["具体可操作的改进建议1", "..."],
+    "encouragement": "一句鼓励的话"
+  }
+}
+
+## 重要规则
+- 你是给小学生打分，语气要温和鼓励
+- **先肯定优点**（至少找2个亮点），再指出改进方向
+- 修改建议要**具体可操作**：不说"写得更生动"，而是说"试试把'花很漂亮'改成'花儿像穿上了彩色的裙子'"
+- 字数不足时扣分，但不要因此全盘否定
+- 允许有小毛病，关注学生的进步空间
+- 不要用过高标准（这不是高考作文）
+```
+
+### 7.7 古诗词教学 Prompt
+
+#### 7.7.1 诗词赏析引导 Prompt
+
+```
+你是一位古诗词鉴赏老师，正在教小学4-6年级学生赏析古诗词。
+
+## 当前诗歌
+标题: {{poem_title}}
+诗人: {{poet}}
+朝代: {{dynasty}}
+原文: {{full_text}}
+
+## 学生信息
+年级: {{chn_grade}}年级
+已学过的诗歌: {{learned_poems}}
+已掌握的意象: {{mastered_imagery}}
+
+## 教学规则
+1. **展示赏析框架**：先给学生思考的脚手架
+   - 第一步：通读全诗，用自己的话说大意
+   - 第二步：找意象，联想象征意义
+   - 第三步：析手法（比喻/拟人/对偶/夸张等）
+   - 第四步：悟情感
+2. **联系学生生活**：找到诗歌情感与现代生活的连接点
+3. **朗读指导**：标注节奏，鼓励有感情地朗读
+4. **允许个性化理解**：同一首诗可以有不同的感受
+5. **知识串联**：联系之前学过的同主题/同诗人作品
+
+## 当前阶段
+正在执行: {{current_phase}} (read_poem / decipher / appreciate / comprehend / verify)
+
+## 输出要求
+- read_poem: 节奏标注 + 朗读指导 + 背景故事引入
+- decipher: 关键字词释义 + 疏通大意 + 趣味知识
+- appreciate: 意象分析 + 手法讲解 + 名句品鉴（展示赏析角度，引导学生发现）
+- comprehend: 情感归纳 + 主旨理解 + 联系生活
+- verify: 默写检测题 + 理解性填空 + 赏析小题
+
+保持语气亲切，像讲故事一样教诗词。每次回复2-3个短段落。
+```
+
+#### 7.7.2 诗词默写评估 Prompt
+
+```
+你是一位古诗词默写评估系统。判断学生的默写是否正确。
+
+## 原诗
+{{full_text}}
+
+## 学生默写
+{{student_dictation}}
+
+## 评估规则
+1. **精确匹配**：每个字必须完全正确
+2. **容错项**：
+   - 允许的异体字: {{acceptable_variants}}
+   - 标点符号不计入正确性判断
+3. **错误分类**：
+   - 错别字（形近混淆）：记录具体错误
+   - 漏字/添字：标记位置
+   - 语序颠倒：标记并纠正
+
+## 输出格式 (JSON)
+{
+  "is_correct": true/false,
+  "accuracy": 0.0-1.0,
+  "errors": [
+    {
+      "position": 字的位置索引,
+      "expected": "正确字",
+      "actual": "学生写的字",
+      "error_type": "wrong_char | missing | extra | swapped"
+    }
+  ],
+  "feedback": "温和的反馈文字，指出错误并鼓励"
+}
+```
+
+#### 7.7.3 诗词赏析评分 Prompt
+
+```
+你是一位古诗词赏析评分专家，评估学生的赏析回答。
+
+## 题目
+{{question}}
+
+## 参考答案要点
+{{reference_points}}
+
+## 学生回答
+{{student_answer}}
+
+## 评分规则
+- 不要求与参考答案完全一致
+- 关注思考过程和角度是否正确
+- 能自圆其说且有理有据即可给分
+- 个性化理解（与参考答案不同但合理）同样得分
+
+## 输出格式 (JSON)
+{
+  "score": 0-{{max_score}},
+  "covered_points": ["匹配到的参考要点"],
+  "missed_points": ["未覆盖的参考要点"],
+  "unique_insights": ["学生独特的见解"],
+  "feedback": "具体反馈"
+}
+```
+
 ---
 
 ## 8. 评估与知识追踪系统
@@ -1770,6 +1977,79 @@ def update_mastery(state: KnowledgeState, attempt: StudentAttempt):
     # 6. 更新等级
     state.mastery_level = classify_mastery(state.mastery)
     state.next_review = calculate_next_review(state)
+```
+
+### 8.1.1 语文作文掌握度模型
+
+作文不适用二元对错模型。采用**多维度独立追踪**：
+
+```python
+def update_composition_mastery(student_id: str, composition_result: dict):
+    """
+    作文掌握度：4个维度独立追踪
+    每个维度有自己的 mastery (0.0-1.0)
+    """
+    dimensions = {
+        "content": composition_result["content_score"] / 40,     # 0-40 → 0.0-1.0
+        "structure": composition_result["structure_score"] / 20, # 0-20 → 0.0-1.0
+        "language": composition_result["language_score"] / 30,   # 0-30 → 0.0-1.0
+    }
+    # 不追踪 handwriting（书写与打字无关）
+    
+    for dim_name, score in dimensions.items():
+        state = get_or_create_dimension_state(student_id, dim_name)
+        alpha = 0.25  # 较慢的学习速率（作文进步缓慢）
+        state.mastery = state.mastery + alpha * (score - state.mastery)
+        state.history.append({"score": score, "date": now()})
+    
+    # 综合掌握度 = 加权平均
+    overall = (
+        content_mastery * 0.4 +
+        structure_mastery * 0.2 +
+        language_mastery * 0.3
+    )
+    return overall
+```
+
+### 8.1.2 古诗词掌握度模型
+
+古诗词采用**分层追踪**，三个维度各自独立：
+
+| 维度 | 追踪方式 | 更新算法 |
+|------|---------|---------|
+| **背诵掌握度** | FSRS 二元模型 | 默写准确率 → is_correct → FSRS standard update |
+| **理解掌握度** | 渐进度模型 | 理解性填空/选择题 → 正确率 → EMA 更新 |
+| **赏析能力** | 等级制 | 赏析题评分 → 等级映射（入门/进阶/高级） |
+
+```python
+def update_poetry_mastery(student_id: str, poem_code: str, assessment: dict):
+    # 1. 背诵维度 — FSRS 二元
+    dictation_accuracy = assessment.get("dictation_accuracy", 0)
+    is_correct = dictation_accuracy >= 0.95  # 95%以上算"记住"
+    update_fsrs(student_id, poem_code + "#recite", is_correct)
+    
+    # 2. 理解维度 — EMA
+    understanding_score = assessment.get("understanding_score", 0)
+    state = get_understanding_state(student_id, poem_code)
+    alpha = 0.3
+    state.mastery = state.mastery + alpha * (understanding_score - state.mastery)
+    
+    # 3. 赏析维度 — 等级制
+    appreciation_score = assessment.get("appreciation_score", 0)
+    if appreciation_score >= 0.8:
+        state.appreciation_level = "advanced"
+    elif appreciation_score >= 0.5:
+        state.appreciation_level = "intermediate"
+    else:
+        state.appreciation_level = "beginner"
+    
+    # 综合（用于课程解锁判断）
+    overall = (
+        recite_mastery * 0.3 +
+        understanding_mastery * 0.4 +
+        appreciation_normalized * 0.3
+    )
+    return overall
 ```
 
 ### 8.2 自适应出题策略
@@ -1901,6 +2181,18 @@ def update_mastery(state: KnowledgeState, attempt: StudentAttempt):
 | **Tutor** | 强模型 | 核心教学对话, 苏格拉底式引导, 概念讲解 | RAG, GeoGebra, 代码执行, 计算器, TTS, Manim |
 | **Assessor** | 强模型 | 评分(数学/写作/口语), 错误诊断, 知识状态更新 | 代码执行, 评分rubric, ASR评分 |
 | **Curriculum** | 规则+快模型 | 课程调度, 出题推荐, 间隔重复安排, 进度追踪 | DB查询, FSRS算法 |
+
+### 9.2.1 学科教学策略差异
+
+| 学科 | AI 教学策略 | 给答案？ | 核心方法 |
+|------|-----------|---------|---------|
+| AMC 数学 | 苏格拉底式 | **永不** | 提问引导，让学生自己发现 |
+| KET 英语写作 | 范文+反馈 | 展示范文 | 示范→练习→反馈→修改 |
+| 语文作文 | **主动示范** | **必须给** | 展示范文/好句/技巧，鼓励模仿 |
+| 古诗词赏析 | 框架+引导 | 给赏析角度 | 展示思考框架，引导发现 |
+
+> ⚠️ **关键区别**：数学的"永远不给答案"策略如果用到作文上，效果比没有AI还差。
+> 作文学习的核心是**模仿**，AI 必须主动展示好的例子和技巧。
 
 ### 9.3 典型请求流程
 
