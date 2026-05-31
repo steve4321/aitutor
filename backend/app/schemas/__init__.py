@@ -3,6 +3,7 @@ from app.schemas.course import CourseResponse, LessonResponse, UnitResponse
 from app.schemas.problem import AttemptRequest, AttemptResponse, ProblemResponse
 from app.schemas.chat import ChatMessageRequest, ChatMessageResponse
 from app.schemas.report import DailyReport, WeeklyReport
+from app.schemas.session import SessionCreate, SessionResponse
 
 __all__ = [
     "UserCreate",
@@ -19,4 +20,6 @@ __all__ = [
     "ChatMessageResponse",
     "DailyReport",
     "WeeklyReport",
+    "SessionCreate",
+    "SessionResponse",
 ]
