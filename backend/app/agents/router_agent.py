@@ -53,7 +53,7 @@ def _rule_based_classify(message: str, request_type: str) -> dict:
         return {
             "intent": "assess",
             "target_agent": "assessor",
-            "subject": "amc_math",
+            "subject": None,
             "session_mode": "practice",
         }
 
@@ -66,14 +66,14 @@ def _rule_based_classify(message: str, request_type: str) -> dict:
             return {
                 "intent": intent,
                 "target_agent": target,
-                "subject": "amc_math",
+                "subject": None,
                 "session_mode": "practice",
             }
 
     return {
         "intent": "ask",
         "target_agent": "tutor",
-        "subject": "amc_math",
+        "subject": None,
         "session_mode": "practice",
     }
 
@@ -82,18 +82,21 @@ async def router_node(state: AgentState) -> dict:
     """Classify intent and route to appropriate agent."""
 
     if state.get("request_type") == "attempt":
-        return {
+        result = {
             "intent": "assess",
             "target_agent": "assessor",
-            "subject": (state.get("problem_data") or {}).get("subject", "amc_math"),
+            "subject": (state.get("problem_data") or {}).get("subject"),
             "session_mode": "practice",
         }
+        if not result["subject"]:
+            result["subject"] = _infer_subject(state, default="amc_math")
+        return result
 
     if state.get("request_type") == "session_init":
         return {
             "intent": "manage",
             "target_agent": "curriculum",
-            "subject": "amc_math",
+            "subject": _infer_subject(state, default="amc_math"),
             "session_mode": "practice",
         }
 
@@ -109,13 +112,34 @@ async def router_node(state: AgentState) -> dict:
             ]
             response = await llm.ainvoke(messages)
             result = json.loads(response.content)
-            return {
+            routed = {
                 "intent": result.get("intent", "ask"),
                 "target_agent": result.get("target_agent", "tutor"),
-                "subject": result.get("subject", "amc_math"),
+                "subject": result.get("subject") or None,
                 "session_mode": result.get("session_mode", "practice"),
             }
+            if not routed["subject"]:
+                routed["subject"] = _infer_subject(state, default="amc_math")
+            return routed
         except Exception:
-            logger.warning("LLM router failed, falling back to rules")
+            logger.error("LLM router failed, falling back to rules", exc_info=True)
 
-    return _rule_based_classify(user_message, request_type)
+    fallback = _rule_based_classify(user_message, request_type)
+    if not fallback["subject"]:
+        fallback["subject"] = _infer_subject(state, default="amc_math")
+    return fallback
+
+
+def _infer_subject(state: AgentState, default: str = "amc_math") -> str:
+    """Try to infer subject from student profile or enrolled courses."""
+    student = state.get("student") or {}
+    target_exam = student.get("target_exam")
+    exam_to_subject = {
+        "AMC8": "amc_math",
+        "AMC10": "amc_math",
+        "AMC12": "amc_math",
+        "KET": "ket_english",
+    }
+    if target_exam and target_exam in exam_to_subject:
+        return exam_to_subject[target_exam]
+    return default

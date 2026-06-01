@@ -5,6 +5,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from app.agents.llm import get_llm, is_llm_available
 from app.agents.prompts import get_system_prompt
 from app.agents.state import AgentState
+from app.agents.constants import MasteryConstants
 
 
 async def assessor_node(state: AgentState) -> dict:
@@ -117,7 +118,7 @@ def _build_knowledge_update(
 
     return {
         "knowledge_point_id": kp_ids[0] if kp_ids else None,
-        "mastery_delta": 0.3 if is_correct else -0.15,
+        "mastery_delta": MasteryConstants.INCREMENT_CORRECT if is_correct else -MasteryConstants.DECREMENT_INCORRECT,
         "is_correct": is_correct,
         "hint_level_used": state.get("hint_level", 0),
         "error_type": error_type,

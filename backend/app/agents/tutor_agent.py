@@ -26,7 +26,20 @@ async def tutor_node(state: AgentState) -> dict:
     mode_map = {
         ("amc_math", "practice"): "math_socratic",
         ("amc_math", "course"): "math_course",
+        ("amc_math", "review"): "math_socratic",
+        ("amc_math", "diagnostic"): "math_socratic",
+        ("ket_english", "course"): "ket_writing",
+        ("ket_english", "practice"): "math_socratic",
+        ("ket_english", "review"): "math_socratic",
+        ("ket_english", "diagnostic"): "ket_writing",
+        ("chn_composition", "course"): "chn_writing",
+        ("chn_composition", "practice"): "chn_writing",
+        ("chn_composition", "review"): "chn_writing",
+        ("chn_composition", "diagnostic"): "chn_writing",
         ("chn_poetry", "course"): "poetry_teaching",
+        ("chn_poetry", "practice"): "poetry_scoring",
+        ("chn_poetry", "review"): "poetry_teaching",
+        ("chn_poetry", "diagnostic"): "poetry_scoring",
     }
     prompt_key = mode_map.get((subject, session_mode), "math_socratic")
 
@@ -54,6 +67,11 @@ async def tutor_node(state: AgentState) -> dict:
     messages.append(HumanMessage(content=state.get("user_message", "")))
 
     llm = get_llm("strong")
+    if llm is None:
+        return {
+            "agent_response": get_fallback_response(state.get("intent", "learn")),
+            "model_used": "none",
+        }
     response = await llm.ainvoke(messages)
 
     return {

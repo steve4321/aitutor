@@ -25,6 +25,18 @@ async def load_student_context(db: AsyncSession, student_id: UUID) -> dict:
 
     user, profile = row
 
+    if profile is None:
+        return {
+            "student_id": student_id,
+            "name": user.name,
+            "grade_level": None,
+            "target_exam": None,
+            "preferred_lang": "zh-CN",
+            "diagnostic_done": False,
+            "mastered_kps": [],
+            "weak_areas": [],
+        }
+
     # Load knowledge states with KP info
     kp_result = await db.execute(
         select(KnowledgeState, KnowledgePoint)
