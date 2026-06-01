@@ -13,16 +13,28 @@ class ApiError extends Error {
   }
 }
 
+class AuthError extends ApiError {
+  constructor(message: string, data?: unknown) {
+    super(message, 401, data);
+    this.name = 'AuthError';
+  }
+}
+
+interface RequestOptions extends Omit<RequestInit, 'signal'> {
+  signal?: AbortSignal;
+}
+
 async function request<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestOptions = {}
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
   const token = getToken();
+  const { signal, ...restOptions } = options;
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...(options.headers as Record<string, string>),
+    ...(restOptions.headers as Record<string, string>),
   };
 
   if (token) {
@@ -30,16 +42,14 @@ async function request<T>(
   }
 
   const response = await fetch(url, {
-    ...options,
+    ...restOptions,
     headers,
+    signal,
   });
 
   if (!response.ok) {
     if (response.status === 401) {
       clearTokens();
-      if (typeof window !== 'undefined') {
-        window.location.href = '/login';
-      }
     }
 
     let errorData: unknown;
@@ -47,6 +57,13 @@ async function request<T>(
       errorData = await response.json();
     } catch {
       errorData = await response.text();
+    }
+
+    if (response.status === 401) {
+      throw new AuthError(
+        `Authentication required: ${response.statusText}`,
+        errorData
+      );
     }
 
     throw new ApiError(
@@ -64,38 +81,41 @@ async function request<T>(
 }
 
 export const api = {
-  get<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
+  get<T>(endpoint: string, params?: Record<string, string>, options?: RequestOptions): Promise<T> {
     const searchParams = params
       ? `?${new URLSearchParams(params).toString()}`
       : '';
-    return request<T>(`${endpoint}${searchParams}`);
+    return request<T>(`${endpoint}${searchParams}`, options);
   },
 
-  post<T>(endpoint: string, body?: unknown): Promise<T> {
+  post<T>(endpoint: string, body?: unknown, options?: RequestOptions): Promise<T> {
     return request<T>(endpoint, {
+      ...options,
       method: 'POST',
       body: body ? JSON.stringify(body) : undefined,
     });
   },
 
-  put<T>(endpoint: string, body?: unknown): Promise<T> {
+  put<T>(endpoint: string, body?: unknown, options?: RequestOptions): Promise<T> {
     return request<T>(endpoint, {
+      ...options,
       method: 'PUT',
       body: body ? JSON.stringify(body) : undefined,
     });
   },
 
-  patch<T>(endpoint: string, body?: unknown): Promise<T> {
+  patch<T>(endpoint: string, body?: unknown, options?: RequestOptions): Promise<T> {
     return request<T>(endpoint, {
+      ...options,
       method: 'PATCH',
       body: body ? JSON.stringify(body) : undefined,
     });
   },
 
-  delete<T>(endpoint: string): Promise<T> {
-    return request<T>(endpoint, { method: 'DELETE' });
+  delete<T>(endpoint: string, options?: RequestOptions): Promise<T> {
+    return request<T>(endpoint, { ...options, method: 'DELETE' });
   },
 };
 
-export { ApiError };
+export { ApiError, AuthError };
 export default api;
