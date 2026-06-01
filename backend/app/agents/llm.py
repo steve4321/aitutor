@@ -40,6 +40,8 @@ def get_llm(tier: str = "strong") -> ChatOpenAI | None:
         "api_key": settings.OPENAI_API_KEY,
         "temperature": settings.LLM_TEMPERATURE_STRONG if tier == "strong" else settings.LLM_TEMPERATURE_FAST,
         "max_tokens": settings.LLM_MAX_TOKENS,
+        "timeout": 30.0,
+        "max_retries": 2,
     }
     if settings.LLM_BASE_URL:
         kwargs["base_url"] = settings.LLM_BASE_URL

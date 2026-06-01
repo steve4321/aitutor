@@ -110,6 +110,10 @@ async def _handle_general(state, knowledge_states, student) -> dict:
     user_msg = state.get("user_message", "Show my progress")
 
     llm = get_llm("fast")
+    if llm is None:
+        return {
+            "agent_response": "Curriculum features require an internet connection.",
+        }
     messages = [
         SystemMessage(content=f"You are a learning progress assistant.\n\nStudent progress:\n{summary}"),
         HumanMessage(content=user_msg),

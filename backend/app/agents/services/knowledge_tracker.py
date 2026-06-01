@@ -16,6 +16,7 @@ from app.agents.services.fsrs import (
     initial_difficulty,
     initial_stability,
 )
+from app.agents.constants import MasteryConstants
 
 
 def update_mastery(
@@ -26,18 +27,18 @@ def update_mastery(
     problem_difficulty: int | None = None,
 ) -> float:
     """Calculate new mastery based on attempt result (§8.1 system-design.md)."""
-    alpha = 0.3
+    alpha = MasteryConstants.INCREMENT_CORRECT
 
     if is_correct:
         new_mastery = current_mastery + alpha * (1.0 - current_mastery)
     else:
-        new_mastery = current_mastery * (1.0 - alpha * 0.5)
+        new_mastery = current_mastery * (1.0 - MasteryConstants.DECREMENT_INCORRECT * (1.0 / MasteryConstants.INCREMENT_CORRECT))
 
     if problem_difficulty and is_correct:
-        bonus = max(0, (problem_difficulty - 5) * 0.02)
+        bonus = max(0, (problem_difficulty - MasteryConstants.DIFFICULTY_BONUS_THRESHOLD) * MasteryConstants.DIFFICULTY_BONUS_MULTIPLIER)
         new_mastery += bonus
 
-    hint_penalty = hint_level * 0.05
+    hint_penalty = hint_level * MasteryConstants.HINT_PENALTY_PER_LEVEL
     new_mastery -= hint_penalty
 
     return max(0.0, min(1.0, new_mastery))

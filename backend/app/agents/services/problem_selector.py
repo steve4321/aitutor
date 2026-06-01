@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.problem import Problem
 from app.models.learning import StudentAttempt
+from app.agents.constants import SelectionConstants
 
 
 async def select_next_problem(
@@ -37,7 +38,7 @@ async def select_next_problem(
             if nr <= now:
                 due_kp_ids.append(ks["knowledge_point_id"])
 
-    target_difficulty = 3
+    target_difficulty = SelectionConstants.DEFAULT_TARGET_DIFFICULTY
     active_kp_ids = []
     if not due_kp_ids:
         active_states = sorted(
@@ -59,7 +60,7 @@ async def select_next_problem(
         min(10, target_difficulty + 1),
     ))
 
-    seven_days_ago = now - timedelta(days=7)
+    seven_days_ago = now - timedelta(days=SelectionConstants.RECENT_PROBLEM_EXCLUSION_DAYS)
     recent_subquery = (
         select(StudentAttempt.problem_id)
         .where(

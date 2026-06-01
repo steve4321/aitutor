@@ -75,9 +75,8 @@ async def _response_node(state: AgentState) -> dict:
 
             await db.commit()
     except Exception as e:
-        logger.error(f"Failed to persist response: {e}")
-
-    return {}
+        logger.error(f"Failed to persist response: {e}", exc_info=True)
+        return {"error": str(e)}
 
 
 def build_graph():
