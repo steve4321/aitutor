@@ -43,3 +43,13 @@ app.include_router(api_router)
 @app.get("/health")
 async def health_check():
     return {"status": "ok"}
+
+
+@app.get("/")
+async def root():
+    return {
+        "name": "AI Tutor API",
+        "version": "0.1.0",
+        "docs": "/docs",
+        "health": "/health",
+    }
