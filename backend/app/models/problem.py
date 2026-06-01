@@ -1,6 +1,6 @@
 from uuid import UUID, uuid4
 
-from sqlalchemy import ForeignKey, Integer, SmallInteger, String, Text
+from sqlalchemy import ForeignKey, Index, Integer, SmallInteger, String, Text
 from sqlalchemy import JSON as JSONB, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -9,6 +9,9 @@ from app.models.base import Base
 
 class Problem(Base):
     __tablename__ = "problems"
+    __table_args__ = (
+        Index("ix_problems_subject_difficulty", "subject", "difficulty"),
+    )
 
     id: Mapped[UUID] = mapped_column(
         Uuid(), primary_key=True, default=uuid4
@@ -39,7 +42,8 @@ class Problem(Base):
     embedding: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     solutions: Mapped[list["ProblemSolution"]] = relationship(
-        "ProblemSolution", back_populates="problem"
+        "ProblemSolution", back_populates="problem",
+        cascade="all, delete-orphan",
     )
 
 
@@ -50,7 +54,7 @@ class ProblemSolution(Base):
         Uuid(), primary_key=True, default=uuid4
     )
     problem_id: Mapped[UUID] = mapped_column(
-        Uuid(), ForeignKey("problems.id")
+        Uuid(), ForeignKey("problems.id", ondelete="CASCADE")
     )
     method_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
     solution_markdown: Mapped[str] = mapped_column(Text, nullable=False)

@@ -23,7 +23,9 @@ class Course(Base):
     )
     is_published: Mapped[bool] = mapped_column(Boolean, default=False)
 
-    units: Mapped[list["Unit"]] = relationship("Unit", back_populates="course")
+    units: Mapped[list["Unit"]] = relationship(
+        "Unit", back_populates="course", cascade="all, delete-orphan",
+    )
 
 
 class Unit(Base):
@@ -33,7 +35,7 @@ class Unit(Base):
         Uuid(), primary_key=True, default=uuid4
     )
     course_id: Mapped[UUID] = mapped_column(
-        Uuid(), ForeignKey("courses.id")
+        Uuid(), ForeignKey("courses.id", ondelete="CASCADE")
     )
     code: Mapped[str | None] = mapped_column(String(50), nullable=True)
     name: Mapped[str] = mapped_column(String(200), nullable=False)
@@ -42,7 +44,9 @@ class Unit(Base):
     required_mastery: Mapped[float] = mapped_column(default=0.8)
 
     course: Mapped["Course"] = relationship("Course", back_populates="units")
-    lessons: Mapped[list["Lesson"]] = relationship("Lesson", back_populates="unit")
+    lessons: Mapped[list["Lesson"]] = relationship(
+        "Lesson", back_populates="unit", cascade="all, delete-orphan",
+    )
 
 
 class Lesson(Base):
@@ -52,10 +56,10 @@ class Lesson(Base):
         Uuid(), primary_key=True, default=uuid4
     )
     unit_id: Mapped[UUID] = mapped_column(
-        Uuid(), ForeignKey("units.id")
+        Uuid(), ForeignKey("units.id", ondelete="CASCADE")
     )
     knowledge_point_id: Mapped[UUID | None] = mapped_column(
-        Uuid(), ForeignKey("knowledge_points.id"), nullable=True
+        Uuid(), ForeignKey("knowledge_points.id", ondelete="SET NULL"), nullable=True
     )
     code: Mapped[str | None] = mapped_column(String(50), nullable=True)
     title: Mapped[str] = mapped_column(String(200), nullable=False)

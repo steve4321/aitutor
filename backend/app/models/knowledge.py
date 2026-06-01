@@ -30,7 +30,7 @@ class KnowledgePoint(Base):
     )
     amc_level: Mapped[int] = mapped_column(SmallInteger, nullable=False, default=8)
     lesson_id: Mapped[UUID | None] = mapped_column(
-        Uuid(), nullable=True
+        Uuid(), ForeignKey("lessons.id", ondelete="SET NULL", use_alter=True), nullable=True
     )
     sort_order: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
     estimated_minutes: Mapped[int | None] = mapped_column(
@@ -44,11 +44,13 @@ class KnowledgePoint(Base):
         "KnowledgeDependency",
         foreign_keys="KnowledgeDependency.target_id",
         back_populates="target",
+        cascade="all, delete-orphan",
     )
     dependents: Mapped[list["KnowledgeDependency"]] = relationship(
         "KnowledgeDependency",
         foreign_keys="KnowledgeDependency.prerequisite_id",
         back_populates="prerequisite",
+        cascade="all, delete-orphan",
     )
 
 
@@ -64,10 +66,10 @@ class KnowledgeDependency(Base):
         Uuid(), primary_key=True, default=uuid4
     )
     prerequisite_id: Mapped[UUID] = mapped_column(
-        Uuid(), ForeignKey("knowledge_points.id")
+        Uuid(), ForeignKey("knowledge_points.id", ondelete="CASCADE")
     )
     target_id: Mapped[UUID] = mapped_column(
-        Uuid(), ForeignKey("knowledge_points.id")
+        Uuid(), ForeignKey("knowledge_points.id", ondelete="CASCADE")
     )
     dependency_type: Mapped[str] = mapped_column(
         String(20), default="requires"

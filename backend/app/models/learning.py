@@ -7,6 +7,7 @@ from uuid import UUID, uuid4
 from sqlalchemy import (
     Float,
     ForeignKey,
+    Index,
     Integer,
     SmallInteger,
     String,
@@ -25,16 +26,18 @@ class KnowledgeState(Base):
         UniqueConstraint(
             "student_id", "knowledge_point_id", name="uq_student_kp"
         ),
+        Index("ix_ks_student_id", "student_id"),
+        Index("ix_ks_knowledge_point_id", "knowledge_point_id"),
     )
 
     id: Mapped[UUID] = mapped_column(
         Uuid(), primary_key=True, default=uuid4
     )
     student_id: Mapped[UUID] = mapped_column(
-        Uuid(), ForeignKey("users.id")
+        Uuid(), ForeignKey("users.id", ondelete="CASCADE")
     )
     knowledge_point_id: Mapped[UUID] = mapped_column(
-        Uuid(), ForeignKey("knowledge_points.id")
+        Uuid(), ForeignKey("knowledge_points.id", ondelete="CASCADE")
     )
     mastery: Mapped[float] = mapped_column(Float, default=0)
     mastery_level: Mapped[str] = mapped_column(String(20), default="not_started")
@@ -51,17 +54,20 @@ class KnowledgeState(Base):
 
 class LearningSession(Base):
     __tablename__ = "learning_sessions"
+    __table_args__ = (
+        Index("ix_ls_student_id", "student_id"),
+    )
 
     id: Mapped[UUID] = mapped_column(
         Uuid(), primary_key=True, default=uuid4
     )
     student_id: Mapped[UUID] = mapped_column(
-        Uuid(), ForeignKey("users.id")
+        Uuid(), ForeignKey("users.id", ondelete="CASCADE")
     )
     session_type: Mapped[str] = mapped_column(String(30), nullable=False)
     subject: Mapped[str] = mapped_column(String(20), nullable=False)
     knowledge_point_id: Mapped[UUID | None] = mapped_column(
-        Uuid(), ForeignKey("knowledge_points.id"), nullable=True
+        Uuid(), ForeignKey("knowledge_points.id", ondelete="SET NULL"), nullable=True
     )
     started_at: Mapped[datetime] = mapped_column(nullable=False)
     ended_at: Mapped[datetime | None] = mapped_column(nullable=True)
@@ -74,27 +80,34 @@ class LearningSession(Base):
     summary: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     attempts: Mapped[list["StudentAttempt"]] = relationship(
-        "StudentAttempt", back_populates="session"
+        "StudentAttempt", back_populates="session",
+        cascade="all, delete-orphan",
     )
     messages: Mapped[list["Message"]] = relationship(
-        "Message", back_populates="session"
+        "Message", back_populates="session",
+        cascade="all, delete-orphan",
     )
 
 
 class StudentAttempt(Base):
     __tablename__ = "student_attempts"
+    __table_args__ = (
+        Index("ix_sa_student_id", "student_id"),
+        Index("ix_sa_session_id", "session_id"),
+        Index("ix_sa_problem_id", "problem_id"),
+    )
 
     id: Mapped[UUID] = mapped_column(
         Uuid(), primary_key=True, default=uuid4
     )
     session_id: Mapped[UUID] = mapped_column(
-        Uuid(), ForeignKey("learning_sessions.id")
+        Uuid(), ForeignKey("learning_sessions.id", ondelete="CASCADE")
     )
     student_id: Mapped[UUID] = mapped_column(
-        Uuid(), ForeignKey("users.id")
+        Uuid(), ForeignKey("users.id", ondelete="CASCADE")
     )
     problem_id: Mapped[UUID] = mapped_column(
-        Uuid(), ForeignKey("problems.id")
+        Uuid(), ForeignKey("problems.id", ondelete="CASCADE")
     )
     answer: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_correct: Mapped[bool | None] = mapped_column(nullable=True)
