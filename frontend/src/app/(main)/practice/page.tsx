@@ -50,8 +50,8 @@ export default function PracticePage() {
         if (res.length > 0) {
           setSelectedCourseId(res[0].id);
         }
-      } catch (err) {
-        console.error('Failed to fetch courses:', err);
+      } catch {
+        // silently ignore
       } finally {
         setLoading(false);
       }
@@ -71,8 +71,8 @@ export default function PracticePage() {
         ]);
         setUnits(unitsRes);
         setLessons(lessonsRes);
-      } catch (err) {
-        console.error('Failed to fetch course content:', err);
+      } catch {
+        // silently ignore
       }
     };
     fetchUnitsAndLessons();
@@ -102,7 +102,7 @@ export default function PracticePage() {
   }, 0);
 
   const handleStartPractice = () => {
-    console.log('Starting practice:', { courseId: selectedCourseId, selectedUnits, totalLessons });
+    // TODO: implement practice start
   };
 
   if (loading) {

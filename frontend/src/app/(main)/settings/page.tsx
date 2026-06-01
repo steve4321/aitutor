@@ -42,7 +42,7 @@ export default function SettingsPage() {
   };
 
   const handleLogout = () => {
-    console.log('Logging out...');
+    // TODO: implement logout
   };
 
   return (

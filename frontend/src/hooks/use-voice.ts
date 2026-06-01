@@ -38,8 +38,8 @@ export function useVoice() {
       mediaRecorderRef.current = mediaRecorder;
       mediaRecorder.start();
       setState((prev) => ({ ...prev, isRecording: true }));
-    } catch (error) {
-      console.error('Failed to start recording:', error);
+    } catch {
+      // silently ignore
     }
   }, []);
 
@@ -59,8 +59,7 @@ export function useVoice() {
         setState((prev) => ({ ...prev, isPlaying: false }));
       };
       await audio.play();
-    } catch (error) {
-      console.error('Failed to play audio:', error);
+    } catch {
       setState((prev) => ({ ...prev, isPlaying: false }));
     }
   }, []);

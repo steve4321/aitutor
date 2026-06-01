@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { ChatPanel } from '@/components/chat/chat-panel';
 import { ChatInput } from '@/components/chat/chat-input';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Clock, BookOpen } from 'lucide-react';
+import { ArrowLeft, Clock, BookOpen, AlertCircle } from 'lucide-react';
 import { api } from '@/lib/api';
 
 interface Lesson {
@@ -33,11 +33,13 @@ export default function LessonPage() {
   const [loading, setLoading] = useState(true);
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [course, setCourse] = useState<Course | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setLoading(true);
     setLesson(null);
     setCourse(null);
+    setError(null);
 
     const fetchData = async () => {
       try {
@@ -47,8 +49,8 @@ export default function LessonPage() {
         ]);
         setLesson(lessonRes);
         setCourse(courseRes);
-      } catch (err) {
-        console.error('Failed to fetch lesson:', err);
+      } catch {
+        setError('加载课程失败，请稍后重试');
       } finally {
         setLoading(false);
       }
@@ -62,6 +64,27 @@ export default function LessonPage() {
         <div className="h-6 w-32 bg-muted rounded animate-pulse" />
         <div className="h-40 bg-muted rounded-xl animate-pulse" />
         <div className="h-64 bg-muted rounded-xl animate-pulse" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+        <p className="text-muted-foreground">{error}</p>
+        <button
+          onClick={() => {
+            setError(null);
+            setLoading(true);
+          }}
+          className="mt-4 text-[var(--color-primary)] hover:underline"
+        >
+          重试
+        </button>
+        <button onClick={() => router.back()} className="mt-2 block mx-auto text-muted-foreground hover:underline">
+          返回
+        </button>
       </div>
     );
   }
@@ -114,7 +137,7 @@ export default function LessonPage() {
         </Card>
 
         <ChatPanel messages={[]} className="h-64 rounded-xl border border-border bg-muted/50" />
-        <ChatInput onSend={(msg) => console.log(msg)} />
+        <ChatInput onSend={() => {}} />
 
         <div className="flex gap-3">
           <Button variant="outline" className="flex-1" onClick={() => router.push(`/courses/${courseId}`)}>返回课程</Button>
