@@ -13,12 +13,14 @@ class Settings(BaseSettings):
     DISABLE_REDIS: bool = True  # Set False when Redis is available
     SECRET_KEY: str = "change-me-in-production"
     OPENAI_API_KEY: str = ""
+
     ENVIRONMENT: str = "development"
     CORS_ORIGINS: list[str] = ["http://localhost:3000"]
 
     # LLM Configuration
-    STRONG_MODEL: str = "gpt-4o"
-    FAST_MODEL: str = "gpt-4o-mini"
+    LLM_BASE_URL: str = ""  # DeepSeek: https://api.deepseek.com
+    STRONG_MODEL: str = "deepseek-v4-flash"
+    FAST_MODEL: str = "deepseek-v4-flash"
     LLM_MAX_TOKENS: int = 1024
     LLM_TEMPERATURE_STRONG: float = 0.7
     LLM_TEMPERATURE_FAST: float = 0.1
