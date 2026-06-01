@@ -46,7 +46,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-800">
+    <div className="space-y-6">
       <div className="mx-auto max-w-2xl px-4 py-8">
         <header className="mb-8">
           <div className="flex items-center gap-3">
