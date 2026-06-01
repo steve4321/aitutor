@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { isAuthenticated } from '@/lib/auth';
 import { ROUTES } from '@/lib/constants';
 import { cn } from '@/lib/utils';
+import { ErrorBoundary } from '@/components/error-boundary';
 const NAV_ITEMS = [
   { href: '/home', label: 'Home', icon: 'home' },
   { href: '/courses', label: 'Courses', icon: 'courses' },
@@ -97,7 +98,9 @@ export default function MainLayout({
       </header>
 
       <main className="flex-1 px-4 py-6 pb-20 md:pb-6">
-        {children}
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
       </main>
 
       <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50">
