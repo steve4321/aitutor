@@ -1,8 +1,9 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useAuthStore } from '@/stores/auth-store';
 import { api } from '@/lib/api';
-import { setToken, setRefreshToken, clearTokens } from '@/lib/auth';
+import { setToken, setRefreshToken, clearTokens, getToken } from '@/lib/auth';
 import type { User, StudentProfile } from '@/types/user';
 import type { LoginRequest, LoginResponse, RegisterRequest } from '@/types/api';
 
@@ -15,14 +16,52 @@ export function useAuth() {
     login,
     logout,
     setLoading,
+    setUser,
   } = useAuthStore();
+
+  useEffect(() => {
+    let isMounted = true;
+    const controller = new AbortController();
+
+    const fetchUser = async () => {
+      const token = getToken();
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const userData = await api.get<User>('/auth/me', undefined, { signal: controller.signal });
+        if (isMounted) {
+          try {
+            const profileData = await api.get<StudentProfile>(`/students/${userData.id}/profile`, undefined, { signal: controller.signal });
+            if (isMounted) login(userData, profileData);
+          } catch {
+            if (isMounted) login(userData, null as unknown as StudentProfile);
+          }
+        }
+      } catch {
+        if (isMounted) {
+          clearTokens();
+          logout();
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchUser();
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
+  }, []);
 
   const signIn = async (credentials: LoginRequest) => {
     setLoading(true);
     try {
       const response = await api.post<LoginResponse>('/auth/login', credentials);
       setToken(response.access_token);
-
 
       const userData = await api.get<User>('/auth/me');
       const profileData = await api.get<StudentProfile>(`/students/${userData.id}/profile`);
