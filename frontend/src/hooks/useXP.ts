@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { StudentProfile } from "@/types/user";
-import { useAuthStore } from "@/stores/authStore";
+import { useAuthStore } from '@/stores/auth-store';
 
 interface XPData {
   xp: number;
@@ -28,7 +28,7 @@ function calculateDailyGoalProgress(
 }
 
 export function useXP() {
-  const { token } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const [xpData, setXpData] = useState<XPData>({
     xp: 0,
     level: 1,
@@ -39,7 +39,7 @@ export function useXP() {
   const [loading, setLoading] = useState(false);
 
   const fetchXPData = useCallback(async () => {
-    if (!token) return;
+    if (!isAuthenticated) return;
 
     setLoading(true);
     try {
@@ -61,10 +61,10 @@ export function useXP() {
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [isAuthenticated]);
 
   useEffect(() => {
-    if (token) {
+    if (isAuthenticated) {
       setLoading(true);
       api.get<StudentProfile>("/users/me/profile").then((profile) => {
         setXpData({
@@ -78,7 +78,7 @@ export function useXP() {
         setLoading(false);
       });
     }
-  }, [token]);
+  }, [isAuthenticated]);
 
   return {
     ...xpData,
