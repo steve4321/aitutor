@@ -19,6 +19,9 @@ from app.models.base import Base
 
 class User(Base):
     __tablename__ = "users"
+    __table_args__ = (
+        UniqueConstraint("name", name="uq_users_name"),
+    )
 
     email: Mapped[str | None] = mapped_column(
         String(255), unique=True, nullable=True
@@ -34,13 +37,16 @@ class User(Base):
     avatar_url: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     profile: Mapped["StudentProfile | None"] = relationship(
-        "StudentProfile", back_populates="user", uselist=False
+        "StudentProfile", back_populates="user", uselist=False,
+        cascade="all, delete-orphan",
     )
     parent_links: Mapped[list["ParentLink"]] = relationship(
-        "ParentLink", foreign_keys="ParentLink.parent_id", back_populates="parent"
+        "ParentLink", foreign_keys="ParentLink.parent_id", back_populates="parent",
+        cascade="all, delete-orphan",
     )
     student_links: Mapped[list["ParentLink"]] = relationship(
-        "ParentLink", foreign_keys="ParentLink.student_id", back_populates="student"
+        "ParentLink", foreign_keys="ParentLink.student_id", back_populates="student",
+        cascade="all, delete-orphan",
     )
 
 
@@ -52,7 +58,7 @@ class StudentProfile(Base):
         Uuid(), primary_key=True, default=uuid4
     )
     user_id: Mapped[UUID] = mapped_column(
-        Uuid(), ForeignKey("users.id"), unique=True
+        Uuid(), ForeignKey("users.id", ondelete="CASCADE"), unique=True
     )
     grade_level: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
     target_exam: Mapped[str | None] = mapped_column(
@@ -89,10 +95,10 @@ class ParentLink(Base):
         Uuid(), primary_key=True, default=uuid4
     )
     parent_id: Mapped[UUID] = mapped_column(
-        Uuid(), ForeignKey("users.id")
+        Uuid(), ForeignKey("users.id", ondelete="CASCADE")
     )
     student_id: Mapped[UUID] = mapped_column(
-        Uuid(), ForeignKey("users.id")
+        Uuid(), ForeignKey("users.id", ondelete="CASCADE")
     )
     relation: Mapped[str | None] = mapped_column(String(20), nullable=True)
     notify_settings: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
