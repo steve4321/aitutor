@@ -31,4 +31,9 @@ async def update_lesson_progress(lesson_id: UUID, db: DbSession):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Lesson not found",
         )
-    return {"status": "ok"}
+    return {
+        "lesson_id": str(lesson.id),
+        "title": lesson.title,
+        "progress": "in_progress",
+        "status": "ok",
+    }
