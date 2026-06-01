@@ -1,0 +1,11 @@
+import { ReactElement } from 'react';
+import { render, RenderOptions } from '@testing-library/react';
+
+export function renderWithProviders(
+  ui: ReactElement,
+  options?: Omit<RenderOptions, 'wrapper'>,
+) {
+  return render(ui, { ...options });
+}
+
+export { screen, waitFor, fireEvent } from '@testing-library/react';
