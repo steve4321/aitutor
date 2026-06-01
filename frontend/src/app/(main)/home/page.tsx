@@ -13,11 +13,14 @@ interface User {
   streak: number;
 }
 
-interface NextLesson {
+interface UserMeResponse {
   id: string;
-  title: string;
-  course_name: string;
-  progress: number;
+  name: string;
+}
+
+interface ProfileResponse {
+  xp_total: number;
+  streak_days: number;
 }
 
 function StatCard({ icon: Icon, label, value, color }: { icon: typeof Flame; label: string; value: string | number; color: string }) {
@@ -48,17 +51,19 @@ export default function HomePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
-  const [nextLesson, setNextLesson] = useState<NextLesson | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [userRes, lessonRes] = await Promise.all([
-          api.get<User>('/users/me'),
-          api.get<NextLesson>('/learning/next-lesson'),
+        const [userRes, profileRes] = await Promise.all([
+          api.get<UserMeResponse>('/users/me'),
+          api.get<ProfileResponse>('/users/me/profile'),
         ]);
-        setUser(userRes);
-        setNextLesson(lessonRes);
+        setUser({
+          display_name: userRes.name,
+          xp: profileRes.xp_total,
+          streak: profileRes.streak_days,
+        });
       } catch (err) {
         console.error('Failed to fetch dashboard data:', err);
       } finally {
@@ -90,33 +95,6 @@ export default function HomePage() {
           </>
         )}
       </div>
-
-      {nextLesson && (
-        <div className="bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] rounded-xl p-4 text-white">
-          <div className="flex items-center gap-2 text-white/80 text-sm mb-2">
-            <BookOpen className="w-4 h-4" />
-            <span>Continue Learning</span>
-          </div>
-          <h3 className="font-semibold mb-1">{nextLesson.title}</h3>
-          <p className="text-white/80 text-sm mb-3">{nextLesson.course_name}</p>
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-2 bg-white/20 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-white rounded-full transition-all"
-                style={{ width: `${nextLesson.progress}%` }}
-              />
-            </div>
-            <span className="text-sm font-medium">{nextLesson.progress}%</span>
-          </div>
-          <button
-            onClick={() => router.push(`${ROUTES.COURSES}/${nextLesson.id}`)}
-            className="mt-4 w-full py-2.5 bg-white text-[var(--color-primary)] font-medium rounded-lg flex items-center justify-center gap-2 hover:bg-white/90 transition-colors"
-          >
-            <Play className="w-4 h-4" />
-            Continue
-          </button>
-        </div>
-      )}
 
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-3">Quick Actions</h2>
