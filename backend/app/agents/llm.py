@@ -35,12 +35,16 @@ def get_llm(tier: str = "strong") -> ChatOpenAI | None:
     }
     model = model_map.get(tier, settings.STRONG_MODEL)
 
-    return ChatOpenAI(
-        model=model,
-        api_key=settings.OPENAI_API_KEY,
-        temperature=settings.LLM_TEMPERATURE_STRONG if tier == "strong" else settings.LLM_TEMPERATURE_FAST,
-        max_tokens=settings.LLM_MAX_TOKENS,
-    )
+    kwargs = {
+        "model": model,
+        "api_key": settings.OPENAI_API_KEY,
+        "temperature": settings.LLM_TEMPERATURE_STRONG if tier == "strong" else settings.LLM_TEMPERATURE_FAST,
+        "max_tokens": settings.LLM_MAX_TOKENS,
+    }
+    if settings.LLM_BASE_URL:
+        kwargs["base_url"] = settings.LLM_BASE_URL
+
+    return ChatOpenAI(**kwargs)
 
 
 def get_fallback_response(intent: str) -> str:
