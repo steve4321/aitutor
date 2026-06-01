@@ -22,7 +22,7 @@ export function useAuth() {
     try {
       const response = await api.post<LoginResponse>('/auth/login', credentials);
       setToken(response.access_token);
-      setRefreshToken(response.refresh_token);
+
 
       const userData = await api.get<User>('/auth/me');
       const profileData = await api.get<StudentProfile>(`/students/${userData.id}/profile`);
