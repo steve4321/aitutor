@@ -53,24 +53,34 @@ export default function HomePage() {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
+    const controller = new AbortController();
+    let isMounted = true;
+
     const fetchData = async () => {
       try {
         const [userRes, profileRes] = await Promise.all([
-          api.get<UserMeResponse>('/users/me'),
-          api.get<ProfileResponse>('/users/me/profile'),
+          api.get<UserMeResponse>('/users/me', undefined, { signal: controller.signal }),
+          api.get<ProfileResponse>('/users/me/profile', undefined, { signal: controller.signal }),
         ]);
-        setUser({
-          display_name: userRes.name,
-          xp: profileRes.xp_total,
-          streak: profileRes.streak_days,
-        });
-      } catch (err) {
-        console.error('Failed to fetch dashboard data:', err);
+        if (isMounted) {
+          setUser({
+            display_name: userRes.name,
+            xp: profileRes.xp_total,
+            streak: profileRes.streak_days,
+          });
+        }
+      } catch {
+        // silently ignore
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
     fetchData();
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
   }, []);
 
   return (

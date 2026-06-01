@@ -58,8 +58,8 @@ export default function CoursesPage() {
 
         const res = await api.get<Course[]>(`/courses?${params.toString()}`);
         setCourses(res);
-      } catch (err) {
-        console.error('Failed to fetch courses:', err);
+      } catch {
+        // silently ignore
       } finally {
         setLoading(false);
       }

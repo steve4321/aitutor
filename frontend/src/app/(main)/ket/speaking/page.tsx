@@ -55,6 +55,7 @@ export default function SpeakingPage() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const blobUrlRef = useRef<string | null>(null);
 
   const topic = TOPICS[currentIndex];
 
@@ -76,6 +77,15 @@ export default function SpeakingPage() {
     };
   }, [isRecording, timeLeft, stopRecording]);
 
+  useEffect(() => {
+    return () => {
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+        blobUrlRef.current = null;
+      }
+    };
+  }, []);
+
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -94,14 +104,19 @@ export default function SpeakingPage() {
       mediaRecorder.start();
       setIsRecording(true);
       setTimeLeft(60);
-    } catch (error) {
-      console.error('Failed to start recording:', error);
+    } catch {
+      // silently ignore
     }
   };
 
   const playRecording = () => {
     if (recordedBlob && audioRef.current) {
-      audioRef.current.src = URL.createObjectURL(recordedBlob);
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+      }
+      const url = URL.createObjectURL(recordedBlob);
+      blobUrlRef.current = url;
+      audioRef.current.src = url;
       audioRef.current.play();
       setIsPlaying(true);
     }
