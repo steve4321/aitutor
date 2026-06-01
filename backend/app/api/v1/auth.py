@@ -1,16 +1,18 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Request, status
 from sqlalchemy import select
 
 from app.api.deps import DbSession
 from app.core.security import create_access_token, hash_password, verify_password
 from app.models.user import User
 from app.schemas.user import LoginRequest, RegisterRequest, TokenResponse
+from app.core.rate_limit import limiter
 
 router = APIRouter()
 
 
 @router.post("/login")
-async def login(body: LoginRequest, db: DbSession) -> TokenResponse:
+@limiter.limit("5/minute")
+async def login(request: Request, body: LoginRequest, db: DbSession) -> TokenResponse:
     result = await db.execute(select(User).where(User.name == body.username))
     user = result.scalar_one_or_none()
     if not user or not verify_password(body.password, user.password_hash):
@@ -23,7 +25,8 @@ async def login(body: LoginRequest, db: DbSession) -> TokenResponse:
 
 
 @router.post("/register", status_code=201)
-async def register(body: RegisterRequest, db: DbSession) -> TokenResponse:
+@limiter.limit("3/minute")
+async def register(request: Request, body: RegisterRequest, db: DbSession) -> TokenResponse:
     result = await db.execute(select(User).where(User.name == body.username))
     if result.scalar_one_or_none():
         raise HTTPException(

@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings
+
+_DEFAULT_SECRET = "change-me-in-production"
 
 
 class Settings(BaseSettings):
@@ -11,7 +14,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite+aiosqlite:///./data/aitutor.db"
     REDIS_URL: str = "redis://localhost:6379/0"
     DISABLE_REDIS: bool = True  # Set False when Redis is available
-    SECRET_KEY: str = "change-me-in-production"
+    SECRET_KEY: str = _DEFAULT_SECRET
     OPENAI_API_KEY: str = ""
 
     ENVIRONMENT: str = "development"
@@ -30,6 +33,17 @@ class Settings(BaseSettings):
         "env_file_encoding": "utf-8",
         "extra": "ignore",
     }
+
+    @model_validator(mode="after")
+    def _validate_production_secret(self) -> "Settings":
+        if self.ENVIRONMENT == "production" and (
+            self.SECRET_KEY == _DEFAULT_SECRET or len(self.SECRET_KEY) < 32
+        ):
+            raise ValueError(
+                "SECRET_KEY must be changed from the default and be at least "
+                "32 characters long in production."
+            )
+        return self
 
 
 settings = Settings()
