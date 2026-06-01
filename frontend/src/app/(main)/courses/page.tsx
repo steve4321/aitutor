@@ -2,21 +2,33 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Search, BookOpen, CheckCircle, Lock } from 'lucide-react';
+import { BookOpen } from 'lucide-react';
 import { api } from '@/lib/api';
 import { ROUTES } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 
 interface Course {
   id: string;
-  title: string;
-  description: string;
-  cover_url: string;
-  category: string;
-  is_enrolled: boolean;
-  progress: number;
-  unit_count: number;
+  name: string;
+  description: string | null;
+  subject: string;
+  target_exam: string | null;
+  estimated_hours: number | null;
+  is_published: boolean;
 }
+
+const SUBJECT_LABELS: Record<string, string> = {
+  math: 'AMC',
+  english: 'KET',
+  chinese: '语文',
+};
+
+const SUBJECT_FILTERS = [
+  { label: 'All', value: '' },
+  { label: 'AMC', value: 'math' },
+  { label: 'KET', value: 'english' },
+  { label: '语文', value: 'chinese' },
+];
 
 function CourseCardSkeleton() {
   return (
@@ -36,15 +48,13 @@ export default function CoursesPage() {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [courses, setCourses] = useState<Course[]>([]);
-  const [search, setSearch] = useState('');
   const [filter, setFilter] = useState(searchParams.get('filter') || '');
 
   useEffect(() => {
     const fetchCourses = async () => {
       try {
         const params = new URLSearchParams();
-        if (filter) params.set('category', filter);
-        if (search) params.set('search', search);
+        if (filter) params.set('subject', filter);
 
         const res = await api.get<Course[]>(`/courses?${params.toString()}`);
         setCourses(res);
@@ -55,18 +65,7 @@ export default function CoursesPage() {
       }
     };
     fetchCourses();
-  }, [filter, search]);
-
-  const handleEnroll = async (courseId: string) => {
-    try {
-      await api.post(`/courses/${courseId}/enroll`, {});
-      setCourses(courses.map(c =>
-        c.id === courseId ? { ...c, is_enrolled: true } : c
-      ));
-    } catch (err) {
-      console.error('Failed to enroll:', err);
-    }
-  };
+  }, [filter]);
 
   return (
     <div className="space-y-6">
@@ -75,33 +74,21 @@ export default function CoursesPage() {
         <p className="text-muted-foreground mt-1">Explore and enroll in courses</p>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search courses..."
-            className="w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50"
-          />
-        </div>
-        <div className="flex gap-2">
-          {['', 'AMC', 'KET'].map((f) => (
-            <button
-              key={f || 'all'}
-              onClick={() => setFilter(f)}
-              className={cn(
-                'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
-                filter === f
-                  ? 'bg-[var(--color-primary)] text-white'
-                  : 'bg-background border border-border text-foreground hover:border-[var(--color-primary)]/50'
-              )}
-            >
-              {f || 'All'}
-            </button>
-          ))}
-        </div>
+      <div className="flex gap-2">
+        {SUBJECT_FILTERS.map((f) => (
+          <button
+            key={f.value || 'all'}
+            onClick={() => setFilter(f.value)}
+            className={cn(
+              'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+              filter === f.value
+                ? 'bg-[var(--color-primary)] text-white'
+                : 'bg-background border border-border text-foreground hover:border-[var(--color-primary)]/50'
+            )}
+          >
+            {f.label}
+          </button>
+        ))}
       </div>
 
       {loading ? (
@@ -123,44 +110,28 @@ export default function CoursesPage() {
               <div className="p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
-                    {course.category}
+                    {SUBJECT_LABELS[course.subject] || course.subject}
                   </span>
-                  {course.is_enrolled && (
-                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-green-500/10 text-green-600">
-                      Enrolled
+                  {course.target_exam && (
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600">
+                      {course.target_exam}
                     </span>
                   )}
                 </div>
-                <h3 className="font-semibold text-foreground mb-1">{course.title}</h3>
+                <h3 className="font-semibold text-foreground mb-1">{course.name}</h3>
                 <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{course.description}</p>
 
-                {course.is_enrolled ? (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Progress</span>
-                      <span className="font-medium text-foreground">{course.progress}%</span>
-                    </div>
-                    <div className="h-2 bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-[var(--color-primary)] rounded-full transition-all"
-                        style={{ width: `${course.progress}%` }}
-                      />
-                    </div>
-                    <button
-                      onClick={() => router.push(`${ROUTES.COURSES}/${course.id}`)}
-                      className="w-full py-2 bg-[var(--color-primary)] text-white font-medium rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors"
-                    >
-                      Continue
-                    </button>
-                  </div>
-                ) : (
+                <div className="flex items-center justify-between">
+                  {course.estimated_hours && (
+                    <span className="text-xs text-muted-foreground">~{course.estimated_hours}h</span>
+                  )}
                   <button
-                    onClick={() => handleEnroll(course.id)}
-                    className="w-full py-2 border border-[var(--color-primary)] text-[var(--color-primary)] font-medium rounded-lg hover:bg-[var(--color-primary)]/10 transition-colors"
+                    onClick={() => router.push(`${ROUTES.COURSES}/${course.id}`)}
+                    className="px-4 py-2 bg-[var(--color-primary)] text-white text-sm font-medium rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors"
                   >
-                    Enroll Now
+                    View Course
                   </button>
-                )}
+                </div>
               </div>
             </div>
           ))}
