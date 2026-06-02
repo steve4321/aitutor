@@ -40,17 +40,14 @@ async def assessor_node(state: AgentState) -> dict:
 
     # ── Non-MCQ or complex formats: use LLM ──────────────────
     if not is_llm_available():
-        # Fallback: basic heuristics
-        is_correct = bool(answer.strip())
+        is_correct = None
         return {
-            "agent_response": "Answer recorded. AI feedback will be available later.",
+            "agent_response": "Answer recorded. AI scoring is temporarily unavailable — your answer will be evaluated later.",
             "structured_data": {
-                "is_correct": is_correct,
+                "is_correct": None,
                 "evaluation_method": "fallback",
             },
-            "knowledge_updates": [
-                _build_knowledge_update(state, is_correct)
-            ],
+            "knowledge_updates": [],  # Don't update knowledge when we can't evaluate
             "model_used": "none",
         }
 
