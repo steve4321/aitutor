@@ -1,9 +1,10 @@
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from uuid import UUID, uuid4
 
 from sqlalchemy import (
     Boolean,
     Date,
+    DateTime,
     ForeignKey,
     Integer,
     SmallInteger,
@@ -54,9 +55,6 @@ class StudentProfile(Base):
     __tablename__ = "student_profiles"
     __table_args__ = ({"extend_existing": True},)
 
-    id: Mapped[UUID] = mapped_column(
-        Uuid(), primary_key=True, default=uuid4
-    )
     user_id: Mapped[UUID] = mapped_column(
         Uuid(), ForeignKey("users.id", ondelete="CASCADE"), unique=True
     )
@@ -81,7 +79,9 @@ class StudentProfile(Base):
 
     # Override created_at from Base (no updated_at for this table)
     created_at: Mapped[datetime] = mapped_column(
-        default=lambda: datetime.now(), nullable=False
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
     )
 
 
