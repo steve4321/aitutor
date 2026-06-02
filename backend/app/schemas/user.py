@@ -63,6 +63,8 @@ class RegisterRequest(BaseModel):
     def validate_password(cls, v: str) -> str:
         if len(v) < 6:
             raise ValueError("Password must be at least 6 characters")
+        if len(v) > 128:
+            raise ValueError("Password must be at most 128 characters")
         if not re.search(r"[A-Za-z]", v):
             raise ValueError("Password must contain at least one letter")
         if not re.search(r"\d", v):

@@ -1,11 +1,11 @@
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ChatMessageRequest(BaseModel):
     session_id: UUID | None = None
-    content: str
+    content: str = Field(..., min_length=1, max_length=4000)
     media: dict | None = None
 
 
