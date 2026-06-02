@@ -31,9 +31,16 @@ async def create_session(
 
 
 @router.get("/{session_id}", response_model=SessionResponse)
-async def get_session(session_id: UUID, db: DbSession):
+async def get_session(
+    session_id: UUID,
+    db: DbSession,
+    current_user: User = Depends(get_current_user),
+):
     result = await db.execute(
-        select(LearningSession).where(LearningSession.id == session_id)
+        select(LearningSession).where(
+            LearningSession.id == session_id,
+            LearningSession.student_id == current_user.id,
+        )
     )
     session = result.scalar_one_or_none()
     if session is None:
