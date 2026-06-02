@@ -50,7 +50,7 @@ async def send_message(
     )
     db.add(user_msg)
     await db.flush()
-    await db.commit()
+    # Do NOT commit here — get_db dependency handles it, and agent layer has its own session
 
     agent_result = await run_agent(
         session_id=session.id,
@@ -60,6 +60,7 @@ async def send_message(
         request_type="chat",
     )
 
+    # Query for the assistant message persisted by the agent's _response_node
     result = await db.execute(
         select(Message)
         .where(
@@ -72,14 +73,13 @@ async def send_message(
     ai_msg = result.scalar_one_or_none()
 
     if ai_msg is None:
-        ai_msg = Message(
-            session_id=session.id,
+        # Agent didn't persist (edge case) — return response without DB record
+        return ChatMessageResponse(
+            id=user_msg.id,
             role="assistant",
             content=agent_result.get("agent_response", "Sorry, I couldn't process that."),
+            session_id=session.id,
         )
-        db.add(ai_msg)
-        await db.flush()
-        await db.commit()
 
     return ChatMessageResponse(
         id=ai_msg.id,
