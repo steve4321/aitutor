@@ -76,6 +76,12 @@ export function useAuth() {
     try {
       await api.post('/auth/register', data);
       await signIn({ username: data.username, password: data.password });
+    } catch (error) {
+      // If register succeeded but signIn failed, user is registered but not logged in
+      // Clear any partial state and re-throw so the UI can show the error
+      clearTokens();
+      logout();
+      throw error;
     } finally {
       setLoading(false);
     }
