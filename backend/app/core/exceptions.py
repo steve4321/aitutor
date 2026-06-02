@@ -1,6 +1,10 @@
+import logging
+
 from fastapi import HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+
+logger = logging.getLogger(__name__)
 
 
 class ErrorResponse(BaseModel):
@@ -31,6 +35,7 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
             code=f"HTTP_{exc.status_code}",
         )
         return JSONResponse(status_code=exc.status_code, content=body.model_dump())
+    logger.exception("Unhandled exception: %s", exc)
     body = ErrorResponse(
         error="Internal server error",
         code="INTERNAL_ERROR",
