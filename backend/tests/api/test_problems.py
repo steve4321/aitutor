@@ -4,11 +4,11 @@ from unittest.mock import AsyncMock, patch
 
 
 @pytest.mark.asyncio
-async def test_list_problems_works(client, db_session, mcq_problem):
+async def test_list_problems_works(client, db_session, mcq_problem, auth_headers):
     """GET /problems returns 200 with a list containing seeded problem."""
     await db_session.commit()
 
-    resp = await client.get("/api/v1/problems")
+    resp = await client.get("/api/v1/problems", headers=auth_headers)
     assert resp.status_code == 200
     data = resp.json()
     assert isinstance(data, list)
