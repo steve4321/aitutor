@@ -13,7 +13,7 @@ interface AuthState {
   setUser: (user: User | null) => void;
   setProfile: (profile: StudentProfile | null) => void;
   setLoading: (loading: boolean) => void;
-  login: (user: User, profile: StudentProfile) => void;
+  login: (user: User, profile: StudentProfile | null) => void;
   logout: () => void;
 }
 

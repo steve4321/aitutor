@@ -1,5 +1,5 @@
 import { API_BASE_URL } from './constants';
-import { getToken, clearTokens } from './auth';
+import { getToken, getRefreshToken, setToken, setRefreshToken, clearTokens } from './auth';
 
 class ApiError extends Error {
   status: number;
@@ -49,6 +49,40 @@ async function request<T>(
 
   if (!response.ok) {
     if (response.status === 401) {
+      const refreshToken = getRefreshToken();
+      if (refreshToken && !endpoint.endsWith('/auth/refresh')) {
+        try {
+          const refreshResponse = await fetch(`${API_BASE_URL}/auth/refresh`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refresh_token: refreshToken }),
+          });
+          if (refreshResponse.ok) {
+            const data = await refreshResponse.json();
+            setToken(data.access_token);
+            if (data.refresh_token) setRefreshToken(data.refresh_token);
+            headers['Authorization'] = `Bearer ${data.access_token}`;
+            const retryResponse = await fetch(url, { ...restOptions, headers, signal });
+            if (!retryResponse.ok) {
+              if (retryResponse.status === 401) {
+                clearTokens();
+              }
+              let errorData: unknown;
+              try {
+                errorData = await retryResponse.json();
+              } catch {
+                errorData = await retryResponse.text();
+              }
+              throw new ApiError(`API Error: ${retryResponse.status}`, retryResponse.status, errorData);
+            }
+            if (retryResponse.status === 204) {
+              return undefined as T;
+            }
+            return retryResponse.json();
+          }
+        } catch {
+        }
+      }
       clearTokens();
     }
 
