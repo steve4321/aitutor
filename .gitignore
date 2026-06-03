@@ -20,3 +20,6 @@ build/
 *.swo
 *.db
 backend/data/
+.coverage
+htmlcov/
+.sisyphus/
