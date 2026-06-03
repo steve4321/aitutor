@@ -69,8 +69,8 @@ export default function HomePage() {
             streak: profileRes.streak_days,
           });
         }
-      } catch {
-        // silently ignore
+      } catch (error) {
+        console.error('Failed to fetch user data:', error);
       } finally {
         if (isMounted) setLoading(false);
       }

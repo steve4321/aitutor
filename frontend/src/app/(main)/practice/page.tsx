@@ -50,8 +50,8 @@ export default function PracticePage() {
         if (res.length > 0) {
           setSelectedCourseId(res[0].id);
         }
-      } catch {
-        // silently ignore
+      } catch (error) {
+        console.error('Failed to fetch courses:', error);
       } finally {
         setLoading(false);
       }
@@ -71,8 +71,8 @@ export default function PracticePage() {
         ]);
         setUnits(unitsRes);
         setLessons(lessonsRes);
-      } catch {
-        // silently ignore
+      } catch (error) {
+        console.error('Failed to fetch units/lessons:', error);
       }
     };
     fetchUnitsAndLessons();
