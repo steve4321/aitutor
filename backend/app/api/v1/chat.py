@@ -58,6 +58,7 @@ async def send_message(
         user_message=body.content,
         media=body.media,
         request_type="chat",
+        db_session=db,
     )
 
     # Query for the assistant message persisted by the agent's _response_node
