@@ -5,6 +5,9 @@ import { api, ApiError, AuthError } from '../api';
 vi.mock('../auth', () => ({
   getToken: vi.fn(),
   clearTokens: vi.fn(),
+  getRefreshToken: vi.fn(),
+  setToken: vi.fn(),
+  setRefreshToken: vi.fn(),
 }));
 
 describe('api client', () => {
