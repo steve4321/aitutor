@@ -17,6 +17,7 @@ router = APIRouter(prefix="/problems", tags=["problems"])
 @router.get("", response_model=list[ProblemResponse])
 async def list_problems(
     db: DbSession,
+    current_user: User = Depends(get_current_user),
     subject: str | None = None,
     knowledge_point_id: UUID | None = None,
     difficulty: int | None = None,
@@ -30,7 +31,7 @@ async def list_problems(
 
 
 @router.get("/{problem_id}", response_model=ProblemResponse)
-async def get_problem(problem_id: UUID, db: DbSession):
+async def get_problem(problem_id: UUID, db: DbSession, current_user: User = Depends(get_current_user)):
     problem = await problem_service.get_problem(db, problem_id)
     if not problem:
         raise HTTPException(status_code=404, detail="Problem not found")
@@ -64,10 +65,10 @@ async def submit_attempt(
         request_type="attempt",
         problem_id=problem_id,
         student_answer=body.answer,
+        db_session=db,
     )
 
-    structured = agent_result.get("structured_data", {}) or {}
-
+    # Query for the attempt persisted by the agent's _response_node
     result = await db.execute(
         select(StudentAttempt)
         .where(
@@ -80,6 +81,8 @@ async def submit_attempt(
     attempt = result.scalar_one_or_none()
 
     if attempt is None:
+        # Fallback: agent didn't create attempt (shouldn't happen)
+        structured = agent_result.get("structured_data", {}) or {}
         attempt = StudentAttempt(
             session_id=session_id,
             student_id=current_user.id,
