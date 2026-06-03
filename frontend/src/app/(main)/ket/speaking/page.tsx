@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Mic, Square, Play, Pause, ChevronLeft, CheckCircle2, Volume2, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -59,12 +59,12 @@ export default function SpeakingPage() {
 
   const topic = TOPICS[currentIndex];
 
-  const stopRecording = () => {
+  const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
     }
-  };
+  }, [isRecording]);
 
   useEffect(() => {
     if (isRecording && timeLeft > 0) {
@@ -104,8 +104,8 @@ export default function SpeakingPage() {
       mediaRecorder.start();
       setIsRecording(true);
       setTimeLeft(60);
-    } catch {
-      // silently ignore
+    } catch (error) {
+      console.error('Failed to start recording:', error);
     }
   };
 

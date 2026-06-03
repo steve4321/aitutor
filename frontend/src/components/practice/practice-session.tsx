@@ -55,20 +55,6 @@ export function PracticeSession({ problems, onComplete, onExit }: PracticeSessio
     }
   }, [problems, isActive]);
 
-  useEffect(() => {
-    if (!isActive || showResult) return;
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          handleComplete();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [isActive, showResult]);
-
   const handleComplete = useCallback(() => {
     if (!startTime) return;
     const timeSpent = Math.round((Date.now() - startTime) / 1000);
@@ -87,6 +73,20 @@ export function PracticeSession({ problems, onComplete, onExit }: PracticeSessio
     });
     setIsActive(false);
   }, [startTime, results, problems, answers, onComplete]);
+
+  useEffect(() => {
+    if (!isActive || showResult) return;
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          handleComplete();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [isActive, showResult, handleComplete]);
 
   const handleOptionSelect = (option: string) => {
     if (showResult) return;

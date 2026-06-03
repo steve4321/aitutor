@@ -26,7 +26,7 @@ export function useAuth() {
     const fetchUser = async () => {
       const token = getToken();
       if (!token) {
-        setLoading(false);
+        useAuthStore.getState().setLoading(false);
         return;
       }
       try {
@@ -34,18 +34,18 @@ export function useAuth() {
         if (isMounted) {
           try {
             const profileData = await api.get<StudentProfile>(`/students/${userData.id}/profile`, undefined, { signal: controller.signal });
-            if (isMounted) login(userData, profileData);
+            if (isMounted) useAuthStore.getState().login(userData, profileData);
           } catch {
-            if (isMounted) login(userData, null as unknown as StudentProfile);
+            if (isMounted) useAuthStore.getState().login(userData, null);
           }
         }
       } catch {
         if (isMounted) {
           clearTokens();
-          logout();
+          useAuthStore.getState().logout();
         }
       } finally {
-        if (isMounted) setLoading(false);
+        if (isMounted) useAuthStore.getState().setLoading(false);
       }
     };
 

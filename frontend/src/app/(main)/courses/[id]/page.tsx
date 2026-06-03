@@ -93,8 +93,8 @@ export default function CourseDetailPage() {
         if (unitsWithLessons.length > 0) {
           setExpandedUnits(new Set(unitsWithLessons.map((u) => u.id)));
         }
-      } catch {
-        // silently ignore
+      } catch (error) {
+        console.error('Failed to fetch course detail:', error);
       } finally {
         setLoading(false);
       }
