@@ -68,14 +68,24 @@ async def _handle_session_init(state, knowledge_states, student) -> dict:
 
 async def _handle_next_problem(state, knowledge_states, student) -> dict:
     """Select next problem based on adaptive strategy."""
-    from app.db.session import async_session_factory
     from uuid import UUID
 
     student_id = state.get("student_id")
     subject = state.get("subject", "amc_math")
     target_exam = student.get("target_exam", "AMC8")
 
-    async with async_session_factory() as db:
+    db = state.get("db_session")
+    if db is None:
+        from app.db.session import async_session_factory
+        async with async_session_factory() as db:
+            problem = await select_next_problem(
+                db=db,
+                student_id=UUID(str(student_id)),
+                subject=subject,
+                target_exam=target_exam,
+                knowledge_states=knowledge_states,
+            )
+    else:
         problem = await select_next_problem(
             db=db,
             student_id=UUID(str(student_id)),
