@@ -1,7 +1,7 @@
 """LangGraph Agent state definitions."""
 from __future__ import annotations
 
-from typing import TypedDict
+from typing import Any, TypedDict
 from uuid import UUID
 
 
@@ -35,6 +35,8 @@ class AgentState(TypedDict, total=False):
     student_id: UUID
     user_message: str
     media: dict | None
+    # Database session (injected by API layer)
+    db_session: Any  # AsyncSession, injected by API layer for unified transaction
     request_type: str  # "chat" | "attempt" | "session_init" | "lesson_progress"
 
     # Problem context (for attempt requests)
@@ -80,6 +82,7 @@ def initial_state(
     student_answer: str | None = None,
     lesson_id: UUID | None = None,
     media: dict | None = None,
+    db_session: Any | None = None,
 ) -> AgentState:
     """Create initial state for a new graph invocation."""
     return {
@@ -87,6 +90,7 @@ def initial_state(
         "student_id": student_id,
         "user_message": user_message,
         "media": media,
+        "db_session": db_session,
         "request_type": request_type,
         "problem_id": problem_id,
         "student_answer": student_answer,
