@@ -85,7 +85,8 @@ async def apply_knowledge_updates(
         now = datetime.now(timezone.utc)
         days_elapsed = 0
         if state.last_review:
-            days_elapsed = (now - state.last_review).days
+            last = state.last_review.replace(tzinfo=timezone.utc) if state.last_review.tzinfo is None else state.last_review
+            days_elapsed = (now - last).days
 
         if days_elapsed > 0 and state.stability > 0:
             retrievability = calculate_retrievability(state.stability, days_elapsed)
