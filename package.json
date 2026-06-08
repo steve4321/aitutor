@@ -1,0 +1,30 @@
+{
+  "name": "aitutor",
+  "version": "1.0.0",
+  "description": "AI-powered private tutor for academic competitions: AMC (math) & KET (English).",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:e2e": "npx playwright test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/steve4321/aitutor.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/steve4321/aitutor/issues"
+  },
+  "homepage": "https://github.com/steve4321/aitutor#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "@types/node": "^25.9.1",
+    "typescript": "^6.0.3"
+  }
+}
