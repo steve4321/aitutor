@@ -46,3 +46,15 @@ export interface LessonProgress {
   completed_at?: string;
   attempts: number;
 }
+
+export interface LessonContent {
+  schema_version: string;
+  subject: string;
+  lesson_type: 'concept' | 'assessment' | string;
+  steps: unknown[];
+  objectives: string[];
+  summary: {
+    key_points: string[];
+    common_mistakes: string[];
+  };
+}

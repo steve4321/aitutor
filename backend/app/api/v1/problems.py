@@ -9,7 +9,7 @@ from app.api.deps import DbSession, get_current_user
 from app.models.learning import LearningSession, StudentAttempt
 from app.models.user import User
 from app.schemas.problem import AttemptRequest, AttemptResponse, ProblemResponse
-from app.services import problem_service
+from app.services import problem_service, xp_service
 
 router = APIRouter(prefix="/problems", tags=["problems"])
 
@@ -97,10 +97,15 @@ async def submit_attempt(
         db.add(attempt)
         await db.flush()
 
+    xp_earned = 0
+    if attempt.is_correct:
+        xp_earned = await xp_service.award_problem_xp(db, current_user.id, True)
+
     return AttemptResponse(
         id=attempt.id,
         is_correct=attempt.is_correct,
         ai_feedback=attempt.ai_feedback,
         error_type=attempt.error_type,
         attempt_number=attempt.attempt_number,
+        xp_earned=xp_earned,
     )
