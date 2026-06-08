@@ -39,5 +39,6 @@ class LessonResponse(BaseModel):
     estimated_minutes: int | None
     sort_order: int
     is_published: bool
+    content: dict | None = None
 
     model_config = {"from_attributes": True}

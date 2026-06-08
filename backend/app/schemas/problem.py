@@ -28,5 +28,6 @@ class AttemptResponse(BaseModel):
     ai_feedback: str | None
     error_type: str | None = None
     attempt_number: int
+    xp_earned: int = 0
 
     model_config = {"from_attributes": True}
