@@ -69,6 +69,9 @@ class LearningSession(Base):
     knowledge_point_id: Mapped[UUID | None] = mapped_column(
         Uuid(), ForeignKey("knowledge_points.id", ondelete="SET NULL"), nullable=True
     )
+    lesson_id: Mapped[UUID | None] = mapped_column(
+        Uuid(), ForeignKey("lessons.id", ondelete="SET NULL"), nullable=True
+    )
     started_at: Mapped[datetime] = mapped_column(nullable=False)
     ended_at: Mapped[datetime | None] = mapped_column(nullable=True)
     duration_sec: Mapped[int | None] = mapped_column(Integer, nullable=True)

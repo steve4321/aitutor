@@ -10,7 +10,8 @@ LESSON_XP_REWARD = 50
 PROBLEM_XP_REWARD = 20
 
 
-async def award_lesson_xp(db: AsyncSession, user_id: UUID) -> int:
+async def _add_xp(db: AsyncSession, user_id: UUID, amount: int) -> int:
+    """Add XP to a student's profile. Returns 0 if no profile exists."""
     from app.models.user import StudentProfile
 
     result = await db.execute(
@@ -19,20 +20,15 @@ async def award_lesson_xp(db: AsyncSession, user_id: UUID) -> int:
     profile = result.scalar_one_or_none()
     if profile is None:
         return 0
-    profile.xp_total = (profile.xp_total or 0) + LESSON_XP_REWARD
-    return LESSON_XP_REWARD
+    profile.xp_total = (profile.xp_total or 0) + amount
+    return amount
+
+
+async def award_lesson_xp(db: AsyncSession, user_id: UUID) -> int:
+    return await _add_xp(db, user_id, LESSON_XP_REWARD)
 
 
 async def award_problem_xp(db: AsyncSession, user_id: UUID, is_correct: bool) -> int:
     if not is_correct:
         return 0
-    from app.models.user import StudentProfile
-
-    result = await db.execute(
-        select(StudentProfile).where(StudentProfile.user_id == user_id)
-    )
-    profile = result.scalar_one_or_none()
-    if profile is None:
-        return 0
-    profile.xp_total = (profile.xp_total or 0) + PROBLEM_XP_REWARD
-    return PROBLEM_XP_REWARD
+    return await _add_xp(db, user_id, PROBLEM_XP_REWARD)

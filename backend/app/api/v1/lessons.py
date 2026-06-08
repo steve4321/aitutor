@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -7,6 +8,7 @@ from sqlalchemy import func, select
 from app.api.deps import DbSession, get_current_user
 from app.models.course import Lesson, Unit
 from app.models.enrollment import Enrollment
+from app.models.learning import LearningSession
 from app.models.user import User
 from app.schemas.course import LessonResponse
 from app.services import xp_service
@@ -71,6 +73,18 @@ async def update_lesson_progress(
 
     xp_earned = 0
     if body.status == "completed":
+        now = datetime.now(timezone.utc)
+        session = LearningSession(
+            student_id=current_user.id,
+            session_type="lesson",
+            subject="general",
+            lesson_id=lesson.id,
+            started_at=now,
+            ended_at=now,
+        )
+        db.add(session)
+        await db.flush()
+
         progress_pct = await _compute_course_progress(db, unit.course_id, current_user.id)
         enrollment.progress = progress_pct
         xp_earned = await xp_service.award_lesson_xp(db, current_user.id)
