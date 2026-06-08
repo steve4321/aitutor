@@ -89,9 +89,9 @@ export default function LessonPage() {
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="h-6 w-32 bg-muted rounded animate-pulse" />
-        <div className="h-40 bg-muted rounded-xl animate-pulse" />
-        <div className="h-64 bg-muted rounded-xl animate-pulse" />
+        <div className="h-6 w-32 bg-[var(--color-muted)] rounded animate-pulse" />
+        <div className="h-40 bg-[var(--color-muted)] rounded-xl animate-pulse" />
+        <div className="h-64 bg-[var(--color-muted)] rounded-xl animate-pulse" />
       </div>
     );
   }
@@ -99,8 +99,8 @@ export default function LessonPage() {
   if (error && !lesson) {
     return (
       <div className="text-center py-12">
-        <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-        <p className="text-muted-foreground">{error}</p>
+        <AlertCircle className="w-12 h-12 text-[var(--color-muted-foreground)] mx-auto mb-3" />
+        <p className="text-[var(--color-muted-foreground)]">{error}</p>
         <button
           onClick={() => router.push(`/courses/${courseId}`)}
           className="mt-4 text-[var(--color-primary)] hover:underline"
@@ -119,7 +119,7 @@ export default function LessonPage() {
     <div className="space-y-4">
       <button
         onClick={() => router.push(`/courses/${courseId}`)}
-        className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+        className="flex items-center gap-2 text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         <span>{course?.name}</span>
@@ -128,7 +128,7 @@ export default function LessonPage() {
       <div className="bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-secondary)]/10 rounded-xl p-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-foreground">{lesson.title}</h1>
+            <h1 className="text-xl font-bold text-[var(--color-foreground)]">{lesson.title}</h1>
             <div className="flex items-center gap-2 mt-2">
               {lesson.lesson_type && (
                 <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--color-primary)]/20 text-[var(--color-primary)]">
@@ -136,7 +136,7 @@ export default function LessonPage() {
                 </span>
               )}
               {lesson.estimated_minutes && (
-                <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1 text-xs text-[var(--color-muted-foreground)]">
                   <Clock className="w-3 h-3" />
                   {lesson.estimated_minutes}min
                 </span>
@@ -165,11 +165,11 @@ export default function LessonPage() {
             <Card className="p-4">
               <div className="flex items-center gap-2 mb-3">
                 <Target className="w-5 h-5 text-[var(--color-primary)]" />
-                <h2 className="font-semibold text-foreground">学习目标</h2>
+                <h2 className="font-semibold text-[var(--color-foreground)]">学习目标</h2>
               </div>
               <ul className="space-y-1.5">
                 {content.objectives.map((obj, i) => (
-                  <li key={i} className="text-sm text-foreground/90 flex items-start gap-2">
+                  <li key={i} className="text-sm text-[var(--color-foreground)]/90 flex items-start gap-2">
                     <span className="text-[var(--color-primary)] mt-0.5">•</span>
                     <span>{obj}</span>
                   </li>
@@ -182,11 +182,11 @@ export default function LessonPage() {
             <Card className="p-4 bg-[var(--color-primary)]/5 border-[var(--color-primary)]/20">
               <div className="flex items-center gap-2 mb-3">
                 <Lightbulb className="w-5 h-5 text-[var(--color-primary)]" />
-                <h2 className="font-semibold text-foreground">核心要点</h2>
+                <h2 className="font-semibold text-[var(--color-foreground)]">核心要点</h2>
               </div>
               <ul className="space-y-1.5">
                 {content.summary.key_points.map((point, i) => (
-                  <li key={i} className="text-sm text-foreground/90 flex items-start gap-2">
+                  <li key={i} className="text-sm text-[var(--color-foreground)]/90 flex items-start gap-2">
                     <span className="text-[var(--color-primary)] mt-0.5">•</span>
                     <span>{point}</span>
                   </li>
@@ -199,11 +199,11 @@ export default function LessonPage() {
             <Card className="p-4 bg-[var(--color-warning)]/5 border-[var(--color-warning)]/30">
               <div className="flex items-center gap-2 mb-3">
                 <AlertTriangle className="w-5 h-5 text-[var(--color-warning)]" />
-                <h2 className="font-semibold text-foreground">常见错误</h2>
+                <h2 className="font-semibold text-[var(--color-foreground)]">常见错误</h2>
               </div>
               <ul className="space-y-1.5">
                 {content.summary.common_mistakes.map((mistake, i) => (
-                  <li key={i} className="text-sm text-foreground/90 flex items-start gap-2">
+                  <li key={i} className="text-sm text-[var(--color-foreground)]/90 flex items-start gap-2">
                     <span className="text-[var(--color-warning)] mt-0.5">•</span>
                     <span>{mistake}</span>
                   </li>
@@ -216,12 +216,12 @@ export default function LessonPage() {
 
       <div className="space-y-3">
         <Card className="p-4">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-[var(--color-muted-foreground)]">
             点击下方对话框开始学习，AI 老师会引导你完成这节课。
           </p>
         </Card>
 
-        <ChatPanel messages={[]} className="h-64 rounded-xl border border-border bg-muted/50" />
+        <ChatPanel messages={[]} className="h-64 rounded-xl border border-[var(--color-border)] bg-[var(--color-muted)]/50" />
         <ChatInput onSend={() => {}} />
 
         {error && (

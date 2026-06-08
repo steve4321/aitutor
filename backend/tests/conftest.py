@@ -135,6 +135,71 @@ async def mcq_problem(db_session, knowledge_points):
     return problem
 
 
+@pytest_asyncio.fixture
+async def published_course(db_session):
+    """Create a published course with one unit and one published lesson with content.
+
+    Returns a dict so tests can access both IDs and the loaded Lesson without
+    triggering lazy-load IO in the test body.
+    """
+    from sqlalchemy import select
+    from sqlalchemy.orm import selectinload
+
+    course = Course(
+        code="AMC8-TEST",
+        subject="math",
+        name="测试课程",
+        description="测试用",
+        target_exam="AMC8",
+        is_published=True,
+    )
+    db_session.add(course)
+    await db_session.flush()
+    course_id = course.id
+
+    unit = Unit(
+        course_id=course_id,
+        name="第一章",
+        sort_order=1,
+    )
+    db_session.add(unit)
+    await db_session.flush()
+
+    lesson = Lesson(
+        unit_id=unit.id,
+        title="测试课",
+        lesson_type="concept",
+        estimated_minutes=20,
+        sort_order=1,
+        is_published=True,
+        content={
+            "schema_version": "1.0",
+            "subject": "amc_math",
+            "lesson_type": "concept",
+            "steps": [],
+            "objectives": ["目标1", "目标2"],
+            "summary": {
+                "key_points": ["要点1"],
+                "common_mistakes": ["易错1"],
+            },
+        },
+    )
+    db_session.add(lesson)
+    await db_session.flush()
+    lesson_id = lesson.id
+
+    result = await db_session.execute(
+        select(Lesson).options(selectinload(Lesson.unit)).where(Lesson.id == lesson_id)
+    )
+    loaded_lesson = result.scalar_one()
+
+    return {
+        "lesson": loaded_lesson,
+        "lesson_id": lesson_id,
+        "course_id": course_id,
+    }
+
+
 # ---------------------------------------------------------------------------
 # Auth helpers
 # ---------------------------------------------------------------------------
