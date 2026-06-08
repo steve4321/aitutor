@@ -10,7 +10,7 @@ from app.core.security import (
     hash_password,
     verify_password,
 )
-from app.models.user import User
+from app.models.user import StudentProfile, User
 from app.schemas.user import LoginRequest, RefreshTokenRequest, RegisterRequest, TokenResponse
 from app.core.rate_limit import limiter
 
@@ -49,6 +49,13 @@ async def register(request: Request, body: RegisterRequest, db: DbSession) -> To
     )
     db.add(user)
     await db.flush()
+
+    profile = StudentProfile(
+        user_id=user.id,
+        preferred_lang="zh-CN",
+    )
+    db.add(profile)
+
     access_token = create_access_token({"sub": str(user.id)})
     refresh_token = create_refresh_token({"sub": str(user.id)})
     return TokenResponse(access_token=access_token, refresh_token=refresh_token)
