@@ -3,59 +3,6 @@
 import { BookOpen, Pen, Headphones, Mic, TrendingUp, Clock, Award, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-interface SkillProgress {
-  skill: 'reading' | 'writing' | 'listening' | 'speaking';
-  score: number;
-  progress: number;
-  practiceCount: number;
-  lastPracticed: string;
-}
-
-interface KETHistory {
-  date: string;
-  skill: string;
-  score: number;
-}
-
-const SKILL_DATA: SkillProgress[] = [
-  {
-    skill: 'reading',
-    score: 78,
-    progress: 65,
-    practiceCount: 24,
-    lastPracticed: '2024-01-15',
-  },
-  {
-    skill: 'writing',
-    score: 72,
-    progress: 55,
-    practiceCount: 18,
-    lastPracticed: '2024-01-14',
-  },
-  {
-    skill: 'listening',
-    score: 85,
-    progress: 78,
-    practiceCount: 20,
-    lastPracticed: '2024-01-15',
-  },
-  {
-    skill: 'speaking',
-    score: 68,
-    progress: 42,
-    practiceCount: 12,
-    lastPracticed: '2024-01-13',
-  },
-];
-
-const RECENT_HISTORY: KETHistory[] = [
-  { date: '2024-01-15', skill: 'reading', score: 78 },
-  { date: '2024-01-15', skill: 'listening', score: 85 },
-  { date: '2024-01-14', skill: 'writing', score: 72 },
-  { date: '2024-01-14', skill: 'reading', score: 80 },
-  { date: '2024-01-13', skill: 'speaking', score: 68 },
-];
-
 const SKILL_INFO = {
   reading: {
     icon: BookOpen,
@@ -114,14 +61,9 @@ const COLOR_CLASSES = {
   },
 };
 
-export default function KETPage() {
-  const overallProgress = Math.round(
-    SKILL_DATA.reduce((sum, s) => sum + s.progress, 0) / SKILL_DATA.length
-  );
-  const averageScore = Math.round(
-    SKILL_DATA.reduce((sum, s) => sum + s.score, 0) / SKILL_DATA.length
-  );
+const SKILLS = ['reading', 'writing', 'listening', 'speaking'] as const;
 
+export default function KETPage() {
   return (
     <div className="space-y-6">
       <div className="mx-auto max-w-4xl px-4 py-8">
@@ -136,14 +78,14 @@ export default function KETPage() {
         </header>
 
         <section className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
-          {SKILL_DATA.map((data) => {
-            const info = SKILL_INFO[data.skill];
+          {SKILLS.map((skill) => {
+            const info = SKILL_INFO[skill];
             const colors = COLOR_CLASSES[info.color as keyof typeof COLOR_CLASSES];
             const Icon = info.icon;
 
             return (
               <a
-                key={data.skill}
+                key={skill}
                 href={info.path}
                 className={cn(
                   'group relative overflow-hidden rounded-2xl border p-6 transition-all hover:shadow-lg',
@@ -154,17 +96,17 @@ export default function KETPage() {
                 <Icon className={cn('mb-4 h-10 w-10', colors.icon)} />
                 <h3 className="mb-1 font-semibold text-slate-900 dark:text-white">{info.title}</h3>
                 <p className="mb-4 text-2xl font-bold text-slate-700 dark:text-slate-200">
-                  {data.score}
+                  —
                   <span className="text-sm font-normal text-slate-400">分</span>
                 </p>
                 <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
                   <div
                     className={cn('h-full rounded-full transition-all', colors.progress)}
-                    style={{ width: `${data.progress}%` }}
+                    style={{ width: '0%' }}
                   />
                 </div>
                 <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                  {data.progress}% 完成
+                  0% 完成
                 </p>
                 <ChevronRight className="absolute bottom-6 right-6 h-5 w-5 text-slate-300 transition-transform group-hover:translate-x-1 group-hover:text-slate-400" />
               </a>
@@ -177,27 +119,8 @@ export default function KETPage() {
             <TrendingUp className="h-5 w-5 text-emerald-500" />
             综合进度
           </h2>
-          <div className="mb-6 flex items-center justify-between">
-            <div>
-              <p className="text-sm text-slate-500 dark:text-slate-400">总体完成度</p>
-              <p className="text-3xl font-bold text-slate-900 dark:text-white">{overallProgress}%</p>
-            </div>
-            <div>
-              <p className="text-sm text-slate-500 dark:text-slate-400">平均分数</p>
-              <p className="text-3xl font-bold text-slate-900 dark:text-white">{averageScore}</p>
-            </div>
-            <div>
-              <p className="text-sm text-slate-500 dark:text-slate-400">练习次数</p>
-              <p className="text-3xl font-bold text-slate-900 dark:text-white">
-                {SKILL_DATA.reduce((sum, s) => sum + s.practiceCount, 0)}
-              </p>
-            </div>
-          </div>
-          <div className="h-3 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-blue-500 via-violet-500 to-amber-500 transition-all"
-              style={{ width: `${overallProgress}%` }}
-            />
+          <div className="flex items-center justify-center py-8">
+            <p className="text-center text-slate-500 dark:text-slate-400">暂无练习记录</p>
           </div>
         </section>
 
@@ -208,30 +131,8 @@ export default function KETPage() {
               最近练习记录
             </h2>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-slate-700">
-            {RECENT_HISTORY.map((record, index) => {
-              const info = SKILL_INFO[record.skill as keyof typeof SKILL_INFO];
-              const colors = COLOR_CLASSES[info.color as keyof typeof COLOR_CLASSES];
-
-              return (
-                <div
-                  key={index}
-                  className="flex items-center justify-between px-6 py-4 hover:bg-slate-50 dark:hover:bg-slate-700/50"
-                >
-                  <div className="flex items-center gap-4">
-                    <info.icon className={cn('h-5 w-5', colors.icon)} />
-                    <div>
-                      <p className="font-medium text-slate-900 dark:text-white">{info.title}</p>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">{record.date}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className={cn('font-semibold', colors.text)}>{record.score}分</span>
-                    <ChevronRight className="h-4 w-4 text-slate-300" />
-                  </div>
-                </div>
-              );
-            })}
+          <div className="flex items-center justify-center py-12">
+            <p className="text-center text-slate-500 dark:text-slate-400">暂无练习记录</p>
           </div>
         </section>
       </div>
