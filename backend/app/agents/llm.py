@@ -9,24 +9,16 @@ logger = logging.getLogger(__name__)
 
 
 def is_llm_available() -> bool:
-    """Check if OpenAI API key is configured."""
     return bool(settings.OPENAI_API_KEY and settings.OPENAI_API_KEY.strip())
 
 
 @lru_cache(maxsize=2)
 def get_llm(tier: str = "strong") -> ChatOpenAI | None:
-    """
-    Get a cached LLM instance.
-    
-    Args:
-        tier: "strong" (GPT-4o for teaching/assessment) or 
-              "fast" (GPT-4o-mini for routing/classification)
-    
-    Returns:
-        ChatOpenAI instance or None if no API key configured.
-    """
     if not is_llm_available():
-        logger.warning("OPENAI_API_KEY not set — AI features disabled")
+        logger.warning(
+            "LLM API key not set (provider=%s) — AI features disabled",
+            settings.LLM_PROVIDER,
+        )
         return None
 
     model_map = {
@@ -34,6 +26,9 @@ def get_llm(tier: str = "strong") -> ChatOpenAI | None:
         "fast": settings.FAST_MODEL,
     }
     model = model_map.get(tier, settings.STRONG_MODEL)
+    if not model:
+        logger.error("No model configured for tier=%s provider=%s", tier, settings.LLM_PROVIDER)
+        return None
 
     kwargs = {
         "model": model,
@@ -53,10 +48,12 @@ def get_llm(tier: str = "strong") -> ChatOpenAI | None:
 def get_embedding_model() -> OpenAIEmbeddings | None:
     if not is_llm_available():
         return None
+    if not settings.EMBEDDING_MODEL:
+        return None
 
     kwargs: dict = {
         "api_key": settings.OPENAI_API_KEY,
-        "model": "text-embedding-3-small",
+        "model": settings.EMBEDDING_MODEL,
     }
     if settings.LLM_BASE_URL:
         kwargs["base_url"] = settings.LLM_BASE_URL
@@ -69,7 +66,6 @@ def get_embedding_model() -> OpenAIEmbeddings | None:
 
 
 def get_fallback_response(intent: str) -> str:
-    """Return a canned response when LLM is unavailable."""
     fallbacks = {
         "learn": "AI tutoring is temporarily unavailable. Please try again in a few minutes!",
         "practice": "Practice mode is temporarily unavailable. You can still browse problems.",
