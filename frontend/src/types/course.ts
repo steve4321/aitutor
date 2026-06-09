@@ -47,14 +47,39 @@ export interface LessonProgress {
   attempts: number;
 }
 
-export interface LessonContent {
-  schema_version: string;
-  subject: string;
-  lesson_type: 'concept' | 'assessment' | string;
-  steps: unknown[];
-  objectives: string[];
-  summary: {
-    key_points: string[];
-    common_mistakes: string[];
-  };
+export interface PracticeProblem {
+  question: string;
+  options: string[];
+  answer: string;
+}
+
+export interface LessonSection {
+  type: 'introduction' | 'concept' | 'example' | 'practice' | 'summary';
+  title?: string;
+  content?: string;
+  problem?: string;
+  solution?: string;
+  problems?: PracticeProblem[];
+}
+
+export interface LessonDetailResponse {
+  id: string;
+  title: string;
+  lesson_type: string | null;
+  estimated_minutes: number | null;
+  content: { sections: LessonSection[] };
+  unit_id: string;
+  unit_title: string;
+  course_id: string;
+  course_name: string;
+  prev_lesson_id: string | null;
+  next_lesson_id: string | null;
+  is_enrolled: boolean;
+  status: 'locked' | 'in_progress' | 'completed';
+}
+
+export interface LessonProgressResponse {
+  message: string;
+  progress: number;
+  xp_earned: number;
 }
