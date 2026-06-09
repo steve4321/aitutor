@@ -23,6 +23,10 @@ async def list_problems(
     stmt = select(Problem)
     if subject:
         stmt = stmt.where(Problem.subject == subject)
+    if knowledge_point_id:
+        stmt = stmt.where(
+            Problem.knowledge_point_ids.contains([str(knowledge_point_id)])
+        )
     if difficulty:
         stmt = stmt.where(Problem.difficulty == difficulty)
     stmt = stmt.order_by(Problem.difficulty).limit(limit).offset(offset)
