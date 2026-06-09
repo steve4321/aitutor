@@ -1,2 +1,4 @@
 async def seed_database():
-    pass
+    from scripts.seed_data import seed
+
+    await seed()
