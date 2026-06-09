@@ -1,27 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Flame, Trophy, BookOpen, Play, ArrowRight } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { Flame, Trophy, BookOpen, ArrowRight } from 'lucide-react';
 import { api } from '@/lib/api';
 import { ROUTES } from '@/lib/constants';
 import { cn } from '@/lib/utils';
-
-interface User {
-  display_name: string;
-  xp: number;
-  streak: number;
-}
-
-interface UserMeResponse {
-  id: string;
-  name: string;
-}
-
-interface ProfileResponse {
-  xp_total: number;
-  streak_days: number;
-}
+import type { UserResponse, StudentProfileResponse } from '@/types/user';
 
 function StatCard({ icon: Icon, label, value, color }: { icon: typeof Flame; label: string; value: string | number; color: string }) {
   return (
@@ -49,45 +34,28 @@ function SkeletonCard() {
 
 export default function HomePage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<User | null>(null);
 
-  useEffect(() => {
-    const controller = new AbortController();
-    let isMounted = true;
+  const { data: userRes, isLoading: isLoadingUser } = useQuery({
+    queryKey: ['user'],
+    queryFn: () => api.get<UserResponse>('/users/me'),
+  });
 
-    const fetchData = async () => {
-      try {
-        const [userRes, profileRes] = await Promise.all([
-          api.get<UserMeResponse>('/users/me', undefined, { signal: controller.signal }),
-          api.get<ProfileResponse>('/users/me/profile', undefined, { signal: controller.signal }),
-        ]);
-        if (isMounted) {
-          setUser({
-            display_name: userRes.name,
-            xp: profileRes.xp_total,
-            streak: profileRes.streak_days,
-          });
-        }
-      } catch (error) {
-        console.error('Failed to fetch user data:', error);
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-    fetchData();
+  const { data: profileRes, isLoading: isLoadingProfile } = useQuery({
+    queryKey: ['profile'],
+    queryFn: () => api.get<StudentProfileResponse>('/users/me/profile'),
+  });
 
-    return () => {
-      isMounted = false;
-      controller.abort();
-    };
-  }, []);
+  const userName = userRes?.name ?? 'Learner';
+  const xp = profileRes?.xp_total ?? 0;
+  const streak = profileRes?.streak_days ?? 0;
+
+  const loading = isLoadingUser || isLoadingProfile;
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground">
-          Welcome back, {user?.display_name || 'Learner'}!
+          Welcome back, {userName}!
         </h1>
         <p className="text-muted-foreground mt-1">Continue your learning journey</p>
       </div>
@@ -100,8 +68,8 @@ export default function HomePage() {
           </>
         ) : (
           <>
-            <StatCard icon={Trophy} label="XP" value={user?.xp || 0} color="bg-[var(--color-primary)]" />
-            <StatCard icon={Flame} label="Streak" value={`${user?.streak || 0} days`} color="bg-[var(--color-accent)]" />
+            <StatCard icon={Trophy} label="XP" value={xp} color="bg-[var(--color-primary)]" />
+            <StatCard icon={Flame} label="Streak" value={`${streak} days`} color="bg-[var(--color-accent)]" />
           </>
         )}
       </div>

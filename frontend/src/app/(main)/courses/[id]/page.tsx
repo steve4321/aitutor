@@ -1,47 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Play, ChevronDown, ChevronRight, BookOpen } from 'lucide-react';
 import { api } from '@/lib/api';
 import { ROUTES } from '@/lib/constants';
-
-interface Course {
-  id: string;
-  code: string | null;
-  subject: string;
-  name: string;
-  description: string | null;
-  target_exam: string | null;
-  estimated_hours: number | null;
-  is_published: boolean;
-}
-
-interface Unit {
-  id: string;
-  course_id: string;
-  code: string | null;
-  name: string;
-  description: string | null;
-  sort_order: number;
-  required_mastery: number;
-}
-
-interface Lesson {
-  id: string;
-  unit_id: string;
-  knowledge_point_id: string | null;
-  code: string | null;
-  title: string;
-  lesson_type: string | null;
-  estimated_minutes: number | null;
-  sort_order: number;
-  is_published: boolean;
-}
-
-interface UnitWithLessons extends Unit {
-  lessons: Lesson[];
-}
+import type { Course, Unit, Lesson, UnitWithLessons } from '@/types/course';
 
 const SUBJECT_LABELS: Record<string, string> = {
   math: 'AMC',
@@ -66,41 +31,36 @@ export default function CourseDetailPage() {
   const router = useRouter();
   const courseId = params.id as string;
 
-  const [loading, setLoading] = useState(true);
-  const [course, setCourse] = useState<Course | null>(null);
-  const [units, setUnits] = useState<UnitWithLessons[]>([]);
   const [expandedUnits, setExpandedUnits] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    setLoading(true);
-    setCourse(null);
-    setUnits([]);
+  const { data: course, isLoading: courseLoading } = useQuery<Course>({
+    queryKey: ['course', courseId],
+    queryFn: () => api.get<Course>(`/courses/${courseId}`),
+  });
 
-    const fetchData = async () => {
-      try {
-        const [courseRes, unitsRes, lessonsRes] = await Promise.all([
-          api.get<Course>(`/courses/${courseId}`),
-          api.get<Unit[]>(`/courses/${courseId}/units`),
-          api.get<Lesson[]>(`/courses/${courseId}/lessons`),
-        ]);
-        setCourse(courseRes);
+  const { data: unitsData = [] } = useQuery<Unit[]>({
+    queryKey: ['course-units', courseId],
+    queryFn: () => api.get<Unit[]>(`/courses/${courseId}/units`),
+  });
 
-        const unitsWithLessons: UnitWithLessons[] = unitsRes.map((u) => ({
-          ...u,
-          lessons: lessonsRes.filter((l) => l.unit_id === u.id),
-        }));
-        setUnits(unitsWithLessons);
-        if (unitsWithLessons.length > 0) {
-          setExpandedUnits(new Set(unitsWithLessons.map((u) => u.id)));
-        }
-      } catch (error) {
-        console.error('Failed to fetch course detail:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [courseId]);
+  const { data: lessonsData = [] } = useQuery<Lesson[]>({
+    queryKey: ['course-lessons', courseId],
+    queryFn: () => api.get<Lesson[]>(`/courses/${courseId}/lessons`),
+  });
+
+  const units = useMemo<UnitWithLessons[]>(() => {
+    const result = unitsData.map((u) => ({
+      ...u,
+      lessons: lessonsData.filter((l) => l.unit_id === u.id),
+    }));
+    if (result.length > 0 && expandedUnits.size === 0) {
+      setExpandedUnits(new Set(result.map((u) => u.id)));
+    }
+    return result;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [unitsData, lessonsData]);
+
+  const loading = courseLoading;
 
   const toggleUnit = (unitId: string) => {
     setExpandedUnits((prev) => {

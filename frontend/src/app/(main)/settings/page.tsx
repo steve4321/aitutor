@@ -1,6 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTheme } from 'next-themes';
 import {
   Settings,
   User,
@@ -9,41 +12,123 @@ import {
   Volume2,
   Link,
   LogOut,
-  ChevronRight,
   Check,
   X,
   Moon,
   Sun,
+  Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/use-auth';
+import { api } from '@/lib/api';
+import { ROUTES } from '@/lib/constants';
+import type { StudentProfileResponse, UserResponse } from '@/types/user';
 
 type Theme = 'light' | 'dark' | 'system';
 type Language = 'zh-CN' | 'en';
 type FontSize = 'small' | 'medium' | 'large';
 
 export default function SettingsPage() {
-  const [displayName, setDisplayName] = useState('小明');
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const { signOut } = useAuth();
+  const { theme: activeTheme, setTheme: setActiveTheme } = useTheme();
+
+  const [displayName, setDisplayName] = useState('');
   const [gradeLevel, setGradeLevel] = useState(6);
-  const [theme, setTheme] = useState<Theme>('system');
   const [language, setLanguage] = useState<Language>('zh-CN');
   const [fontSize, setFontSize] = useState<FontSize>('medium');
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [parentLinkCode, setParentLinkCode] = useState('');
-  const [showLinkSuccess, setShowLinkSuccess] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [linkMessage, setLinkMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [avatarUrl] = useState<string | null>(null);
+
+  const profileQuery = useQuery({
+    queryKey: ['profile'],
+    queryFn: () => api.get<StudentProfileResponse>('/users/me/profile'),
+  });
+
+  const userQuery = useQuery({
+    queryKey: ['me'],
+    queryFn: () => api.get<UserResponse>('/auth/me'),
+  });
+
+  useEffect(() => {
+    if (userQuery.data) {
+      setDisplayName(userQuery.data.name);
+    }
+  }, [userQuery.data]);
+
+  useEffect(() => {
+    if (profileQuery.data?.grade_level != null) {
+      setGradeLevel(profileQuery.data.grade_level);
+    }
+  }, [profileQuery.data]);
+
+  const saveNameMutation = useMutation({
+    mutationFn: (name: string) =>
+      api.put<UserResponse>('/users/me', { name }),
+    onSuccess: (data) => {
+      queryClient.setQueryData(['me'], data);
+    },
+  });
+
+  const saveProfileMutation = useMutation({
+    mutationFn: (updates: { grade_level?: number; target_exam?: string }) =>
+      api.patch<StudentProfileResponse>('/users/me/profile', updates),
+    onSuccess: (data) => {
+      queryClient.setQueryData(['profile'], data);
+    },
+  });
+
+  const parentLinkMutation = useMutation({
+    mutationFn: (code: string) =>
+      api.post<{ status: string; parent_name?: string }>('/parent/link', { link_code: code }),
+    onSuccess: (data) => {
+      if (data.status === 'already_linked') {
+        setLinkMessage({ type: 'success', text: `已绑定 ${data.parent_name ?? '家长'}` });
+      } else {
+        setLinkMessage({ type: 'success', text: `绑定成功！${data.parent_name ? `已关联 ${data.parent_name}` : ''}` });
+      }
+      setParentLinkCode('');
+      setTimeout(() => setLinkMessage(null), 4000);
+    },
+    onError: () => {
+      setLinkMessage({ type: 'error', text: '绑定失败，请检查绑定码是否正确' });
+      setTimeout(() => setLinkMessage(null), 4000);
+    },
+  });
+
+  const handleSaveName = () => {
+    const trimmed = displayName.trim();
+    if (trimmed && trimmed !== (userQuery.data?.name ?? '')) {
+      saveNameMutation.mutate(trimmed);
+    }
+  };
+
+  const handleGradeChange = (grade: number) => {
+    setGradeLevel(grade);
+    saveProfileMutation.mutate({ grade_level: grade });
+  };
+
+  const handleThemeChange = (t: Theme) => {
+    setActiveTheme(t);
+  };
 
   const handleParentLink = () => {
     if (parentLinkCode.length === 6) {
-      setShowLinkSuccess(true);
-      setParentLinkCode('');
-      setTimeout(() => setShowLinkSuccess(false), 3000);
+      parentLinkMutation.mutate(parentLinkCode);
     }
   };
 
   const handleLogout = () => {
-    // TODO: implement logout
+    signOut();
+    router.push(ROUTES.LOGIN);
   };
+
+  const isSaving = saveNameMutation.isPending || saveProfileMutation.isPending;
+  const currentTheme = (activeTheme ?? 'system') as Theme;
 
   return (
     <div className="space-y-6">
@@ -66,49 +151,67 @@ export default function SettingsPage() {
             </h2>
           </div>
           <div className="p-6">
-            <div className="mb-6 flex items-center gap-6">
-              <div className="relative">
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-violet-500 text-xl font-bold text-white">
-                  {avatarUrl ? (
-                    <img src={avatarUrl} alt="Avatar" className="h-full w-full rounded-full object-cover" />
-                  ) : (
-                    displayName.charAt(0)
-                  )}
-                </div>
-                <button className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 shadow-sm hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600">
-                  ✎
-                </button>
+            {(userQuery.isLoading || profileQuery.isLoading) && (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
               </div>
-              <div className="flex-1">
-                <div className="mb-3">
-                  <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                    显示名称
-                  </label>
-                  <input
-                    type="text"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2 text-slate-900 transition-colors focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-white"
-                  />
+            )}
+            {!userQuery.isLoading && !profileQuery.isLoading && (
+              <div className="mb-6 flex items-center gap-6">
+                <div className="relative">
+                  <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-violet-500 text-xl font-bold text-white">
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="Avatar" className="h-full w-full rounded-full object-cover" />
+                    ) : (
+                      displayName.charAt(0) || '?'
+                    )}
+                  </div>
+                  <button className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 shadow-sm hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600">
+                    ✎
+                  </button>
                 </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                    年级
-                  </label>
-                  <select
-                    value={gradeLevel}
-                    onChange={(e) => setGradeLevel(Number(e.target.value))}
-                    className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-slate-900 transition-colors focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-white"
-                  >
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((g) => (
-                      <option key={g} value={g}>
-                        小学{g <= 6 ? `${g}年级` : ''} {g > 6 ? `初中${g - 6}年级` : ''}
-                      </option>
-                    ))}
-                  </select>
+                <div className="flex-1">
+                  <div className="mb-3">
+                    <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                      显示名称
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={displayName}
+                        onChange={(e) => setDisplayName(e.target.value)}
+                        onBlur={handleSaveName}
+                        onKeyDown={(e) => { if (e.key === 'Enter') handleSaveName(); }}
+                        className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2 text-slate-900 transition-colors focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                      />
+                      {saveNameMutation.isPending && (
+                        <Loader2 className="h-5 w-5 animate-spin text-blue-500 self-center" />
+                      )}
+                      {saveNameMutation.isSuccess && (
+                        <Check className="h-5 w-5 text-emerald-500 self-center" />
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                      年级
+                    </label>
+                    <select
+                      value={gradeLevel}
+                      onChange={(e) => handleGradeChange(Number(e.target.value))}
+                      disabled={saveProfileMutation.isPending}
+                      className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-slate-900 transition-colors focus:border-blue-500 focus:outline-none disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                    >
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((g) => (
+                        <option key={g} value={g}>
+                          小学{g <= 6 ? `${g}年级` : ''} {g > 6 ? `初中${g - 6}年级` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </section>
 
@@ -127,16 +230,16 @@ export default function SettingsPage() {
               </div>
               <div className="flex gap-2">
                 {([
-                  { value: 'light', icon: Sun, label: '浅色' },
-                  { value: 'dark', icon: Moon, label: '深色' },
-                  { value: 'system', icon: Settings, label: '自动' },
-                ] as const).map((t) => (
+                  { value: 'light' as Theme, icon: Sun, label: '浅色' },
+                  { value: 'dark' as Theme, icon: Moon, label: '深色' },
+                  { value: 'system' as Theme, icon: Settings, label: '自动' },
+                ]).map((t) => (
                   <button
                     key={t.value}
-                    onClick={() => setTheme(t.value)}
+                    onClick={() => handleThemeChange(t.value)}
                     className={cn(
                       'flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-all',
-                      theme === t.value
+                      currentTheme === t.value
                         ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300'
                         : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'
                     )}
@@ -212,16 +315,27 @@ export default function SettingsPage() {
               />
               <button
                 onClick={handleParentLink}
-                disabled={parentLinkCode.length !== 6}
+                disabled={parentLinkCode.length !== 6 || parentLinkMutation.isPending}
                 className="rounded-lg bg-amber-600 px-6 py-3 font-medium text-white transition-all hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                绑定
+                {parentLinkMutation.isPending ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  '绑定'
+                )}
               </button>
             </div>
-            {showLinkSuccess && (
-              <div className="mt-3 flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
-                <Check className="h-5 w-5" />
-                <span>绑定成功！</span>
+            {linkMessage && (
+              <div className={cn(
+                'mt-3 flex items-center gap-2',
+                linkMessage.type === 'success' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+              )}>
+                {linkMessage.type === 'success' ? (
+                  <Check className="h-5 w-5" />
+                ) : (
+                  <X className="h-5 w-5" />
+                )}
+                <span>{linkMessage.text}</span>
               </div>
             )}
           </div>

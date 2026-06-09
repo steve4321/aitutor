@@ -1,32 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { BookOpen, Calculator, Target, Clock, ChevronRight, Play } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { api } from '@/lib/api';
-
-interface Course {
-  id: string;
-  code: string | null;
-  subject: string;
-  name: string;
-  description: string | null;
-  estimated_hours: number | null;
-}
-
-interface Unit {
-  id: string;
-  name: string;
-  description: string | null;
-  sort_order: number;
-}
-
-interface Lesson {
-  id: string;
-  unit_id: string;
-  title: string;
-  estimated_minutes: number | null;
-}
+import { ROUTES } from '@/lib/constants';
+import type { Course, Unit, Lesson } from '@/types/course';
 
 const SUBJECT_CONFIG: Record<string, { label: string; icon: typeof Calculator; activeColor: string; activeBg: string; activeText: string }> = {
   math: { label: '数学', icon: Calculator, activeColor: 'border-blue-500', activeBg: 'bg-blue-50 dark:bg-blue-900/30', activeText: 'text-blue-600 dark:text-blue-400' },
@@ -35,47 +16,35 @@ const SUBJECT_CONFIG: Record<string, { label: string; icon: typeof Calculator; a
 };
 
 export default function PracticePage() {
-  const [courses, setCourses] = useState<Course[]>([]);
+  const router = useRouter();
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
-  const [units, setUnits] = useState<Unit[]>([]);
-  const [lessons, setLessons] = useState<Lesson[]>([]);
   const [selectedUnits, setSelectedUnits] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+
+  const { data: courses = [], isLoading: loading } = useQuery({
+    queryKey: ['courses'],
+    queryFn: () => api.get<Course[]>('/courses'),
+  });
 
   useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        const res = await api.get<Course[]>('/courses');
-        setCourses(res);
-        if (res.length > 0) {
-          setSelectedCourseId(res[0].id);
-        }
-      } catch (error) {
-        console.error('Failed to fetch courses:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCourses();
-  }, []);
+    if (courses.length > 0 && !selectedCourseId) {
+      setSelectedCourseId(courses[0].id);
+    }
+  }, [courses, selectedCourseId]);
+
+  const { data: units = [] } = useQuery({
+    queryKey: ['course-units', selectedCourseId],
+    queryFn: () => api.get<Unit[]>(`/courses/${selectedCourseId}/units`),
+    enabled: !!selectedCourseId,
+  });
+
+  const { data: lessons = [] } = useQuery({
+    queryKey: ['course-lessons', selectedCourseId],
+    queryFn: () => api.get<Lesson[]>(`/courses/${selectedCourseId}/lessons`),
+    enabled: !!selectedCourseId,
+  });
 
   useEffect(() => {
-    if (!selectedCourseId) return;
     setSelectedUnits([]);
-
-    const fetchUnitsAndLessons = async () => {
-      try {
-        const [unitsRes, lessonsRes] = await Promise.all([
-          api.get<Unit[]>(`/courses/${selectedCourseId}/units`),
-          api.get<Lesson[]>(`/courses/${selectedCourseId}/lessons`),
-        ]);
-        setUnits(unitsRes);
-        setLessons(lessonsRes);
-      } catch (error) {
-        console.error('Failed to fetch units/lessons:', error);
-      }
-    };
-    fetchUnitsAndLessons();
   }, [selectedCourseId]);
 
   const toggleUnit = (unitId: string) => {
@@ -85,6 +54,17 @@ export default function PracticePage() {
         : [...prev, unitId]
     );
   };
+
+  const startMutation = useMutation({
+    mutationFn: (body: { session_type: string; subject: string }) =>
+      api.post<{ id: string }>('/sessions', body),
+    onSuccess: (session) => {
+      router.push(`${ROUTES.PRACTICE}?session=${session.id}`);
+    },
+    onError: (error) => {
+      console.error('Failed to start practice:', error);
+    },
+  });
 
   const selectedCourse = courses.find((c) => c.id === selectedCourseId);
   const subject = selectedCourse?.subject || 'math';
@@ -102,8 +82,14 @@ export default function PracticePage() {
   }, 0);
 
   const handleStartPractice = () => {
-    // TODO: implement practice start
+    if (selectedUnits.length === 0 || !selectedCourse) return;
+    startMutation.mutate({
+      session_type: 'practice',
+      subject: selectedCourse.subject,
+    });
   };
+
+  const starting = startMutation.isPending;
 
   if (loading) {
     return (
@@ -225,17 +211,26 @@ export default function PracticePage() {
 
       <button
         onClick={handleStartPractice}
-        disabled={selectedUnits.length === 0}
+        disabled={selectedUnits.length === 0 || starting}
         className={cn(
           'flex w-full items-center justify-center gap-2 rounded-xl py-4 font-semibold transition-all',
-          selectedUnits.length > 0
+          selectedUnits.length > 0 && !starting
             ? 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary)]/90'
             : 'bg-muted text-muted-foreground cursor-not-allowed'
         )}
       >
-        <Play className="h-5 w-5" />
-        开始练习
-        <ChevronRight className="h-5 w-5" />
+        {starting ? (
+          <>
+            <span className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            跳转中...
+          </>
+        ) : (
+          <>
+            <Play className="h-5 w-5" />
+            开始练习
+            <ChevronRight className="h-5 w-5" />
+          </>
+        )}
       </button>
     </div>
   );
