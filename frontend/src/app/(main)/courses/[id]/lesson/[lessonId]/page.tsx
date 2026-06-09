@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { ChatPanel } from '@/components/chat/chat-panel';
@@ -11,7 +11,7 @@ import { ArrowLeft, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { ROUTES } from '@/lib/constants';
 import { useChat } from '@/hooks/use-chat';
-import type { LessonDetailResponse, LessonProgressResponse } from '@/types/course';
+import type { LessonDetailResponse, LessonProgressResponse, LessonSection } from '@/types/course';
 import type { SessionResponse } from '@/types/session';
 
 export default function LessonPage() {
@@ -122,6 +122,59 @@ export default function LessonPage() {
     router.push(ROUTES.LESSON(courseId, lesson.prev_lesson_id!));
   }, [lesson, courseId, router]);
 
+  const sections: LessonSection[] = useMemo(() => {
+    const content = (lesson?.content ?? {}) as Record<string, unknown>;
+    const out: LessonSection[] = [];
+
+    if (Array.isArray(content.sections) && content.sections.length > 0) {
+      return content.sections as LessonSection[];
+    }
+
+    if (Array.isArray(content.steps)) {
+      for (const raw of content.steps as Array<Record<string, unknown>>) {
+        const t = String(raw.type ?? '').toLowerCase();
+        const sec: LessonSection = {
+          type: (['introduction', 'concept', 'example', 'practice', 'summary'].includes(t)
+            ? t
+            : 'concept') as LessonSection['type'],
+          title: typeof raw.title === 'string' ? raw.title : undefined,
+          content: typeof raw.content === 'string' ? raw.content : undefined,
+          problem: typeof raw.problem === 'string' ? raw.problem : undefined,
+          solution: typeof raw.solution === 'string' ? raw.solution : undefined,
+          problems: Array.isArray(raw.problems)
+            ? (raw.problems as LessonSection['problems'])
+            : undefined,
+        };
+        out.push(sec);
+      }
+    }
+
+    if (Array.isArray(content.objectives) && content.objectives.length > 0) {
+      out.push({
+        type: 'introduction',
+        title: '本课目标',
+        content: (content.objectives as string[]).map((o, i) => `${i + 1}. ${o}`).join('\n'),
+      });
+    }
+
+    const summary = content.summary as { key_points?: string[]; common_mistakes?: string[] } | undefined;
+    if (summary && (summary.key_points?.length || summary.common_mistakes?.length)) {
+      const lines: string[] = [];
+      if (summary.key_points?.length) {
+        lines.push('要点：');
+        summary.key_points.forEach((k) => lines.push(`• ${k}`));
+      }
+      if (summary.common_mistakes?.length) {
+        if (lines.length) lines.push('');
+        lines.push('常见错误：');
+        summary.common_mistakes.forEach((m) => lines.push(`• ${m}`));
+      }
+      out.push({ type: 'summary', content: lines.join('\n') });
+    }
+
+    return out;
+  }, [lesson]);
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[var(--color-background)]">
@@ -193,7 +246,7 @@ export default function LessonPage() {
         )}
 
         <LessonContent
-          sections={lesson.content.sections}
+          sections={sections}
           onAnswer={handleAnswer}
         />
 
