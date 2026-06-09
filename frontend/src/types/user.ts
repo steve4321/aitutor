@@ -29,6 +29,7 @@ export interface StudentProfileResponse {
   xp_total: number;
   streak_days: number;
   longest_streak: number;
+  minutes_today: number;
 }
 
 // ── Backward-compatible aliases ─────────────────────────────────────────
