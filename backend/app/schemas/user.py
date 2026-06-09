@@ -57,6 +57,24 @@ class RefreshTokenRequest(BaseModel):
     refresh_token: str
 
 
+class ProfileUpdateRequest(BaseModel):
+    grade_level: int | None = None
+    target_exam: str | None = None
+
+
+class UserNameUpdateRequest(BaseModel):
+    name: str
+
+
+class ParentLinkRequest(BaseModel):
+    link_code: str
+
+
+class ParentLinkResponse(BaseModel):
+    status: str
+    parent_name: str | None = None
+
+
 class RegisterRequest(BaseModel):
     username: str
     email: str | None = None
