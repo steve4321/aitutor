@@ -10,7 +10,7 @@ from sqlalchemy import (
 from sqlalchemy import Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import Base
+from app.models.base import Base, EmbeddingType
 
 
 class KnowledgePoint(Base):
@@ -37,8 +37,7 @@ class KnowledgePoint(Base):
         SmallInteger, nullable=True
     )
     amc_levels: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    # pgvector Vector(1536) in production; TEXT placeholder for dev scaffolding
-    embedding: Mapped[str | None] = mapped_column(Text, nullable=True)
+    embedding: Mapped[str | None] = mapped_column(EmbeddingType, nullable=True)
 
     prerequisites: Mapped[list["KnowledgeDependency"]] = relationship(
         "KnowledgeDependency",

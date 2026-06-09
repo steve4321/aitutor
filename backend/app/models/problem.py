@@ -4,7 +4,7 @@ from sqlalchemy import ForeignKey, Index, Integer, SmallInteger, String, Text
 from sqlalchemy import JSON as JSONB, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import Base
+from app.models.base import Base, EmbeddingType
 
 
 class Problem(Base):
@@ -38,8 +38,7 @@ class Problem(Base):
     times_attempted: Mapped[int] = mapped_column(Integer, default=0)
     times_correct: Mapped[int] = mapped_column(Integer, default=0)
     avg_time_sec: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
-    # pgvector Vector(1536) in production; TEXT placeholder for dev scaffolding
-    embedding: Mapped[str | None] = mapped_column(Text, nullable=True)
+    embedding: Mapped[str | None] = mapped_column(EmbeddingType, nullable=True)
 
     solutions: Mapped[list["ProblemSolution"]] = relationship(
         "ProblemSolution", back_populates="problem",
