@@ -4,7 +4,7 @@
 
 // ── API Response Types (match backend exactly) ──────────────────────────
 
-/** Backend: UserResponse – GET /auth/me, GET /users/:id */
+/** Backend: UserResponse – GET /users/me, GET /users/:id */
 export interface UserResponse {
   id: string;
   email: string | null;
