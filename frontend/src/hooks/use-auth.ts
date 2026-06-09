@@ -30,10 +30,10 @@ export function useAuth() {
         return;
       }
       try {
-        const userData = await api.get<User>('/auth/me', undefined, { signal: controller.signal });
+        const userData = await api.get<User>('/users/me', undefined, { signal: controller.signal });
         if (isMounted) {
           try {
-            const profileData = await api.get<StudentProfile>(`/students/${userData.id}/profile`, undefined, { signal: controller.signal });
+            const profileData = await api.get<StudentProfile>('/users/me/profile', undefined, { signal: controller.signal });
             if (isMounted) useAuthStore.getState().login(userData, profileData);
           } catch {
             if (isMounted) useAuthStore.getState().login(userData, null);
@@ -63,8 +63,8 @@ export function useAuth() {
       const response = await api.post<LoginResponse>('/auth/login', credentials);
       setToken(response.access_token);
 
-      const userData = await api.get<User>('/auth/me');
-      const profileData = await api.get<StudentProfile>(`/students/${userData.id}/profile`);
+      const userData = await api.get<User>('/users/me');
+      const profileData = await api.get<StudentProfile>('/users/me/profile');
       login(userData, profileData);
     } finally {
       setLoading(false);
@@ -94,7 +94,7 @@ export function useAuth() {
 
   const refreshProfile = async () => {
     if (!user) return;
-    const profileData = await api.get<StudentProfile>(`/students/${user.id}/profile`);
+    const profileData = await api.get<StudentProfile>('/users/me/profile');
     useAuthStore.getState().setProfile(profileData);
   };
 

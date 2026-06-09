@@ -133,7 +133,7 @@ describe('useAuth', () => {
     });
   });
 
-  it('clears tokens and logs out on /auth/me failure', async () => {
+  it('clears tokens and logs out on /users/me failure', async () => {
     const { getToken, clearTokens } = await import('@/lib/auth');
     (getToken as ReturnType<typeof vi.fn>).mockReturnValue('bad-token');
     (api.get as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('Unauthorized'));
@@ -198,7 +198,7 @@ describe('useAuth', () => {
       await result.current.refreshProfile();
     });
 
-    expect(api.get).toHaveBeenCalledWith(`/students/${mockUser.id}/profile`);
+    expect(api.get).toHaveBeenCalledWith('/users/me/profile');
     expect(mockStore.profile).toEqual(mockProfile);
   });
 

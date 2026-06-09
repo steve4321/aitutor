@@ -51,7 +51,7 @@ export default function SettingsPage() {
 
   const userQuery = useQuery({
     queryKey: ['me'],
-    queryFn: () => api.get<UserResponse>('/auth/me'),
+    queryFn: () => api.get<UserResponse>('/users/me'),
   });
 
   useEffect(() => {
