@@ -1,8 +1,8 @@
 import re
-from datetime import date, datetime
+from datetime import date, datetime, timedelta, timezone
 from uuid import UUID
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class UserCreate(BaseModel):
@@ -38,13 +38,14 @@ class StudentProfileResponse(BaseModel):
     xp_total: int
     streak_days: int
     longest_streak: int
+    minutes_today: int = 0
 
     model_config = {"from_attributes": True}
 
 
 class LoginRequest(BaseModel):
-    username: str
-    password: str
+    username: str = Field(min_length=1, max_length=64)
+    password: str = Field(min_length=1, max_length=128)
 
 
 class TokenResponse(BaseModel):
@@ -76,18 +77,14 @@ class ParentLinkResponse(BaseModel):
 
 
 class RegisterRequest(BaseModel):
-    username: str
-    email: str | None = None
-    password: str
-    display_name: str | None = None
+    username: str = Field(min_length=1, max_length=64)
+    email: str | None = Field(default=None, max_length=255)
+    password: str = Field(min_length=6, max_length=128)
+    display_name: str | None = Field(default=None, max_length=100)
 
     @field_validator("password")
     @classmethod
     def validate_password(cls, v: str) -> str:
-        if len(v) < 6:
-            raise ValueError("Password must be at least 6 characters")
-        if len(v) > 128:
-            raise ValueError("Password must be at most 128 characters")
         if not re.search(r"[A-Za-z]", v):
             raise ValueError("Password must contain at least one letter")
         if not re.search(r"\d", v):

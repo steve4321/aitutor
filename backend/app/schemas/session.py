@@ -1,12 +1,16 @@
 from datetime import datetime
+from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+SessionType = Literal["practice", "lesson", "review"]
+SessionSubject = Literal["math", "english", "chinese"]
 
 
 class SessionCreate(BaseModel):
-    session_type: str = "practice"  # practice, lesson, review
-    subject: str = "math"
+    session_type: SessionType = "practice"
+    subject: SessionSubject = "math"
     knowledge_point_id: UUID | None = None
 
 
