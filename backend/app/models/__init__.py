@@ -6,6 +6,7 @@ from app.models.learning import KnowledgeState, LearningSession, StudentAttempt
 from app.models.course import Course, Lesson, Unit
 from app.models.enrollment import Enrollment
 from app.models.message import Message
+from app.models.ket import KETQuestion, KETWritingTask, KETSpeakingTask
 
 __all__ = [
     "Base",
@@ -24,4 +25,7 @@ __all__ = [
     "Lesson",
     "Enrollment",
     "Message",
+    "KETQuestion",
+    "KETWritingTask",
+    "KETSpeakingTask",
 ]
