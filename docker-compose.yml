@@ -1,4 +1,6 @@
-version: "3.8"
+# AI Tutor - Docker Compose
+# Use .env file in this directory to override defaults (see .env.example)
+# Run: cp .env.example .env && docker compose up -d
 
 services:
   # ─── PostgreSQL + pgvector ───
@@ -6,13 +8,18 @@ services:
     image: pgvector/pgvector:pg16
     container_name: aitutor-postgres
     environment:
-      POSTGRES_USER: aitutor
-      POSTGRES_PASSWORD: aitutor
-      POSTGRES_DB: aitutor
+      POSTGRES_USER: ${POSTGRES_USER:-aitutor}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aitutor}
+      POSTGRES_DB: ${POSTGRES_DB:-aitutor}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512m
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U aitutor"]
       interval: 5s
@@ -27,6 +34,11 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256m
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -44,8 +56,8 @@ services:
     env_file:
       - ./backend/.env
     environment:
-      DATABASE_URL: postgresql+asyncpg://aitutor:aitutor@postgres:5432/aitutor
-      REDIS_URL: redis://redis:6379/0
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://aitutor:aitutor@postgres:5432/aitutor}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
     depends_on:
       postgres:
         condition: service_healthy
@@ -53,6 +65,17 @@ services:
         condition: service_healthy
     volumes:
       - ./backend/app:/app/app  # Dev: hot reload
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
   # ─── Frontend ───
@@ -64,12 +87,17 @@ services:
     ports:
       - "3000:3000"
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000/api/v1}
     depends_on:
       - backend
     volumes:
       - ./frontend/src:/app/src  # Dev: hot reload
       - ./frontend/public:/app/public
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512m
     command: npm run dev
 
 volumes:
