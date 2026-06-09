@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import select
 
 from app.agents import run_agent
@@ -9,12 +9,15 @@ from app.models.learning import LearningSession
 from app.models.message import Message
 from app.models.user import User
 from app.schemas.chat import ChatMessageRequest, ChatMessageResponse
+from app.core.rate_limit import limiter
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
 
 @router.post("/message", response_model=ChatMessageResponse)
+@limiter.limit("20/minute")
 async def send_message(
+    request: Request,
     body: ChatMessageRequest,
     db: DbSession,
     current_user: User = Depends(get_current_user),
@@ -61,17 +64,12 @@ async def send_message(
         db_session=db,
     )
 
-    # Query for the assistant message persisted by the agent's _response_node
-    result = await db.execute(
-        select(Message)
-        .where(
-            Message.session_id == session.id,
-            Message.role == "assistant",
-        )
-        .order_by(Message.created_at.desc())
-        .limit(1)
-    )
-    ai_msg = result.scalar_one_or_none()
+    # Retrieve the assistant message by its deterministic ID (avoids race condition)
+    message_id = agent_result.get("message_id")
+    if message_id:
+        ai_msg = await db.get(Message, message_id)
+    else:
+        ai_msg = None
 
     if ai_msg is None:
         # Agent didn't persist (edge case) — return response without DB record
