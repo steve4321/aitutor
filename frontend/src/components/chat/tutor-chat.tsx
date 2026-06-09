@@ -72,7 +72,7 @@ export function TutorChat({
           </div>
         )}
         {messages.map((msg) => (
-          <ChatBubble key={msg.id} role={msg.role} content={msg.content} />
+          <ChatBubble key={msg.id} role={msg.role as 'user' | 'assistant' | 'system'} content={msg.content} />
         ))}
         {isLoading && (
           <div className="flex gap-3">
