@@ -20,4 +20,5 @@ async def run_agent(*, db_session=None, **kwargs) -> dict:
         "agent_response": result.get("agent_response", ""),
         "structured_data": result.get("structured_data"),
         "error": result.get("error"),
+        "message_id": result.get("message_id"),
     }

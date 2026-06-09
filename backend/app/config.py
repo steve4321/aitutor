@@ -13,12 +13,22 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str = "sqlite+aiosqlite:///./data/aitutor.db"
     REDIS_URL: str = "redis://localhost:6379/0"
-    DISABLE_REDIS: bool = True  # Set False when Redis is available
+    DISABLE_REDIS: bool = False  # Enabled by default; Redis is in docker-compose
     SECRET_KEY: str = _DEFAULT_SECRET
     OPENAI_API_KEY: str = ""
 
     ENVIRONMENT: str = "development"
+    SENTRY_DSN: str = ""
     CORS_ORIGINS: list[str] = ["http://localhost:3000"]
+
+    # Connection pool (PostgreSQL only; ignored for SQLite)
+    DB_POOL_SIZE: int = 20
+    DB_MAX_OVERFLOW: int = 10
+    DB_POOL_RECYCLE: int = 1800  # seconds
+
+    # LLM tuning
+    LLM_TIMEOUT: float = 30.0
+    LLM_MAX_RETRIES: int = 2
 
     # LLM Configuration
     LLM_BASE_URL: str = ""  # DeepSeek: https://api.deepseek.com
