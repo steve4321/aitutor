@@ -48,14 +48,18 @@ describe('useXP hook', () => {
     mockAuthStore.isAuthenticated = true;
 
     const mockProfile: StudentProfile = {
+      id: 'profile-1',
       user_id: 'user-1',
       grade_level: 5,
-      xp: 3500,
-      streak: 7,
-      longest_streak: 14,
+      target_exam: null,
+      target_date: null,
       daily_goal_minutes: 30,
-      preferred_subjects: ['math'],
-      parent_linked: false,
+      timezone: 'Asia/Shanghai',
+      preferred_lang: 'zh-CN',
+      diagnostic_done: false,
+      xp_total: 3500,
+      streak_days: 7,
+      longest_streak: 14,
     };
 
     const { api } = await import('@/lib/api');
