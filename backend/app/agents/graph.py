@@ -92,7 +92,7 @@ async def _persist_response(db, state, session_id, agent_response) -> dict:
     else:
         await db.commit()
 
-    return {}
+    return {"message_id": ai_msg.id if agent_response and session_id else None}
 
 
 def build_graph():

@@ -1,4 +1,5 @@
 """Orchestrator node: loads student context and session data."""
+import asyncio
 from uuid import UUID
 
 from app.agents.state import AgentState
@@ -28,23 +29,35 @@ async def orchestrator_node(state: AgentState) -> dict:
 async def _load_context(db, state: AgentState) -> dict:
     updates: dict = {}
     student_id = state.get("student_id")
+    session_id = state.get("session_id")
+    problem_id = state.get("problem_id")
+    lesson_id = state.get("lesson_id")
+
+    coroutines = []
+    keys = []
+
     if student_id:
         sid = UUID(str(student_id))
-        updates["student"] = await load_student_context(db, sid)
-        updates["knowledge_states"] = await load_knowledge_states(db, sid)
+        coroutines.append(load_student_context(db, sid))
+        keys.append("student")
+        coroutines.append(load_knowledge_states(db, sid))
+        keys.append("knowledge_states")
 
-    session_id = state.get("session_id")
     if session_id:
-        updates["session_messages"] = await load_session_messages(
-            db, UUID(str(session_id))
-        )
+        coroutines.append(load_session_messages(db, UUID(str(session_id))))
+        keys.append("session_messages")
 
-    problem_id = state.get("problem_id")
     if problem_id:
-        updates["problem_data"] = await load_problem(db, UUID(str(problem_id)))
+        coroutines.append(load_problem(db, UUID(str(problem_id))))
+        keys.append("problem_data")
 
-    lesson_id = state.get("lesson_id")
     if lesson_id:
-        updates["lesson_data"] = await load_lesson(db, UUID(str(lesson_id)))
+        coroutines.append(load_lesson(db, UUID(str(lesson_id))))
+        keys.append("lesson_data")
+
+    if coroutines:
+        results = await asyncio.gather(*coroutines)
+        for key, result in zip(keys, results):
+            updates[key] = result
 
     return updates
