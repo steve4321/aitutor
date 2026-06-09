@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { ChatPanel } from '@/components/chat/chat-panel';
 import { ChatInput } from '@/components/chat/chat-input';
@@ -9,15 +10,9 @@ import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { ROUTES } from '@/lib/constants';
+import { useChat } from '@/hooks/use-chat';
 import type { LessonDetailResponse, LessonProgressResponse } from '@/types/course';
-
-interface SessionResponse {
-  id: string;
-  session_type: string;
-  subject: string;
-  lesson_id: string | null;
-  started_at: string;
-}
+import type { SessionResponse } from '@/types/session';
 
 export default function LessonPage() {
   const params = useParams();
@@ -25,58 +20,48 @@ export default function LessonPage() {
   const courseId = params.id as string;
   const lessonId = params.lessonId as string;
 
-  const [lesson, setLesson] = useState<LessonDetailResponse | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [completing, setCompleting] = useState(false);
   const [completed, setCompleted] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function fetchLesson() {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await api.get<LessonDetailResponse>(`/lessons/${lessonId}`);
-        if (cancelled) return;
-        setLesson(data);
-        setCompleted(data.status === 'completed');
-      } catch (err) {
-        if (cancelled) return;
-        setError(err instanceof Error ? err.message : '加载课程失败');
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    fetchLesson();
-    return () => { cancelled = true; };
-  }, [lessonId]);
+  const { data: lesson, isLoading: loading, error: lessonError } = useQuery<LessonDetailResponse>({
+    queryKey: ['lesson', lessonId],
+    queryFn: () => api.get<LessonDetailResponse>(`/lessons/${lessonId}`),
+  });
 
   useEffect(() => {
-    if (!lesson) return;
-    let cancelled = false;
-
-    async function createSession() {
-      try {
-        const session = await api.post<SessionResponse>('/sessions', {
-          session_type: 'lesson',
-          subject: 'math',
-          lesson_id: lessonId,
-        });
-        if (!cancelled) {
-          setSessionId(session.id);
-        }
-      } catch {
-        // Session creation is non-critical — chat won't work but lesson still renders
-      }
+    if (lesson) {
+      setCompleted(lesson.status === 'completed');
     }
+  }, [lesson]);
 
-    createSession();
-    return () => { cancelled = true; };
-  }, [lesson, lessonId]);
+  const createSessionMutation = useMutation<SessionResponse>({
+    mutationFn: () =>
+      api.post<SessionResponse>('/sessions', {
+        session_type: 'lesson',
+        subject: 'math',
+        lesson_id: lessonId,
+      }),
+    onSuccess: (data) => {
+      setSessionId(data.id);
+    },
+  });
+
+  useEffect(() => {
+    if (lesson && !sessionId) {
+      createSessionMutation.mutate();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lesson]);
+
+  useEffect(() => {
+    if (lessonError) {
+      setError(lessonError instanceof Error ? lessonError.message : '加载课程失败');
+    }
+  }, [lessonError]);
+
+  const { messages, send, isLoading: chatLoading } = useChat({ sessionId, autoCreate: false });
 
   useEffect(() => {
     return () => {
@@ -93,7 +78,7 @@ export default function LessonPage() {
     if (!lesson || completing || completed) return;
     setCompleting(true);
     try {
-      const res = await api.post<LessonProgressResponse>(`/lessons/${lessonId}/progress`, {
+      await api.post<LessonProgressResponse>(`/lessons/${lessonId}/progress`, {
         status: 'completed',
       });
 
@@ -202,11 +187,11 @@ export default function LessonPage() {
         <div className="mt-2">
           <h3 className="text-base font-bold text-[var(--color-foreground)] mb-2">AI 老师</h3>
           <ChatPanel
-            messages={[]}
+            messages={messages}
             className="h-48 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-muted)]"
           />
           <div className="mt-2">
-            <ChatInput onSend={() => {}} disabled placeholder="AI 对话功能即将上线..." />
+            <ChatInput onSend={send} disabled={chatLoading} placeholder="输入问题，向AI老师提问..." />
           </div>
         </div>
       </div>

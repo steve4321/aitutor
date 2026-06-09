@@ -1,21 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import { BookOpen } from 'lucide-react';
 import { api } from '@/lib/api';
 import { ROUTES } from '@/lib/constants';
 import { cn } from '@/lib/utils';
-
-interface Course {
-  id: string;
-  name: string;
-  description: string | null;
-  subject: string;
-  target_exam: string | null;
-  estimated_hours: number | null;
-  is_published: boolean;
-}
+import type { Course } from '@/types/course';
 
 const SUBJECT_LABELS: Record<string, string> = {
   math: 'AMC',
@@ -46,26 +38,16 @@ function CourseCardSkeleton() {
 export default function CoursesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [loading, setLoading] = useState(true);
-  const [courses, setCourses] = useState<Course[]>([]);
   const [filter, setFilter] = useState(searchParams.get('filter') || '');
 
-  useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        const params = new URLSearchParams();
-        if (filter) params.set('subject', filter);
-
-        const res = await api.get<Course[]>(`/courses?${params.toString()}`);
-        setCourses(res);
-      } catch (error) {
-        console.error('Failed to fetch courses:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCourses();
-  }, [filter]);
+  const { data: courses = [], isLoading: loading } = useQuery<Course[]>({
+    queryKey: ['courses', filter],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (filter) params.set('subject', filter);
+      return api.get<Course[]>(`/courses?${params.toString()}`);
+    },
+  });
 
   return (
     <div className="space-y-6">
