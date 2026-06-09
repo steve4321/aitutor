@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from slowapi.errors import RateLimitExceeded
 from slowapi import _rate_limit_exceeded_handler
+from sqlalchemy import text
 
 from app.api.router import api_router
 from app.config import settings
@@ -16,6 +17,17 @@ from app.core.exceptions import global_exception_handler
 from app.core.rate_limit import limiter
 
 logger = logging.getLogger(__name__)
+
+# Initialize Sentry (no-op if SENTRY_DSN is empty)
+if settings.SENTRY_DSN:
+    import sentry_sdk
+
+    sentry_sdk.init(
+        dsn=settings.SENTRY_DSN,
+        environment=settings.ENVIRONMENT,
+        traces_sample_rate=0.1,
+        profiles_sample_rate=0.1,
+    )
 
 
 @asynccontextmanager
@@ -84,7 +96,31 @@ app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
 @app.get("/health")
 async def health_check():
-    return {"status": "ok"}
+    checks: dict = {"status": "ok", "checks": {}}
+
+    try:
+        from app.db.session import engine
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+        checks["checks"]["database"] = "ok"
+    except Exception as e:
+        checks["checks"]["database"] = f"error: {e}"
+        checks["status"] = "degraded"
+
+    if not settings.DISABLE_REDIS:
+        try:
+            import redis.asyncio as aioredis
+            r = aioredis.from_url(settings.REDIS_URL)
+            await r.ping()
+            await r.aclose()
+            checks["checks"]["redis"] = "ok"
+        except Exception as e:
+            checks["checks"]["redis"] = f"error: {e}"
+            checks["status"] = "degraded"
+    else:
+        checks["checks"]["redis"] = "disabled"
+
+    return checks
 
 
 @app.get("/")
