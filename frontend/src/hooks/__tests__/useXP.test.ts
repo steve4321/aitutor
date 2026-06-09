@@ -60,6 +60,7 @@ describe('useXP hook', () => {
       xp_total: 3500,
       streak_days: 7,
       longest_streak: 14,
+      minutes_today: 15,
     };
 
     const { api } = await import('@/lib/api');

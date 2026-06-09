@@ -33,6 +33,7 @@ const mockProfile: StudentProfile = {
   xp_total: 100,
   streak_days: 3,
   longest_streak: 7,
+  minutes_today: 0,
 };
 
 describe('useAuthStore', () => {
