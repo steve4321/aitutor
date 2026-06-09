@@ -4,6 +4,16 @@ from app.schemas.problem import AttemptRequest, AttemptResponse, ProblemResponse
 from app.schemas.chat import ChatMessageRequest, ChatMessageResponse
 from app.schemas.report import DailyReport, WeeklyReport
 from app.schemas.session import SessionCreate, SessionResponse
+from app.schemas.ket import (
+    KETQuestionResponse,
+    KETQuestionListResponse,
+    KETWritingTaskResponse,
+    KETWritingSubmitRequest,
+    KETWritingScoreResponse,
+    KETSpeakingTaskResponse,
+    KETSpeakingSubmitRequest,
+    KETSpeakingScoreResponse,
+)
 
 __all__ = [
     "UserCreate",
@@ -22,4 +32,12 @@ __all__ = [
     "WeeklyReport",
     "SessionCreate",
     "SessionResponse",
+    "KETQuestionResponse",
+    "KETQuestionListResponse",
+    "KETWritingTaskResponse",
+    "KETWritingSubmitRequest",
+    "KETWritingScoreResponse",
+    "KETSpeakingTaskResponse",
+    "KETSpeakingSubmitRequest",
+    "KETSpeakingScoreResponse",
 ]
