@@ -15,40 +15,52 @@ export function useVoice() {
     audioLevel: 0,
   });
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
+  const chunksRef = useRef<BlobPart[]>([]);
+  const streamRef = useRef<MediaStream | null>(null);
+  const stopResolveRef = useRef<((blob: Blob) => void) | null>(null);
 
   const startRecording = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
       const mediaRecorder = new MediaRecorder(stream);
-      const chunks: BlobPart[] = [];
+      chunksRef.current = [];
 
       mediaRecorder.ondataavailable = (e) => {
         if (e.data.size > 0) {
-          chunks.push(e.data);
+          chunksRef.current.push(e.data);
         }
       };
 
       mediaRecorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'audio/webm' });
-        stream.getTracks().forEach((track) => track.stop());
-        return blob;
+        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        streamRef.current?.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+        stopResolveRef.current?.(blob);
+        stopResolveRef.current = null;
       };
 
       mediaRecorderRef.current = mediaRecorder;
       mediaRecorder.start();
       setState((prev) => ({ ...prev, isRecording: true }));
-    } catch (error) {
-      console.error('Failed to start recording:', error);
+    } catch {
+      setState((prev) => ({ ...prev, isRecording: false }));
     }
   }, []);
 
-  const stopRecording = useCallback((): Blob | null => {
-    if (mediaRecorderRef.current && state.isRecording) {
-      mediaRecorderRef.current.stop();
-      setState((prev) => ({ ...prev, isRecording: false, audioLevel: 0 }));
+  const stopRecording = useCallback((): Promise<Blob | null> => {
+    if (!mediaRecorderRef.current || !state.isRecording) {
+      return Promise.resolve(null);
     }
-    return null;
+
+    const promise = new Promise<Blob | null>((resolve) => {
+      stopResolveRef.current = resolve;
+    });
+
+    mediaRecorderRef.current.stop();
+    setState((prev) => ({ ...prev, isRecording: false, audioLevel: 0 }));
+
+    return promise;
   }, [state.isRecording]);
 
   const playAudio = useCallback(async (url: string) => {
@@ -59,8 +71,7 @@ export function useVoice() {
         setState((prev) => ({ ...prev, isPlaying: false }));
       };
       await audio.play();
-    } catch (error) {
-      console.error('Failed to play audio:', error);
+    } catch {
       setState((prev) => ({ ...prev, isPlaying: false }));
     }
   }, []);

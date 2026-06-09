@@ -61,7 +61,7 @@ export default function ReportsPage() {
     error: dailyError,
   } = useQuery<DailyReport>({
     queryKey: ['daily-report'],
-    queryFn: () => api.get<DailyReport>('/api/v1/reports/daily', { report_date: today() }),
+    queryFn: () => api.get<DailyReport>('/reports/daily', { report_date: today() }),
   });
 
   const {
@@ -70,7 +70,7 @@ export default function ReportsPage() {
     error: weeklyError,
   } = useQuery<WeeklyReport>({
     queryKey: ['weekly-report'],
-    queryFn: () => api.get<WeeklyReport>('/api/v1/reports/weekly', { week_start: getWeekStart() }),
+    queryFn: () => api.get<WeeklyReport>('/reports/weekly', { week_start: getWeekStart() }),
   });
 
   const isLoading = dailyLoading || weeklyLoading;
