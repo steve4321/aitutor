@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
 
 from app.agents import run_agent
@@ -10,12 +10,15 @@ from app.models.learning import LearningSession, StudentAttempt
 from app.models.user import User
 from app.schemas.problem import AttemptRequest, AttemptResponse, ProblemResponse
 from app.services import problem_service, xp_service
+from app.core.rate_limit import limiter
 
 router = APIRouter(prefix="/problems", tags=["problems"])
 
 
 @router.get("", response_model=list[ProblemResponse])
+@limiter.limit("60/minute")
 async def list_problems(
+    request: Request,
     db: DbSession,
     current_user: User = Depends(get_current_user),
     subject: str | None = None,
@@ -31,7 +34,8 @@ async def list_problems(
 
 
 @router.get("/{problem_id}", response_model=ProblemResponse)
-async def get_problem(problem_id: UUID, db: DbSession, current_user: User = Depends(get_current_user)):
+@limiter.limit("60/minute")
+async def get_problem(request: Request, problem_id: UUID, db: DbSession, current_user: User = Depends(get_current_user)):
     problem = await problem_service.get_problem(db, problem_id)
     if not problem:
         raise HTTPException(status_code=404, detail="Problem not found")
@@ -39,7 +43,9 @@ async def get_problem(problem_id: UUID, db: DbSession, current_user: User = Depe
 
 
 @router.post("/{problem_id}/attempt", response_model=AttemptResponse)
+@limiter.limit("30/minute")
 async def submit_attempt(
+    request: Request,
     problem_id: UUID,
     body: AttemptRequest,
     db: DbSession,
