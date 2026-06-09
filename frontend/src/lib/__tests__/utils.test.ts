@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { cn, formatNumber, formatDate, sleep } from '../utils';
 
 describe('cn', () => {

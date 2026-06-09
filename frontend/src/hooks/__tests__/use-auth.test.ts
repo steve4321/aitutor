@@ -27,6 +27,7 @@ const mockProfile: StudentProfile = {
   xp_total: 0,
   streak_days: 0,
   longest_streak: 0,
+  minutes_today: 0,
 };
 
 const { mockStore, useAuthStoreFn } = vi.hoisted(() => {
