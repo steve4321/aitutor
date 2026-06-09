@@ -7,11 +7,11 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-600 rounded-full shadow-sm',
-        secondary: 'bg-emerald-600 text-white hover:bg-emerald-700 focus-visible:ring-emerald-600 rounded-full shadow-sm',
-        outline: 'border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white focus-visible:ring-blue-600 rounded-full',
-        ghost: 'text-gray-700 hover:bg-gray-100 focus-visible:ring-blue-600 rounded-full',
-        destructive: 'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-600 rounded-full shadow-sm',
+        default: 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] focus-visible:ring-[var(--color-primary)] rounded-full shadow-sm',
+        secondary: 'bg-[var(--color-secondary)] text-white hover:bg-[var(--color-secondary-hover)] focus-visible:ring-[var(--color-secondary)] rounded-full shadow-sm',
+        outline: 'border-2 border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white focus-visible:ring-[var(--color-primary)] rounded-full',
+        ghost: 'text-[var(--color-foreground)] hover:bg-[var(--color-surface-muted)] focus-visible:ring-[var(--color-primary)] rounded-full',
+        destructive: 'bg-[var(--color-danger)] text-white hover:bg-[var(--color-danger-hover)] focus-visible:ring-[var(--color-danger)] rounded-full shadow-sm',
       },
       size: {
         sm: 'h-8 px-3 text-sm',
