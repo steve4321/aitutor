@@ -41,8 +41,8 @@ export default function MainLayout({
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border">
+    <div className="h-dvh bg-background flex flex-col overflow-hidden">
+      <header className="shrink-0 z-40 bg-background/95 backdrop-blur border-b border-border">
         <div className="flex items-center justify-between px-4 h-14">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-[var(--color-primary)] flex items-center justify-center">
@@ -60,13 +60,13 @@ export default function MainLayout({
         </div>
       </header>
 
-      <main className="flex-1 px-4 py-6 pb-20 md:pb-6">
+      <main className="flex-1 min-h-0 overflow-y-auto px-4 py-6">
         <ErrorBoundary>
           {children}
         </ErrorBoundary>
       </main>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50">
+      <nav className="shrink-0 bg-background border-t border-border z-50">
         <div className="flex items-center justify-around h-16 max-w-lg mx-auto">
           {NAV_ITEMS.map((item) => {
             const active = pathname === item.href || pathname.startsWith(item.href + '/');
