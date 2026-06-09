@@ -46,7 +46,7 @@ export function useXP() {
       const profile = await api.get<StudentProfile>("/users/me/profile");
       const level = calculateLevel(profile.xp_total);
       const dailyGoalProgress = calculateDailyGoalProgress(
-        0,
+        profile.minutes_today,
         profile.daily_goal_minutes
       );
 
@@ -71,7 +71,7 @@ export function useXP() {
           xp: profile.xp_total,
           level: calculateLevel(profile.xp_total),
           streak: profile.streak_days,
-          dailyGoalProgress: calculateDailyGoalProgress(0, profile.daily_goal_minutes),
+          dailyGoalProgress: calculateDailyGoalProgress(profile.minutes_today, profile.daily_goal_minutes),
           dailyGoalMinutes: profile.daily_goal_minutes,
         });
       }).catch(() => undefined).finally(() => {

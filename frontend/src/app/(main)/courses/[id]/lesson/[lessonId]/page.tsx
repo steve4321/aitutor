@@ -72,7 +72,20 @@ export default function LessonPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
 
-  const handleAnswer = useCallback((_problemIndex: number, _isCorrect: boolean) => {}, []);
+  const handleAnswer = useCallback(
+    async (problemIndex: number, isCorrect: boolean) => {
+      if (!sessionId) return;
+      try {
+        await api.post(`/sessions/${sessionId}/attempts`, {
+          problem_id: null,
+          problem_index: problemIndex,
+          is_correct: isCorrect,
+          hint_level_used: 0,
+        });
+      } catch {}
+    },
+    [sessionId]
+  );
 
   const handleComplete = useCallback(async () => {
     if (!lesson || completing || completed) return;

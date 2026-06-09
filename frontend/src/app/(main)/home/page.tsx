@@ -48,6 +48,9 @@ export default function HomePage() {
   const userName = userRes?.name ?? 'Learner';
   const xp = profileRes?.xp_total ?? 0;
   const streak = profileRes?.streak_days ?? 0;
+  const dailyGoalMinutes = profileRes?.daily_goal_minutes ?? 30;
+  const minutesToday = profileRes?.minutes_today ?? 0;
+  const dailyProgress = dailyGoalMinutes > 0 ? Math.min((minutesToday / dailyGoalMinutes) * 100, 100) : 0;
 
   const loading = isLoadingUser || isLoadingProfile;
 
@@ -114,10 +117,15 @@ export default function HomePage() {
         <div className="bg-background rounded-xl border border-border p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-muted-foreground">Today&apos;s Goal</span>
-            <span className="text-sm font-medium text-foreground">2/3 Lessons</span>
+            <span className="text-sm font-medium text-foreground">
+              {Math.round(minutesToday)}/{dailyGoalMinutes} min
+            </span>
           </div>
           <div className="h-2 bg-muted rounded-full overflow-hidden">
-            <div className="h-full bg-[var(--color-primary)] rounded-full w-[66%] transition-all" />
+            <div
+              className="h-full bg-[var(--color-primary)] rounded-full transition-all"
+              style={{ width: `${dailyProgress}%` }}
+            />
           </div>
         </div>
       </div>

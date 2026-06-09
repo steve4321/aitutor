@@ -61,9 +61,6 @@ export default function PracticePage() {
     onSuccess: (session) => {
       router.push(`${ROUTES.PRACTICE}?session=${session.id}`);
     },
-    onError: (error) => {
-      console.error('Failed to start practice:', error);
-    },
   });
 
   const selectedCourse = courses.find((c) => c.id === selectedCourseId);
