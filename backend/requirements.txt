@@ -22,6 +22,7 @@ langchain>=0.3.0
 langchain-openai>=0.2.0
 langgraph>=0.2.0
 openai>=1.40.0
+langchain-anthropic>=0.3.0  # for Anthropic-compatible providers (e.g. MiniMax)
 
 # Speech
 faster-whisper>=1.0.0

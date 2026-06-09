@@ -3,7 +3,9 @@ import logging
 from functools import lru_cache
 
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from app.config import settings
+from langchain_anthropic import ChatAnthropic
+
+from app.config import settings, LLM_PROVIDER_PROFILES
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +15,7 @@ def is_llm_available() -> bool:
 
 
 @lru_cache(maxsize=2)
-def get_llm(tier: str = "strong") -> ChatOpenAI | None:
+def get_llm(tier: str = "strong") -> ChatOpenAI | ChatAnthropic | None:
     if not is_llm_available():
         logger.warning(
             "LLM API key not set (provider=%s) — AI features disabled",
@@ -30,10 +32,27 @@ def get_llm(tier: str = "strong") -> ChatOpenAI | None:
         logger.error("No model configured for tier=%s provider=%s", tier, settings.LLM_PROVIDER)
         return None
 
+    profile = LLM_PROVIDER_PROFILES.get(settings.LLM_PROVIDER, {})
+    client_type = profile.get("client", "openai")
+    temperature = settings.LLM_TEMPERATURE_STRONG if tier == "strong" else settings.LLM_TEMPERATURE_FAST
+
+    if client_type == "anthropic":
+        kwargs: dict = {
+            "model": model,
+            "api_key": settings.OPENAI_API_KEY,
+            "temperature": temperature,
+            "max_tokens": settings.LLM_MAX_TOKENS,
+            "timeout": settings.LLM_TIMEOUT,
+            "max_retries": settings.LLM_MAX_RETRIES,
+        }
+        if settings.LLM_BASE_URL:
+            kwargs["base_url"] = settings.LLM_BASE_URL
+        return ChatAnthropic(**kwargs)
+
     kwargs = {
         "model": model,
         "api_key": settings.OPENAI_API_KEY,
-        "temperature": settings.LLM_TEMPERATURE_STRONG if tier == "strong" else settings.LLM_TEMPERATURE_FAST,
+        "temperature": temperature,
         "max_tokens": settings.LLM_MAX_TOKENS,
         "timeout": settings.LLM_TIMEOUT,
         "max_retries": settings.LLM_MAX_RETRIES,

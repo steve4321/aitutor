@@ -13,6 +13,7 @@ LLMProviderName = Literal["openai", "deepseek", "minimax", "custom"]
 
 LLM_PROVIDER_PROFILES: dict[str, dict] = {
     "openai": {
+        "client": "openai",
         "base_url": None,
         "strong_model": "gpt-4o",
         "fast_model": "gpt-4o-mini",
@@ -20,6 +21,7 @@ LLM_PROVIDER_PROFILES: dict[str, dict] = {
         "api_key_var": "OPENAI_API_KEY",
     },
     "deepseek": {
+        "client": "openai",
         "base_url": "https://api.deepseek.com",
         "strong_model": "deepseek-chat",
         "fast_model": "deepseek-chat",
@@ -27,13 +29,15 @@ LLM_PROVIDER_PROFILES: dict[str, dict] = {
         "api_key_var": "OPENAI_API_KEY",
     },
     "minimax": {
-        "base_url": "https://api.minimax.io/v1",
+        "client": "anthropic",
+        "base_url": "https://api.minimaxi.com/anthropic",
         "strong_model": "MiniMax-M3",
         "fast_model": "MiniMax-M3",
         "embedding_model": None,
         "api_key_var": "MINIMAX_API_KEY",
     },
     "custom": {
+        "client": "openai",
         "base_url": "",
         "strong_model": "",
         "fast_model": "",
