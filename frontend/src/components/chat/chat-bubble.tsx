@@ -19,7 +19,7 @@ export function ChatBubble({ role, content, metadata }: ChatBubbleProps) {
   if (isSystem) {
     return (
       <div className="flex justify-center">
-        <div className="rounded-lg bg-slate-100 px-4 py-2 text-sm text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+        <div className="rounded-lg bg-[var(--color-surface-muted)] px-4 py-2 text-sm text-[var(--color-muted-foreground)]">
           {content}
         </div>
       </div>
@@ -32,8 +32,8 @@ export function ChatBubble({ role, content, metadata }: ChatBubbleProps) {
         className={cn(
           'flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-medium',
           isUser
-            ? 'bg-gradient-to-br from-blue-500 to-violet-500 text-white'
-            : 'bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
+            ? 'bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-accent)] text-white'
+            : 'bg-[var(--color-surface-muted)] text-[var(--color-muted-foreground)]'
         )}
       >
         {isUser ? '我' : 'AI'}
@@ -42,13 +42,13 @@ export function ChatBubble({ role, content, metadata }: ChatBubbleProps) {
         className={cn(
           'max-w-[75%] rounded-2xl px-4 py-3',
           isUser
-            ? 'rounded-tr-sm bg-blue-600 text-white'
-            : 'rounded-tl-sm bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100'
+            ? 'rounded-tr-sm bg-[var(--color-primary)] text-white'
+            : 'rounded-tl-sm bg-[var(--color-surface-muted)] text-[var(--color-foreground)]'
         )}
       >
         {metadata?.latex ? (
           <div className="text-sm">
-            <code className="bg-slate-200 px-1 py-0.5 dark:bg-slate-700">{content}</code>
+            <code className="bg-[var(--color-surface-muted)] px-1 py-0.5">{content}</code>
           </div>
         ) : (
           <p className="whitespace-pre-wrap text-sm leading-relaxed">{content}</p>
