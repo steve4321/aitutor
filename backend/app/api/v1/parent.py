@@ -104,6 +104,9 @@ async def get_child_report(
 
     agg = await report_service.aggregate_sessions(db, student_id, dt_start, dt_end)
     streak_days = await report_service.get_streak_days(db, student_id)
+    mastery_changes = await report_service.get_mastery_changes(
+        db, student_id, dt_start, dt_end
+    )
 
     return WeeklyReport(
         week_start=target_start,
@@ -114,5 +117,5 @@ async def get_child_report(
         total_xp=agg["total_xp"],
         total_time_minutes=agg["total_time_minutes"],
         streak_days=streak_days,
-        mastery_changes={},
+        mastery_changes=mastery_changes,
     )
