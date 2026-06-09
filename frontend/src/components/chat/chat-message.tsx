@@ -18,7 +18,7 @@ export function ChatMessage({ message, className }: ChatMessageProps) {
       )}
     >
       {!isUser && (
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700 text-xs font-bold">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary-light)] text-[var(--color-primary)] text-xs font-bold">
           AI
         </div>
       )}
@@ -27,8 +27,8 @@ export function ChatMessage({ message, className }: ChatMessageProps) {
         className={cn(
           'max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed',
           isUser
-            ? 'rounded-tr-sm bg-blue-600 text-white'
-            : 'rounded-tl-sm bg-gray-100 text-gray-900'
+            ? 'rounded-tr-sm bg-[var(--color-primary)] text-white'
+            : 'rounded-tl-sm bg-[var(--color-surface-muted)] text-[var(--color-foreground)]'
         )}
       >
         <p>{message.content}</p>

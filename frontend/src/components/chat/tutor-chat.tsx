@@ -1,38 +1,27 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { MessageSquare, ChevronDown, Bot, User } from 'lucide-react';
+import { useRef, useEffect, useState } from 'react';
+import { MessageSquare, ChevronDown, Bot } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useChat } from '@/hooks/use-chat';
+import type { ChatMessage as UseChatMessage } from '@/hooks/use-chat';
 import { ChatBubble } from './chat-bubble';
 import { ChatInput } from './chat-input';
 
-interface Message {
-  id: string;
-  role: 'user' | 'assistant' | 'system';
-  content: string;
-  timestamp: string;
-  metadata?: {
-    latex?: string;
-    image_url?: string;
-    audio_url?: string;
-  };
-}
-
 interface TutorChatProps {
   title?: string;
-  onSend?: (message: string) => void;
-  initialMessages?: Message[];
+  sessionId?: string | null;
   disabled?: boolean;
 }
 
 export function TutorChat({
   title = 'AI 辅导',
-  onSend,
-  initialMessages = [],
+  sessionId,
   disabled,
 }: TutorChatProps) {
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
-  const [isLoading, setIsLoading] = useState(false);
+  const { messages, isLoading, error, send } = useChat({
+    sessionId,
+  });
   const [showScrollButton, setShowScrollButton] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -58,36 +47,15 @@ export function TutorChat({
     return () => container.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleSend = (content: string) => {
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      role: 'user',
-      content,
-      timestamp: new Date().toISOString(),
-    };
-    setMessages((prev) => [...prev, newMessage]);
-    onSend?.(content);
-  };
-
-  const handleAIMessage = (content: string) => {
-    const aiMessage: Message = {
-      id: Date.now().toString(),
-      role: 'assistant',
-      content,
-      timestamp: new Date().toISOString(),
-    };
-    setMessages((prev) => [...prev, aiMessage]);
-  };
-
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
-      <div className="flex items-center gap-3 border-b border-slate-200 px-6 py-4 dark:border-slate-700">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-violet-500">
+    <div className="flex h-full flex-col rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]">
+      <div className="flex items-center gap-3 border-b border-[var(--color-border)] px-6 py-4">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-accent)]">
           <Bot className="h-5 w-5 text-white" />
         </div>
         <div>
-          <h3 className="font-semibold text-slate-900 dark:text-white">{title}</h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400">在线</p>
+          <h3 className="font-semibold text-[var(--color-foreground)]">{title}</h3>
+          <p className="text-xs text-[var(--color-muted-foreground)]">在线</p>
         </div>
       </div>
 
@@ -97,28 +65,31 @@ export function TutorChat({
       >
         {messages.length === 0 && (
           <div className="flex h-full flex-col items-center justify-center text-center">
-            <MessageSquare className="mb-4 h-12 w-12 text-slate-300 dark:text-slate-600" />
-            <p className="text-slate-500 dark:text-slate-400">
+            <MessageSquare className="mb-4 h-12 w-12 text-[var(--color-muted)]" />
+            <p className="text-[var(--color-muted-foreground)]">
               发送消息开始与 AI 导师对话
             </p>
           </div>
         )}
         {messages.map((msg) => (
-          <ChatBubble key={msg.id} role={msg.role} content={msg.content} metadata={msg.metadata} />
+          <ChatBubble key={msg.id} role={msg.role} content={msg.content} />
         ))}
         {isLoading && (
           <div className="flex gap-3">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-700">
-              <Bot className="h-4 w-4 text-slate-500" />
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--color-surface-muted)]">
+              <Bot className="h-4 w-4 text-[var(--color-muted-foreground)]" />
             </div>
-            <div className="rounded-2xl rounded-tl-sm bg-slate-100 px-4 py-3 dark:bg-slate-800">
+            <div className="rounded-2xl rounded-tl-sm bg-[var(--color-surface-muted)] px-4 py-3">
               <div className="flex gap-1">
-                <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400 [animation-delay:0ms]" />
-                <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400 [animation-delay:150ms]" />
-                <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400 [animation-delay:300ms]" />
+                <span className="h-2 w-2 animate-bounce rounded-full bg-[var(--color-muted)] [animation-delay:0ms]" />
+                <span className="h-2 w-2 animate-bounce rounded-full bg-[var(--color-muted)] [animation-delay:150ms]" />
+                <span className="h-2 w-2 animate-bounce rounded-full bg-[var(--color-muted)] [animation-delay:300ms]" />
               </div>
             </div>
           </div>
+        )}
+        {error && (
+          <div className="text-center text-sm text-[var(--color-danger)]">{error}</div>
         )}
         <div ref={messagesEndRef} />
       </div>
@@ -126,14 +97,14 @@ export function TutorChat({
       {showScrollButton && (
         <button
           onClick={scrollToBottom}
-          className="absolute bottom-24 right-8 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-lg hover:bg-slate-50 dark:bg-slate-700"
+          className="absolute bottom-24 right-8 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-surface)] shadow-lg hover:bg-[var(--color-surface-muted)]"
         >
-          <ChevronDown className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <ChevronDown className="h-4 w-4 text-[var(--color-muted-foreground)]" />
         </button>
       )}
 
-      <div className="border-t border-slate-200 p-4 dark:border-slate-700">
-        <ChatInput onSend={handleSend} disabled={disabled || isLoading} />
+      <div className="border-t border-[var(--color-border)] p-4">
+        <ChatInput onSend={send} disabled={disabled || isLoading} />
       </div>
     </div>
   );

@@ -50,7 +50,7 @@ export function ChatInput({ onSend, disabled, placeholder }: ChatInputProps) {
           disabled={disabled}
           rows={1}
           className={cn(
-            'w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 pr-12 text-slate-900 transition-colors focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500',
+            'w-full resize-none rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 pr-12 text-[var(--color-foreground)] transition-colors focus:border-[var(--color-primary)] focus:outline-none placeholder:text-[var(--color-muted-foreground)]',
             disabled && 'opacity-50'
           )}
         />
@@ -61,8 +61,8 @@ export function ChatInput({ onSend, disabled, placeholder }: ChatInputProps) {
         className={cn(
           'flex h-12 w-12 items-center justify-center rounded-xl transition-all',
           message.trim() && !disabled
-            ? 'bg-blue-600 text-white hover:bg-blue-700'
-            : 'bg-slate-100 text-slate-400 cursor-not-allowed dark:bg-slate-800 dark:text-slate-500'
+            ? 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)]'
+            : 'bg-[var(--color-surface-muted)] text-[var(--color-muted-foreground)] cursor-not-allowed'
         )}
       >
         <Send className="h-5 w-5" />

@@ -1,46 +1,121 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { api } from '@/lib/api';
-import { useAppStore } from '@/stores/app-store';
-import type { ChatMessage } from '@/types/problem';
 
-export function useChat(sessionId?: string) {
-  const { activeChatMessages, addChatMessage, clearChatMessages } = useAppStore();
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: string;
+}
+
+interface UseChatOptions {
+  sessionId?: string | null;
+  autoCreate?: boolean;
+}
+
+interface UseChatReturn {
+  messages: ChatMessage[];
+  isLoading: boolean;
+  error: string | null;
+  sessionId: string | null;
+  send: (content: string) => Promise<void>;
+  clear: () => void;
+  reload: () => Promise<void>;
+}
+
+export function useChat(options: UseChatOptions = {}): UseChatReturn {
+  const { sessionId: initialSessionId, autoCreate = true } = options;
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(
+    initialSessionId ?? null
+  );
+  const inFlightRef = useRef(false);
 
-  const sendMessage = useCallback(
+  const send = useCallback(
     async (content: string) => {
-      const userMessage: ChatMessage = {
+      if (!content.trim() || inFlightRef.current) return;
+      inFlightRef.current = true;
+      setIsLoading(true);
+      setError(null);
+
+      const tempUserMsg: ChatMessage = {
         id: `temp-${Date.now()}`,
         role: 'user',
-        content,
+        content: content.trim(),
         timestamp: new Date().toISOString(),
       };
-      addChatMessage(userMessage);
+      setMessages((prev) => [...prev, tempUserMsg]);
 
-      setIsLoading(true);
       try {
-        const response = await api.post<ChatMessage>('/chat/message', {
-          session_id: sessionId,
-          content,
-        });
-        addChatMessage(response);
+        const body: { content: string; session_id?: string } = {
+          content: content.trim(),
+        };
+        if (sessionId) body.session_id = sessionId;
+
+        const response = await api.post<{
+          id: string;
+          role: string;
+          content: string;
+          session_id: string;
+        }>('/chat/message', body);
+
+        if (!sessionId) setSessionId(response.session_id);
+
+        const aiMsg: ChatMessage = {
+          id: response.id,
+          role: 'assistant',
+          content: response.content,
+          timestamp: new Date().toISOString(),
+        };
+        setMessages((prev) => [...prev, aiMsg]);
+      } catch (err) {
+        const errorMsg =
+          err instanceof Error ? err.message : '发送失败，请重试';
+        setError(errorMsg);
+        setMessages((prev) => prev.filter((m) => m.id !== tempUserMsg.id));
       } finally {
         setIsLoading(false);
+        inFlightRef.current = false;
       }
     },
-    [sessionId, addChatMessage]
+    [sessionId]
   );
 
-  const resetChat = useCallback(() => {
-    clearChatMessages();
-  }, [clearChatMessages]);
+  const clear = useCallback(() => {
+    setMessages([]);
+    setError(null);
+    setSessionId(null);
+  }, []);
 
-  return {
-    messages: activeChatMessages,
-    isLoading,
-    sendMessage,
-    resetChat,
-  };
+  const reload = useCallback(async () => {
+    if (!sessionId) return;
+    try {
+      const session = await api.get<{ messages: ChatMessage[] }>(
+        `/sessions/${sessionId}`
+      );
+      setMessages(session.messages || []);
+    } catch {
+      // Session may not have messages endpoint yet — silently ignore
+    }
+  }, [sessionId]);
+
+  useEffect(() => {
+    if (autoCreate && !sessionId) {
+      api
+        .post<{ id: string }>('/sessions', {
+          session_type: 'chat',
+          subject: 'math',
+        })
+        .then((data) => setSessionId(data.id))
+        .catch(() => {
+          // Will create on first message instead
+        });
+    }
+  }, [autoCreate, sessionId]);
+
+  return { messages, isLoading, error, sessionId, send, clear, reload };
 }
