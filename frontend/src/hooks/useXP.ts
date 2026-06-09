@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api";
-import { StudentProfile } from "@/types/user";
+import type { StudentProfile } from "@/types/user";
 import { useAuthStore } from '@/stores/auth-store';
 
 interface XPData {
@@ -44,16 +44,16 @@ export function useXP() {
     setLoading(true);
     try {
       const profile = await api.get<StudentProfile>("/users/me/profile");
-      const level = calculateLevel(profile.xp);
+      const level = calculateLevel(profile.xp_total);
       const dailyGoalProgress = calculateDailyGoalProgress(
         0,
         profile.daily_goal_minutes
       );
 
       setXpData({
-        xp: profile.xp,
+        xp: profile.xp_total,
         level,
-        streak: profile.streak,
+        streak: profile.streak_days,
         dailyGoalProgress,
         dailyGoalMinutes: profile.daily_goal_minutes,
       });
@@ -68,9 +68,9 @@ export function useXP() {
       setLoading(true);
       api.get<StudentProfile>("/users/me/profile").then((profile) => {
         setXpData({
-          xp: profile.xp,
-          level: calculateLevel(profile.xp),
-          streak: profile.streak,
+          xp: profile.xp_total,
+          level: calculateLevel(profile.xp_total),
+          streak: profile.streak_days,
           dailyGoalProgress: calculateDailyGoalProgress(0, profile.daily_goal_minutes),
           dailyGoalMinutes: profile.daily_goal_minutes,
         });
