@@ -2,11 +2,9 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { api } from '@/lib/api';
+import type { ChatMessageResponse } from '@/types/problem';
 
-export interface ChatMessage {
-  id: string;
-  role: 'user' | 'assistant' | 'system';
-  content: string;
+export interface ChatMessage extends Omit<ChatMessageResponse, 'session_id'> {
   timestamp: string;
 }
 
