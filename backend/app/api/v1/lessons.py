@@ -74,20 +74,34 @@ async def update_lesson_progress(
     xp_earned = 0
     if body.status == "completed":
         now = datetime.now(timezone.utc)
-        session = LearningSession(
-            student_id=current_user.id,
-            session_type="lesson",
-            subject="general",
-            lesson_id=lesson.id,
-            started_at=now,
-            ended_at=now,
+
+        existing_completed = await db.execute(
+            select(LearningSession.id)
+            .where(
+                LearningSession.student_id == current_user.id,
+                LearningSession.lesson_id == lesson.id,
+                LearningSession.ended_at.isnot(None),
+            )
+            .limit(1)
         )
-        db.add(session)
-        await db.flush()
+        already_completed = existing_completed.scalar_one_or_none() is not None
+
+        if not already_completed:
+            session = LearningSession(
+                student_id=current_user.id,
+                session_type="lesson",
+                subject="general",
+                lesson_id=lesson.id,
+                started_at=now,
+                ended_at=now,
+            )
+            db.add(session)
+            await db.flush()
 
         progress_pct = await _compute_course_progress(db, unit.course_id, current_user.id)
         enrollment.progress = progress_pct
-        xp_earned = await xp_service.award_lesson_xp(db, current_user.id)
+        if not already_completed:
+            xp_earned = await xp_service.award_lesson_xp(db, current_user.id)
 
     return LessonProgressResponse(
         message="ok",
