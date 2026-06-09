@@ -2,7 +2,7 @@
 import logging
 from functools import lru_cache
 
-from langchain_openai import ChatOpenAI
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from app.config import settings
 
 logger = logging.getLogger(__name__)
@@ -47,6 +47,25 @@ def get_llm(tier: str = "strong") -> ChatOpenAI | None:
         kwargs["base_url"] = settings.LLM_BASE_URL
 
     return ChatOpenAI(**kwargs)
+
+
+@lru_cache(maxsize=1)
+def get_embedding_model() -> OpenAIEmbeddings | None:
+    if not is_llm_available():
+        return None
+
+    kwargs: dict = {
+        "api_key": settings.OPENAI_API_KEY,
+        "model": "text-embedding-3-small",
+    }
+    if settings.LLM_BASE_URL:
+        kwargs["base_url"] = settings.LLM_BASE_URL
+
+    try:
+        return OpenAIEmbeddings(**kwargs)
+    except Exception:
+        logger.warning("Failed to initialize embedding model", exc_info=True)
+        return None
 
 
 def get_fallback_response(intent: str) -> str:

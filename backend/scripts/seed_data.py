@@ -238,6 +238,17 @@ async def seed():
 
         await db.commit()
 
+        try:
+            from app.services.embedding_service import (
+                backfill_problem_embeddings,
+                backfill_knowledge_point_embeddings,
+            )
+            pc = await backfill_problem_embeddings(db)
+            kc = await backfill_knowledge_point_embeddings(db)
+            print(f"  Embeddings backfilled: {pc} problems, {kc} knowledge points")
+        except Exception:
+            print("  Embedding backfill skipped (no API key or model unavailable)")
+
         print("=" * 60)
         print("Seed data created successfully!")
         print("=" * 60)
