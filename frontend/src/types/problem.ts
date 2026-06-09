@@ -1,34 +1,80 @@
-export interface Problem {
+// Types derived from backend Pydantic schemas:
+//   backend/app/schemas/problem.py
+//   backend/app/schemas/chat.py
+//   backend/app/models/problem.py
+//   backend/app/models/message.py
+
+// ── API Response Types (match backend exactly) ──────────────────────────
+
+/** Backend: ProblemResponse – GET /problems/:id, GET /practice/next */
+export interface ProblemResponse {
   id: string;
-  lesson_id: string;
-  type:
-    | 'multiple_choice'
-    | 'fill_blank'
-    | 'short_answer'
-    | 'proof'
-    | 'listening'
-    | 'speaking'
-    | 'writing';
-  subject: 'math' | 'english';
-  difficulty: 1 | 2 | 3 | 4 | 5;
-  content: string;
-  latex_content?: string;
-  options?: string[];
-  correct_answer: string;
-  explanation: string;
-  hint_levels: string[];
-  knowledge_points: string[];
-  xp_reward: number;
+  source: string | null;
+  subject: string;
+  format: string;
+  question_markdown: string;
+  options: Record<string, unknown> | null;
+  difficulty: number | null;
+  estimated_time_sec: number | null;
 }
 
-export interface ProblemSolution {
-  problem_id: string;
+/** Backend: AttemptRequest – POST /problems/:id/attempts */
+export interface AttemptRequest {
   answer: string;
-  is_correct: boolean;
-  score: number;
-  feedback: string;
-  time_spent_seconds: number;
-  hints_used: number;
+  session_id?: string | null;
+  time_spent_sec?: number | null;
+}
+
+/** Backend: AttemptResponse – POST /problems/:id/attempts response */
+export interface AttemptResponse {
+  id: string;
+  is_correct: boolean | null;
+  ai_feedback: string | null;
+  error_type?: string | null;
+  attempt_number: number;
+  xp_earned: number;
+}
+
+/** Backend: ChatMessageResponse – chat messages */
+export interface ChatMessageResponse {
+  id: string;
+  role: string;
+  content: string;
+  session_id: string | null;
+}
+
+// ── Backward-compatible aliases / extended types ─────────────────────────
+
+export interface ChatMessage extends Omit<ChatMessageResponse, 'session_id'> {
+  session_id?: string | null;
+  timestamp?: string;
+  metadata?: {
+    latex?: string;
+    image_url?: string;
+    audio_url?: string;
+  };
+}
+
+// ── Frontend-only types ─────────────────────────────────────────────────
+
+/** Backend: ChatMessageRequest – POST /chat */
+export interface ChatMessageRequest {
+  session_id?: string | null;
+  content: string;
+  media?: Record<string, unknown> | null;
+}
+
+/** UI-only problem type used by practice-session component */
+export interface Problem {
+  id: string;
+  type: string;
+  content: string;
+  latexContent?: string;
+  options?: string[];
+  correctAnswer: string;
+  explanation: string;
+  hintLevels: string[];
+  xpReward: number;
 }
 
 export interface KnowledgeState {
@@ -37,28 +83,4 @@ export interface KnowledgeState {
   p_correct: number;
   attempts: number;
   last_practiced?: string;
-}
-
-export interface LearningSession {
-  id: string;
-  user_id: string;
-  lesson_id?: string;
-  type: 'lesson' | 'practice' | 'ket';
-  started_at: string;
-  ended_at?: string;
-  problems_attempted: number;
-  problems_correct: number;
-  xp_earned: number;
-}
-
-export interface ChatMessage {
-  id: string;
-  role: 'user' | 'assistant' | 'system';
-  content: string;
-  timestamp: string;
-  metadata?: {
-    latex?: string;
-    image_url?: string;
-    audio_url?: string;
-  };
 }

@@ -1,41 +1,37 @@
-export interface User {
+// Types derived from backend Pydantic schemas:
+//   backend/app/schemas/user.py
+//   backend/app/models/user.py
+
+// ── API Response Types (match backend exactly) ──────────────────────────
+
+/** Backend: UserResponse – GET /auth/me, GET /users/:id */
+export interface UserResponse {
   id: string;
-  username: string;
-  email: string;
-  display_name: string;
-  avatar_url?: string;
-  role: 'student' | 'parent' | 'admin';
+  email: string | null;
+  phone: string | null;
+  name: string;
+  role: string;
+  avatar_url: string | null;
   created_at: string;
-  updated_at: string;
 }
 
-export interface StudentProfile {
+/** Backend: StudentProfileResponse – GET /users/me/profile */
+export interface StudentProfileResponse {
+  id: string;
   user_id: string;
-  grade_level: number;
-  xp: number;
-  streak: number;
-  longest_streak: number;
+  grade_level: number | null;
+  target_exam: string | null;
+  target_date: string | null;
   daily_goal_minutes: number;
-  preferred_subjects: string[];
-  ket_level?: 'A2' | 'B1';
-  parent_linked: boolean;
-  parent_id?: string;
+  timezone: string;
+  preferred_lang: string;
+  diagnostic_done: boolean;
+  xp_total: number;
+  streak_days: number;
+  longest_streak: number;
 }
 
-export interface ParentLink {
-  id: string;
-  parent_id: string;
-  student_id: string;
-  relationship: 'father' | 'mother' | 'guardian' | 'other';
-  verified: boolean;
-  created_at: string;
-}
+// ── Backward-compatible aliases ─────────────────────────────────────────
 
-export interface UserSettings {
-  theme: 'light' | 'dark' | 'system';
-  language: 'zh-CN' | 'en';
-  sound_enabled: boolean;
-  notifications_enabled: boolean;
-  dyslexia_font: boolean;
-  font_size: 'small' | 'medium' | 'large';
-}
+export type User = UserResponse;
+export type StudentProfile = StudentProfileResponse;

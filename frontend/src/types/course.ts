@@ -1,50 +1,56 @@
-export interface Course {
+// Types derived from backend Pydantic schemas:
+//   backend/app/schemas/course.py
+//   backend/app/models/course.py
+
+// ── API Response Types (match backend exactly) ──────────────────────────
+
+/** Backend: CourseResponse – GET /courses, GET /courses/:id */
+export interface CourseResponse {
   id: string;
-  title: string;
-  description: string;
-  subject: 'math' | 'english';
-  grade_level: number;
-  cover_image_url?: string;
-  total_units: number;
-  total_lessons: number;
-  enrolled: boolean;
-  progress: number;
-  created_at: string;
+  code: string | null;
+  subject: string;
+  name: string;
+  description: string | null;
+  target_exam: string | null;
+  estimated_hours: number | null;
+  is_published: boolean;
 }
 
-export interface Unit {
+/** Backend: UnitResponse – GET /courses/:id/units */
+export interface UnitResponse {
   id: string;
   course_id: string;
-  title: string;
-  description: string;
-  order_index: number;
-  total_lessons: number;
-  completed_lessons: number;
-  is_locked: boolean;
+  code: string | null;
+  name: string;
+  description: string | null;
+  sort_order: number;
+  required_mastery: number;
 }
 
-export interface Lesson {
+/** Backend: LessonResponse – GET /courses/:id/lessons, GET /lessons/:id */
+export interface LessonResponse {
   id: string;
   unit_id: string;
-  course_id: string;
+  knowledge_point_id: string | null;
+  code: string | null;
   title: string;
-  description: string;
-  order_index: number;
-  type: 'video' | 'interactive' | 'practice' | 'reading' | 'mixed';
-  duration_minutes: number;
-  xp_reward: number;
-  is_completed: boolean;
-  is_locked: boolean;
-  score?: number;
+  lesson_type: string | null;
+  estimated_minutes: number | null;
+  sort_order: number;
+  is_published: boolean;
+  content: Record<string, unknown> | null;
 }
 
-export interface LessonProgress {
-  lesson_id: string;
-  status: 'not_started' | 'in_progress' | 'completed';
-  score: number;
-  time_spent_seconds: number;
-  completed_at?: string;
-  attempts: number;
+// ── Backward-compatible aliases ─────────────────────────────────────────
+
+export type Course = CourseResponse;
+export type Unit = UnitResponse;
+export type Lesson = LessonResponse;
+
+// ── Composite / Frontend-only types ─────────────────────────────────────
+
+export interface UnitWithLessons extends Unit {
+  lessons: Lesson[];
 }
 
 export interface PracticeProblem {
@@ -62,6 +68,7 @@ export interface LessonSection {
   problems?: PracticeProblem[];
 }
 
+/** Enriched lesson detail returned by GET /lessons/:id */
 export interface LessonDetailResponse {
   id: string;
   title: string;
