@@ -14,6 +14,14 @@ class DailyReport(BaseModel):
     knowledge_points_reviewed: list[UUID]
 
 
+class SubjectBreakdown(BaseModel):
+    total_problems: int
+    total_correct: int
+    total_xp: int
+    total_time_minutes: int
+    sessions_count: int
+
+
 class WeeklyReport(BaseModel):
     week_start: date
     week_end: date
@@ -24,3 +32,4 @@ class WeeklyReport(BaseModel):
     total_time_minutes: int
     streak_days: int
     mastery_changes: dict[str, float]
+    subject_breakdown: dict[str, SubjectBreakdown] = {}

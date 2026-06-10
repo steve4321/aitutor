@@ -50,6 +50,43 @@ async def get_streak_days(db: AsyncSession, student_id: UUID) -> int:
     return row[0] if row else 0
 
 
+async def get_subject_breakdown(
+    db: AsyncSession,
+    student_id: UUID,
+    start: datetime,
+    end: datetime,
+) -> dict[str, dict]:
+    """Compute per-subject aggregated stats for sessions in [start, end)."""
+    result = await db.execute(
+        select(
+            LearningSession.subject,
+            func.count(LearningSession.id),
+            func.coalesce(func.sum(LearningSession.problems_total), 0),
+            func.coalesce(func.sum(LearningSession.problems_correct), 0),
+            func.coalesce(func.sum(LearningSession.xp_earned), 0),
+            func.coalesce(func.sum(LearningSession.duration_sec), 0),
+        )
+        .where(
+            and_(
+                LearningSession.student_id == student_id,
+                LearningSession.started_at >= start,
+                LearningSession.started_at < end,
+            )
+        )
+        .group_by(LearningSession.subject)
+    )
+    breakdown: dict[str, dict] = {}
+    for subject, sessions, problems, correct, xp, duration in result.all():
+        breakdown[subject] = {
+            "total_problems": int(problems),
+            "total_correct": int(correct),
+            "total_xp": int(xp),
+            "total_time_minutes": int(duration) // 60,
+            "sessions_count": sessions,
+        }
+    return breakdown
+
+
 async def get_mastery_changes(
     db: AsyncSession,
     student_id: UUID,

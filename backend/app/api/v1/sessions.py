@@ -30,6 +30,37 @@ async def create_session(
     return session
 
 
+@router.post("/{session_id}/close", response_model=SessionResponse)
+async def close_session(
+    session_id: UUID,
+    db: DbSession,
+    current_user: User = Depends(get_current_user),
+):
+    result = await db.execute(
+        select(LearningSession).where(
+            LearningSession.id == session_id,
+            LearningSession.student_id == current_user.id,
+        )
+    )
+    session = result.scalar_one_or_none()
+    if session is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Session not found",
+        )
+
+    if session.ended_at is None:
+        now = datetime.now(timezone.utc)
+        session.ended_at = now
+        session.duration_sec = int(
+            (now - session.started_at.replace(tzinfo=timezone.utc)).total_seconds()
+        )
+        await db.flush()
+        await db.refresh(session)
+
+    return session
+
+
 @router.get("/{session_id}", response_model=SessionResponse)
 async def get_session(
     session_id: UUID,

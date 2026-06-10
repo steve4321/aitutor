@@ -73,18 +73,10 @@ export default function LessonPage() {
   }, [sessionId]);
 
   const handleAnswer = useCallback(
-    async (problemIndex: number, isCorrect: boolean) => {
-      if (!sessionId) return;
-      try {
-        await api.post(`/sessions/${sessionId}/attempts`, {
-          problem_id: null,
-          problem_index: problemIndex,
-          is_correct: isCorrect,
-          hint_level_used: 0,
-        });
-      } catch {}
+    (_problemIndex: number, _isCorrect: boolean) => {
+      // Inline MCQs have no problem_id; progress is tracked in handleComplete
     },
-    [sessionId]
+    []
   );
 
   const handleComplete = useCallback(async () => {

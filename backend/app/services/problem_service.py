@@ -4,6 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.problem import Problem
+from app.agents.evaluation_helpers import heuristic_evaluate
 
 
 async def get_problem(db: AsyncSession, problem_id: UUID) -> Problem | None:
@@ -35,7 +36,7 @@ async def list_problems(
 
 
 async def evaluate_attempt(db: AsyncSession, problem_id: UUID, answer: str) -> dict | None:
-    """Phase 1: simple MCQ exact-match checking."""
+    """Evaluate a student's answer against the correct answer."""
     problem = await get_problem(db, problem_id)
     if not problem:
         return None
@@ -50,8 +51,13 @@ async def evaluate_attempt(db: AsyncSession, problem_id: UUID, answer: str) -> d
         else:
             ai_feedback = f"Not quite. The correct answer is {problem.correct_answer}."
     else:
-        is_correct = bool(answer.strip())
-        ai_feedback = "Answer recorded. AI feedback will be available in Phase 2."
+        result = heuristic_evaluate(
+            answer=answer,
+            correct_answer=problem.correct_answer,
+            problem_format=problem.format,
+        )
+        is_correct = result["is_correct"]
+        ai_feedback = result["feedback"]
 
     return {
         "is_correct": is_correct,

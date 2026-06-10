@@ -9,6 +9,12 @@ import { DailyReport, WeeklyReport } from '@/types/report';
 
 type TimeRange = 'weekly' | 'monthly' | 'all';
 
+const SUBJECT_LABELS: Record<string, string> = {
+  math: '数学',
+  english: '英语',
+  chinese: '语文',
+};
+
 function today(): string {
   return new Date().toISOString().split('T')[0];
 }
@@ -113,16 +119,16 @@ export default function ReportsPage() {
   const maxXP = Math.max(...chartData.map((d) => d.xp), 1);
   const avgXP = chartData.length > 0 ? Math.round(totalXP / chartData.length) : 0;
 
-  const subjectStats = weeklyReport
-    ? Object.entries(weeklyReport.mastery_changes).length > 0
-      ? Object.entries(weeklyReport.mastery_changes).map(([name, change], i) => ({
-          name,
-          xp: Math.abs(change) * 100,
-          problems: Math.round(Math.abs(change) * 10),
-          accuracy: 75,
-          color: i % 2 === 0 ? 'blue' : 'emerald',
-        }))
-      : []
+  const subjectStats = weeklyReport?.subject_breakdown
+    ? Object.entries(weeklyReport.subject_breakdown).map(([name, data]) => ({
+        name: SUBJECT_LABELS[name] || name,
+        xp: data.total_xp,
+        problems: data.total_problems,
+        accuracy: data.total_problems > 0
+          ? Math.round((data.total_correct / data.total_problems) * 100)
+          : 0,
+        color: name === 'math' ? 'blue' : name === 'english' ? 'emerald' : 'amber',
+      }))
     : [];
 
   return (
@@ -283,24 +289,26 @@ export default function ReportsPage() {
             学习时间分布
           </h2>
           <div className="space-y-3">
-            <div>
-              <div className="mb-1 flex justify-between text-sm">
-                <span className="text-slate-600 dark:text-slate-300">数学</span>
-                <span className="text-slate-500 dark:text-slate-400">--</span>
-              </div>
-              <div className="h-3 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
-                <div className="h-full w-full rounded-full bg-blue-500" />
-              </div>
-            </div>
-            <div>
-              <div className="mb-1 flex justify-between text-sm">
-                <span className="text-slate-600 dark:text-slate-300">英语</span>
-                <span className="text-slate-500 dark:text-slate-400">--</span>
-              </div>
-              <div className="h-3 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
-                <div className="h-full w-full rounded-full bg-emerald-500" />
-              </div>
-            </div>
+            {Object.keys(weeklyReport?.subject_breakdown ?? {}).length > 0 ? (
+              Object.entries(weeklyReport?.subject_breakdown ?? {}).map(([subject, data]) => {
+                const maxTime = Math.max(...Object.values(weeklyReport?.subject_breakdown ?? {}).map(d => d.total_time_minutes), 1);
+                const label = SUBJECT_LABELS[subject] || subject;
+                const colors = subject === 'math' ? 'bg-blue-500' : subject === 'english' ? 'bg-emerald-500' : 'bg-amber-500';
+                return (
+                  <div key={subject}>
+                    <div className="mb-1 flex justify-between text-sm">
+                      <span className="text-slate-600 dark:text-slate-300">{label}</span>
+                      <span className="text-slate-500 dark:text-slate-400">{data.total_time_minutes}分钟</span>
+                    </div>
+                    <div className="h-3 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
+                      <div className={cn('h-full rounded-full', colors)} style={{ width: `${(data.total_time_minutes / maxTime) * 100}%` }} />
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <p className="text-center text-sm text-slate-500 dark:text-slate-400">暂无数据</p>
+            )}
           </div>
         </section>
       </div>

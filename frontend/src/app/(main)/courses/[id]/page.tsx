@@ -2,10 +2,11 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { ArrowLeft, Play, ChevronDown, ChevronRight, BookOpen } from 'lucide-react';
 import { api } from '@/lib/api';
 import { ROUTES } from '@/lib/constants';
+import { Button } from '@/components/ui/button';
 import type { Course, Unit, Lesson, UnitWithLessons } from '@/types/course';
 
 const SUBJECT_LABELS: Record<string, string> = {
@@ -32,6 +33,14 @@ export default function CourseDetailPage() {
   const courseId = params.id as string;
 
   const [expandedUnits, setExpandedUnits] = useState<Set<string>>(new Set());
+  const [isEnrolled, setIsEnrolled] = useState(false);
+
+  const enrollMutation = useMutation({
+    mutationFn: () => api.post<{ message: string; enrollment_id: string }>(`/courses/${courseId}/enroll`),
+    onSuccess: () => {
+      setIsEnrolled(true);
+    },
+  });
 
   const { data: course, isLoading: courseLoading } = useQuery<Course>({
     queryKey: ['course', courseId],
@@ -122,6 +131,28 @@ export default function CourseDetailPage() {
         {course.estimated_hours && (
           <p className="text-sm text-muted-foreground mt-2">~{course.estimated_hours} hours</p>
         )}
+        <div className="mt-4">
+          {!isEnrolled ? (
+            <Button
+              onClick={() => enrollMutation.mutate()}
+              disabled={enrollMutation.isPending}
+              className="w-full"
+            >
+              {enrollMutation.isPending ? (
+                <>
+                  <span className="animate-spin mr-2">⟳</span>
+                  报名中...
+                </>
+              ) : (
+                '开始学习'
+              )}
+            </Button>
+          ) : (
+            <Button disabled className="w-full opacity-70">
+              已报名 ✓
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="space-y-3">

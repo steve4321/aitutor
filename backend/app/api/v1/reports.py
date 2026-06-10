@@ -63,6 +63,9 @@ async def get_weekly_report(
     mastery_changes = await report_service.get_mastery_changes(
         db, current_user.id, dt_start, dt_end
     )
+    subject_breakdown = await report_service.get_subject_breakdown(
+        db, current_user.id, dt_start, dt_end
+    )
 
     return WeeklyReport(
         week_start=target_start,
@@ -74,4 +77,5 @@ async def get_weekly_report(
         total_time_minutes=agg["total_time_minutes"],
         streak_days=streak_days,
         mastery_changes=mastery_changes,
+        subject_breakdown=subject_breakdown,
     )
