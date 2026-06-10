@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { api } from '@/lib/api';
-import { setToken } from '@/lib/auth';
+import { setToken, setRefreshToken } from '@/lib/auth';
 import { ROUTES } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { LoginRequest, LoginResponse } from '@/types/api';
@@ -32,6 +32,9 @@ export default function LoginPage() {
 
       if (response.access_token) {
         setToken(response.access_token);
+        if (response.refresh_token) {
+          setRefreshToken(response.refresh_token);
+        }
         router.push(ROUTES.HOME);
       } else {
         setError('Invalid response from server');

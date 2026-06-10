@@ -6,6 +6,7 @@ from app.agents.llm import get_llm, is_llm_available
 from app.agents.prompts import get_system_prompt
 from app.agents.state import AgentState
 from app.agents.constants import MasteryConstants
+from app.agents.evaluation_helpers import heuristic_evaluate
 
 
 async def assessor_node(state: AgentState) -> dict:
@@ -40,14 +41,21 @@ async def assessor_node(state: AgentState) -> dict:
 
     # ── Non-MCQ or complex formats: use LLM ──────────────────
     if not is_llm_available():
-        is_correct = None
+        result = heuristic_evaluate(
+            answer=answer,
+            correct_answer=problem.get("correct_answer"),
+            problem_format=problem_format,
+        )
         return {
-            "agent_response": "Answer recorded. AI scoring is temporarily unavailable — your answer will be evaluated later.",
+            "agent_response": result["feedback"],
             "structured_data": {
-                "is_correct": None,
-                "evaluation_method": "fallback",
+                "is_correct": result["is_correct"],
+                "evaluation_method": "heuristic_fallback",
+                "confidence": result["confidence"],
             },
-            "knowledge_updates": [],  # Don't update knowledge when we can't evaluate
+            "knowledge_updates": [
+                _build_knowledge_update(state, result["is_correct"])
+            ],
             "model_used": "none",
         }
 

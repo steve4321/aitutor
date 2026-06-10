@@ -1,13 +1,32 @@
 'use client';
 
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp, Check, X, BookOpen, Lightbulb, Target, FileText, Sparkles, Play, Volume2, Image, Table, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { KatexRenderer } from '@/components/math/katex-renderer';
-import { AnimationPlayer } from '@/components/math/animation-player';
 import type { PracticeProblem, LessonSection } from '@/types/course';
+
+const KatexRenderer = dynamic(
+  () => import('@/components/math/katex-renderer').then((m) => ({ default: m.KatexRenderer })),
+  {
+    loading: () => <span className="text-muted-foreground animate-pulse">…</span>,
+    ssr: false,
+  }
+);
+
+const AnimationPlayer = dynamic(
+  () => import('@/components/math/animation-player').then((m) => ({ default: m.AnimationPlayer })),
+  {
+    loading: () => (
+      <div className="aspect-video bg-[#1a1a2e] rounded-xl flex items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+      </div>
+    ),
+    ssr: false,
+  }
+);
 
 interface LessonContentProps {
   sections: LessonSection[];

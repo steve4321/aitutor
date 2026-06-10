@@ -20,6 +20,12 @@ export function useAuth() {
   } = useAuthStore();
 
   useEffect(() => {
+    // Already have user data from persisted store — skip refetch
+    if (useAuthStore.getState().user) {
+      useAuthStore.getState().setLoading(false);
+      return;
+    }
+
     let isMounted = true;
     const controller = new AbortController();
 
@@ -30,14 +36,13 @@ export function useAuth() {
         return;
       }
       try {
-        const userData = await api.get<User>('/users/me', undefined, { signal: controller.signal });
+        // Parallel requests instead of sequential waterfall
+        const [userData, profileData] = await Promise.all([
+          api.get<User>('/users/me', undefined, { signal: controller.signal }),
+          api.get<StudentProfile>('/users/me/profile', undefined, { signal: controller.signal }).catch(() => null),
+        ]);
         if (isMounted) {
-          try {
-            const profileData = await api.get<StudentProfile>('/users/me/profile', undefined, { signal: controller.signal });
-            if (isMounted) useAuthStore.getState().login(userData, profileData);
-          } catch {
-            if (isMounted) useAuthStore.getState().login(userData, null);
-          }
+          useAuthStore.getState().login(userData, profileData);
         }
       } catch {
         if (isMounted) {
@@ -62,9 +67,14 @@ export function useAuth() {
     try {
       const response = await api.post<LoginResponse>('/auth/login', credentials);
       setToken(response.access_token);
+      if (response.refresh_token) {
+        setRefreshToken(response.refresh_token);
+      }
 
-      const userData = await api.get<User>('/users/me');
-      const profileData = await api.get<StudentProfile>('/users/me/profile');
+      const [userData, profileData] = await Promise.all([
+        api.get<User>('/users/me'),
+        api.get<StudentProfile>('/users/me/profile').catch(() => null),
+      ]);
       login(userData, profileData);
     } finally {
       setLoading(false);

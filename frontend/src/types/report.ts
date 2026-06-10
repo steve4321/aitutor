@@ -13,6 +13,14 @@ export interface DailyReport {
 }
 
 /** Backend: WeeklyReport – GET /reports/weekly */
+export interface SubjectBreakdown {
+  total_problems: number;
+  total_correct: number;
+  total_xp: number;
+  total_time_minutes: number;
+  sessions_count: number;
+}
+
 export interface WeeklyReport {
   week_start: string;
   week_end: string;
@@ -23,4 +31,5 @@ export interface WeeklyReport {
   total_time_minutes: number;
   streak_days: number;
   mastery_changes: Record<string, number>;
+  subject_breakdown: Record<string, SubjectBreakdown>;
 }

@@ -97,8 +97,11 @@ async def test_non_mcq_no_llm_fallback():
             problem_data={"format": "essay", "knowledge_point_ids": [str(uuid4())]},
         ))
 
-    assert "Answer recorded" in result["agent_response"]
+    assert "Auto-evaluated" in result["agent_response"] or "Answer recorded" in result["agent_response"]
+    assert result["structured_data"]["evaluation_method"] == "heuristic_fallback"
+    assert result["structured_data"]["is_correct"] is not None
     assert result["model_used"] == "none"
+    assert len(result["knowledge_updates"]) > 0
 
 
 # ── Prompt selection tests ─────────────────────────────────────────────────
