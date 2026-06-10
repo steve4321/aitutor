@@ -45,6 +45,7 @@ jobs:
 
       - name: Initialize database
         run: |
+          mkdir -p data
           .venv/bin/python -c "
           import asyncio
           from app.db.seed import seed_database
