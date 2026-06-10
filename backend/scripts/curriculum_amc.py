@@ -74,7 +74,7 @@ AMC_COURSES = [
         "name": "AMC 8 数学竞赛",
         "description": "AMC 8 竞赛基础课程，涵盖代数、几何、计数与概率、数论四大支柱",
         "target_exam": "AMC8",
-        "estimated_hours": 6,
+        "estimated_hours": 14,
         "is_published": True,
         "units": [
             {
@@ -89,7 +89,7 @@ AMC_COURSES = [
                         "title": "入学诊断",
                         "lesson_type": "diagnostic",
                         "knowledge_point_code": None,
-                        "estimated_minutes": 30,
+                        "estimated_minutes": 45,
                         "sort_order": 1,
                         "is_published": True,
                         "content": _diagnostic_content(),
@@ -106,7 +106,7 @@ AMC_COURSES = [
                     {
                         "code": "A1", "title": "一次方程与不等式",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-ALG-A1",
-                        "estimated_minutes": 25, "sort_order": 1, "is_published": True,
+                        "estimated_minutes": 40, "sort_order": 1, "is_published": True,
                         "content": _content(
                             objectives=["理解一元一次方程的求解方法", "掌握移项和合并同类项", "能解含括号的一次方程", "理解一元一次不等式及其解法"],
                             key_points=["移项要变号", "合并同类项", "去括号时注意符号", "不等式两边乘除负数要变号"],
@@ -116,7 +116,7 @@ AMC_COURSES = [
                     {
                         "code": "A2", "title": "方程组",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-ALG-A2",
-                        "estimated_minutes": 25, "sort_order": 2, "is_published": True,
+                        "estimated_minutes": 40, "sort_order": 2, "is_published": True,
                         "content": _content(
                             objectives=["理解二元一次方程组的概念", "掌握代入消元法", "掌握加减消元法", "能解含参数的方程组"],
                             key_points=["代入法：用一个未知数表示另一个", "加减法：消去一个未知数", "选择使计算简单的消元方式"],
@@ -126,7 +126,7 @@ AMC_COURSES = [
                     {
                         "code": "A3", "title": "函数入门(定义、图像、一次函数)",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-ALG-A3",
-                        "estimated_minutes": 25, "sort_order": 3, "is_published": True,
+                        "estimated_minutes": 40, "sort_order": 3, "is_published": True,
                         "content": _content(
                             objectives=["理解函数的定义和表示", "掌握平面直角坐标系", "理解一次函数 y=kx+b 的图像与斜率", "能根据条件确定一次函数表达式"],
                             key_points=["函数：每个输入对应唯一输出", "斜率 k = Δy/Δx", "截距 b 的意义"],
@@ -136,7 +136,7 @@ AMC_COURSES = [
                     {
                         "code": "A4", "title": "比例、百分比、比率",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-ALG-A4",
-                        "estimated_minutes": 20, "sort_order": 4, "is_published": True,
+                        "estimated_minutes": 35, "sort_order": 4, "is_published": True,
                         "content": _content(
                             objectives=["掌握比例的基本性质", "熟练进行百分比的转换和运算", "理解比率的概念和应用"],
                             key_points=["比例的交叉相乘", "百分数转小数", "增长率 = (新-旧)/旧 × 100%"],
@@ -146,7 +146,7 @@ AMC_COURSES = [
                     {
                         "code": "A5", "title": "指数与根式",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-ALG-A5",
-                        "estimated_minutes": 25, "sort_order": 5, "is_published": True,
+                        "estimated_minutes": 40, "sort_order": 5, "is_published": True,
                         "content": _content(
                             objectives=["掌握指数运算法则", "理解零指数幂和负指数", "能化简根式", "掌握科学计数法"],
                             key_points=["a^m · a^n = a^(m+n)", "(a^m)^n = a^(mn)", "√a = a^(1/2)", "a^0 = 1"],
@@ -156,7 +156,7 @@ AMC_COURSES = [
                     {
                         "code": "TEST-A1", "title": "阶段测试A-1",
                         "lesson_type": "assessment", "knowledge_point_code": None,
-                        "estimated_minutes": 15, "sort_order": 6, "is_published": True,
+                        "estimated_minutes": 30, "sort_order": 6, "is_published": True,
                         "content": _assessment_content("代数阶段测试 A-1", "综合 A1-A5，测试代数基础掌握程度"),
                     },
                 ],
@@ -170,7 +170,7 @@ AMC_COURSES = [
                     {
                         "code": "B1", "title": "角度与平行线",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-GEO-B1",
-                        "estimated_minutes": 20, "sort_order": 1, "is_published": True,
+                        "estimated_minutes": 35, "sort_order": 1, "is_published": True,
                         "content": _content(
                             objectives=["掌握对顶角、邻补角的概念", "理解平行线截线形成的角的关系", "掌握同位角、内错角、同旁内角"],
                             key_points=["对顶角相等", "两直线平行则同位角相等、内错角相等", "同旁内角互补"],
@@ -180,7 +180,7 @@ AMC_COURSES = [
                     {
                         "code": "B2", "title": "三角形(面积、全等)",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-GEO-B2",
-                        "estimated_minutes": 25, "sort_order": 2, "is_published": True,
+                        "estimated_minutes": 40, "sort_order": 2, "is_published": True,
                         "content": _content(
                             objectives=["掌握三角形面积公式", "理解三角形内角和为180°", "掌握SSS/SAS/ASA全等判定", "理解等腰三角形和等边三角形性质"],
                             key_points=["面积 S = (1/2)bh", "内角和180°", "全等判定：SSS, SAS, ASA, AAS"],
@@ -190,7 +190,7 @@ AMC_COURSES = [
                     {
                         "code": "B3", "title": "勾股定理",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-GEO-B3",
-                        "estimated_minutes": 25, "sort_order": 3, "is_published": True,
+                        "estimated_minutes": 40, "sort_order": 3, "is_published": True,
                         "content": _content(
                             objectives=["掌握勾股定理 a²+b²=c²", "记住常见勾股数 (3-4-5, 5-12-13, 8-15-17)", "能用逆定理判断直角三角形"],
                             key_points=["a²+b²=c²", "常见勾股数", "逆定理：若 a²+b²=c² 则为直角三角形"],
@@ -200,7 +200,7 @@ AMC_COURSES = [
                     {
                         "code": "B5", "title": "四边形与多边形",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-GEO-B5",
-                        "estimated_minutes": 25, "sort_order": 4, "is_published": True,
+                        "estimated_minutes": 40, "sort_order": 4, "is_published": True,
                         "content": _content(
                             objectives=["掌握平行四边形、梯形性质", "掌握正多边形内角和公式", "理解外角和恒为360°"],
                             key_points=["n边形内角和 = (n-2)×180°", "外角和 = 360°", "平行四边形对边相等、对角相等"],
@@ -210,7 +210,7 @@ AMC_COURSES = [
                     {
                         "code": "B7", "title": "组合图形面积计算",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-GEO-B7",
-                        "estimated_minutes": 25, "sort_order": 5, "is_published": True,
+                        "estimated_minutes": 40, "sort_order": 5, "is_published": True,
                         "content": _content(
                             objectives=["掌握割补法求面积", "掌握差集法", "掌握网格面积（Pick's theorem）"],
                             key_points=["割补法：分割成已知图形", "差集法：大减小", "Pick定理: S = I + B/2 - 1"],
@@ -220,7 +220,7 @@ AMC_COURSES = [
                     {
                         "code": "TEST-B", "title": "阶段测试B",
                         "lesson_type": "assessment", "knowledge_point_code": None,
-                        "estimated_minutes": 20, "sort_order": 6, "is_published": True,
+                        "estimated_minutes": 30, "sort_order": 6, "is_published": True,
                         "content": _assessment_content("几何阶段测试 B", "综合几何全部内容 (B1-B7)"),
                     },
                 ],
@@ -228,13 +228,13 @@ AMC_COURSES = [
             {
                 "code": "AMC8-COUNTING",
                 "name": "计数与概率 (Counting & Probability)",
-                "description": "AMC 8 计数基础：加法乘法原理、排列、基础概率",
+                "description": "AMC 8 计数基础：加法乘法原理、排列、组合、基础概率",
                 "sort_order": 3, "required_mastery": 0.8,
                 "lessons": [
                     {
                         "code": "C1", "title": "加法原理与乘法原理",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-CNT-C1",
-                        "estimated_minutes": 20, "sort_order": 1, "is_published": True,
+                        "estimated_minutes": 35, "sort_order": 1, "is_published": True,
                         "content": _content(
                             objectives=["理解分类计数（加法原理）", "理解分步计数（乘法原理）", "能用树形图辅助计数"],
                             key_points=["加法：分类 → 加", "乘法：分步 → 乘", "画树形图帮助理解"],
@@ -244,7 +244,7 @@ AMC_COURSES = [
                     {
                         "code": "C2", "title": "排列",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-CNT-C2",
-                        "estimated_minutes": 25, "sort_order": 2, "is_published": True,
+                        "estimated_minutes": 40, "sort_order": 2, "is_published": True,
                         "content": _content(
                             objectives=["理解排列的概念", "掌握排列数公式 P(n,k) = n!/(n-k)!", "能解决排列应用题"],
                             key_points=["排列：有序选取", "P(n,k) = n(n-1)…(n-k+1)", "n! = 1×2×…×n"],
@@ -252,9 +252,19 @@ AMC_COURSES = [
                         ),
                     },
                     {
+                        "code": "C3", "title": "组合基础",
+                        "lesson_type": "concept", "knowledge_point_code": "AMC-CNT-C3",
+                        "estimated_minutes": 40, "sort_order": 3, "is_published": True,
+                        "content": _content(
+                            objectives=["理解组合的概念（无序选取）", "掌握基本组合数计算 C(n,k)=n!/(k!(n-k)!)", "能区分排列和组合的使用场景"],
+                            key_points=["组合：无序选取", "C(n,k) = C(n,n-k)", "排列有序，组合无序"],
+                            common_mistakes=["排列组合混淆", "组合数公式计算错误", "重复计数"],
+                        ),
+                    },
+                    {
                         "code": "C5", "title": "基础概率",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-CNT-C5",
-                        "estimated_minutes": 25, "sort_order": 3, "is_published": True,
+                        "estimated_minutes": 40, "sort_order": 4, "is_published": True,
                         "content": _content(
                             objectives=["理解古典概型", "掌握互斥事件的概率加法", "掌握独立事件的概率乘法"],
                             key_points=["P(A) = |A|/|Ω|", "互斥：P(A∪B) = P(A)+P(B)", "独立：P(A∩B) = P(A)·P(B)"],
@@ -264,7 +274,7 @@ AMC_COURSES = [
                     {
                         "code": "TEST-C1", "title": "阶段测试C-1",
                         "lesson_type": "assessment", "knowledge_point_code": None,
-                        "estimated_minutes": 15, "sort_order": 4, "is_published": True,
+                        "estimated_minutes": 30, "sort_order": 5, "is_published": True,
                         "content": _assessment_content("计数与概率阶段测试 C-1", "综合计数基础内容 (C1-C5)"),
                     },
                 ],
@@ -278,7 +288,7 @@ AMC_COURSES = [
                     {
                         "code": "D1", "title": "整除与整除规则",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-NT-D1",
-                        "estimated_minutes": 25, "sort_order": 1, "is_published": True,
+                        "estimated_minutes": 40, "sort_order": 1, "is_published": True,
                         "content": _content(
                             objectives=["掌握被 2, 3, 4, 5, 9 整除的判定法则", "掌握被 11 整除的判定法则", "能综合运用整除性质"],
                             key_points=["3的倍数：各位数字之和能被3整除", "9的倍数：各位数字之和能被9整除", "11的倍数：奇偶位数字和之差能被11整除"],
@@ -288,7 +298,7 @@ AMC_COURSES = [
                     {
                         "code": "D2", "title": "质数与质因数分解",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-NT-D2",
-                        "estimated_minutes": 25, "sort_order": 2, "is_published": True,
+                        "estimated_minutes": 40, "sort_order": 2, "is_published": True,
                         "content": _content(
                             objectives=["理解质数的定义", "掌握唯一分解定理", "能进行质因数分解", "掌握约数个数公式"],
                             key_points=["质数：大于1，只有1和自身两个因子", "唯一分解：n = p1^a1 · p2^a2 · …", "约数个数 = (a1+1)(a2+1)…"],
@@ -298,7 +308,7 @@ AMC_COURSES = [
                     {
                         "code": "D3", "title": "GCD与LCM(辗转相除法)",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-NT-D3",
-                        "estimated_minutes": 25, "sort_order": 3, "is_published": True,
+                        "estimated_minutes": 40, "sort_order": 3, "is_published": True,
                         "content": _content(
                             objectives=["理解最大公约数和最小公倍数", "掌握辗转相除法", "掌握 gcd×lcm = a×b"],
                             key_points=["辗转相除法：gcd(a,b) = gcd(b, a mod b)", "gcd × lcm = a × b", "利用质因数分解求GCD/LCM"],
@@ -308,7 +318,7 @@ AMC_COURSES = [
                     {
                         "code": "TEST-D1", "title": "阶段测试D-1",
                         "lesson_type": "assessment", "knowledge_point_code": None,
-                        "estimated_minutes": 15, "sort_order": 4, "is_published": True,
+                        "estimated_minutes": 30, "sort_order": 4, "is_published": True,
                         "content": _assessment_content("数论阶段测试 D-1", "综合数论基础内容 (D1-D3)"),
                     },
                 ],
@@ -323,7 +333,7 @@ AMC_COURSES = [
         "name": "AMC 10 数学竞赛",
         "description": "AMC 10 竞赛进阶课程，在 AMC 8 基础上深入各大支柱",
         "target_exam": "AMC10",
-        "estimated_hours": 8,
+        "estimated_hours": 16,
         "is_published": True,
         "units": [
             {
@@ -335,7 +345,7 @@ AMC_COURSES = [
                     {
                         "code": "A6", "title": "二次方程 — 因式分解法",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-ALG-A6",
-                        "estimated_minutes": 30, "sort_order": 1, "is_published": True,
+                        "estimated_minutes": 45, "sort_order": 1, "is_published": True,
                         "content": _content(
                             objectives=["理解二次方程的一般形式", "掌握十字相乘法", "能用因式分解法解二次方程"],
                             key_points=["ax²+bx+c = 0", "十字相乘：找 m,n 使得 m+n=b, mn=ac", "ax²+bx+c = a(x-r1)(x-r2)"],
@@ -345,7 +355,7 @@ AMC_COURSES = [
                     {
                         "code": "A7", "title": "二次方程 — 配方法与求根公式",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-ALG-A7",
-                        "estimated_minutes": 30, "sort_order": 2, "is_published": True,
+                        "estimated_minutes": 45, "sort_order": 2, "is_published": True,
                         "content": _content(
                             objectives=["掌握配方法", "理解判别式 Δ=b²-4ac", "掌握求根公式"],
                             key_points=["配方法步骤", "Δ>0: 两个不等实根", "Δ=0: 两个相等实根", "Δ<0: 无实根"],
@@ -355,7 +365,7 @@ AMC_COURSES = [
                     {
                         "code": "A8", "title": "特殊因式分解(差平方、立方和差)",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-ALG-A8",
-                        "estimated_minutes": 25, "sort_order": 3, "is_published": True,
+                        "estimated_minutes": 40, "sort_order": 3, "is_published": True,
                         "content": _content(
                             objectives=["掌握平方差公式 a²-b²=(a+b)(a-b)", "掌握立方和 a³+b³=(a+b)(a²-ab+b²)", "掌握立方差 a³-b³=(a-b)(a²+ab+b²)"],
                             key_points=["a²-b²=(a+b)(a-b)", "a³+b³=(a+b)(a²-ab+b²)", "a³-b³=(a-b)(a²+ab+b²)"],
@@ -365,7 +375,7 @@ AMC_COURSES = [
                     {
                         "code": "A9", "title": "函数进阶(复合、反函数、二次函数图像)",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-ALG-A9",
-                        "estimated_minutes": 30, "sort_order": 4, "is_published": True,
+                        "estimated_minutes": 45, "sort_order": 4, "is_published": True,
                         "content": _content(
                             objectives=["理解复合函数 f(g(x))", "理解反函数的概念和求法", "掌握二次函数图像的顶点、对称轴"],
                             key_points=["复合函数：先内后外", "反函数：f⁻¹ 满足 f(f⁻¹(x)) = x", "y=ax²+bx+c 顶点 (-b/(2a), f(-b/(2a)))"],
@@ -375,7 +385,7 @@ AMC_COURSES = [
                     {
                         "code": "A10", "title": "数列(等差、等比、求和、望远镜求和)",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-ALG-A10",
-                        "estimated_minutes": 30, "sort_order": 5, "is_published": True,
+                        "estimated_minutes": 45, "sort_order": 5, "is_published": True,
                         "content": _content(
                             objectives=["掌握等差数列通项与求和", "掌握等比数列通项与求和", "理解裂项相消"],
                             key_points=["等差：an=a1+(n-1)d, Sn=n(a1+an)/2", "等比：an=a1·r^(n-1)", "裂项：1/(n(n+1)) = 1/n - 1/(n+1)"],
@@ -385,7 +395,7 @@ AMC_COURSES = [
                     {
                         "code": "TEST-A2", "title": "阶段测试A-2",
                         "lesson_type": "assessment", "knowledge_point_code": None,
-                        "estimated_minutes": 20, "sort_order": 6, "is_published": True,
+                        "estimated_minutes": 35, "sort_order": 6, "is_published": True,
                         "content": _assessment_content("代数进阶阶段测试 A-2", "综合 AMC 10 代数进阶内容 (A6-A10)"),
                     },
                 ],
@@ -399,7 +409,7 @@ AMC_COURSES = [
                     {
                         "code": "B4", "title": "相似三角形",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-GEO-B4",
-                        "estimated_minutes": 25, "sort_order": 1, "is_published": True,
+                        "estimated_minutes": 40, "sort_order": 1, "is_published": True,
                         "content": _content(
                             objectives=["掌握AA/SSS/SAS相似判定", "理解相似比与面积比的关系", "能运用相似三角形解决综合题"],
                             key_points=["AA相似：两个角相等", "相似比 k → 面积比 k²", "相似比 k → 体积比 k³"],
@@ -409,7 +419,7 @@ AMC_COURSES = [
                     {
                         "code": "B6", "title": "圆(圆心角、圆周角、切割线、Power of a Point)",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-GEO-B6",
-                        "estimated_minutes": 30, "sort_order": 2, "is_published": True,
+                        "estimated_minutes": 45, "sort_order": 2, "is_published": True,
                         "content": _content(
                             objectives=["理解圆心角与圆周角的关系", "掌握切线性质", "理解割线定理和Power of a Point"],
                             key_points=["圆周角 = 圆心角的一半", "切线 ⊥ 半径", "Power of a Point: PA·PB = PC·PD"],
@@ -419,7 +429,7 @@ AMC_COURSES = [
                     {
                         "code": "B8", "title": "坐标几何",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-GEO-B8",
-                        "estimated_minutes": 30, "sort_order": 3, "is_published": True,
+                        "estimated_minutes": 45, "sort_order": 3, "is_published": True,
                         "content": _content(
                             objectives=["掌握两点距离公式", "掌握中点公式", "能用坐标法证明几何命题", "理解直线方程的各种形式"],
                             key_points=["距离: d=√((x2-x1)²+(y2-y1)²)", "中点: M=((x1+x2)/2, (y1+y2)/2)", "斜率: m=(y2-y1)/(x2-x1)"],
@@ -429,12 +439,18 @@ AMC_COURSES = [
                     {
                         "code": "B9", "title": "立体几何",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-GEO-B9",
-                        "estimated_minutes": 25, "sort_order": 4, "is_published": True,
+                        "estimated_minutes": 40, "sort_order": 4, "is_published": True,
                         "content": _content(
                             objectives=["掌握正方体、长方体的表面积与体积", "掌握圆柱、圆锥的表面积与体积", "理解展开图"],
                             key_points=["长方体表面积 = 2(ab+bc+ac)", "圆柱体积 = πr²h", "圆锥体积 = (1/3)πr²h"],
                             common_mistakes=["表面积和体积公式混淆", "圆锥体积忘记1/3", "展开图中扇形弧长计算错误"],
                         ),
+                    },
+                    {
+                        "code": "TEST-B2", "title": "几何进阶阶段测试",
+                        "lesson_type": "assessment", "knowledge_point_code": None,
+                        "estimated_minutes": 35, "sort_order": 5, "is_published": True,
+                        "content": _assessment_content("几何进阶阶段测试 B-2", "综合 AMC 10 几何进阶内容 (B4, B6, B8, B9)"),
                     },
                 ],
             },
@@ -447,7 +463,7 @@ AMC_COURSES = [
                     {
                         "code": "C3", "title": "组合",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-CNT-C3",
-                        "estimated_minutes": 25, "sort_order": 1, "is_published": True,
+                        "estimated_minutes": 40, "sort_order": 1, "is_published": True,
                         "content": _content(
                             objectives=["理解组合的概念（无序选取）", "掌握组合数公式 C(n,k)", "能解决组合应用题"],
                             key_points=["组合：无序选取", "C(n,k) = C(n,n-k)", "P(n,k) = C(n,k)·k!"],
@@ -457,7 +473,7 @@ AMC_COURSES = [
                     {
                         "code": "C4", "title": "杨辉三角与二项式定理",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-CNT-C4",
-                        "estimated_minutes": 25, "sort_order": 2, "is_published": True,
+                        "estimated_minutes": 40, "sort_order": 2, "is_published": True,
                         "content": _content(
                             objectives=["理解杨辉三角的构造与性质", "掌握二项式定理", "能求特定项系数"],
                             key_points=["杨辉三角每项 = C(n,k)", "第r项系数 = C(n,r-1)", "C(n,k) = C(n-1,k-1)+C(n-1,k)"],
@@ -467,7 +483,7 @@ AMC_COURSES = [
                     {
                         "code": "C6", "title": "互补计数与分类讨论",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-CNT-C6",
-                        "estimated_minutes": 25, "sort_order": 3, "is_published": True,
+                        "estimated_minutes": 40, "sort_order": 3, "is_published": True,
                         "content": _content(
                             objectives=["掌握正难则反的互补计数思想", "掌握补集思想", "能进行多情况分类讨论"],
                             key_points=["所求 = 全部 - 不满足的", "分类要不重不漏", "互补有时大幅简化计算"],
@@ -477,7 +493,7 @@ AMC_COURSES = [
                     {
                         "code": "C7", "title": "容斥原理",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-CNT-C7",
-                        "estimated_minutes": 25, "sort_order": 4, "is_published": True,
+                        "estimated_minutes": 40, "sort_order": 4, "is_published": True,
                         "content": _content(
                             objectives=["掌握两集合容斥公式", "掌握三集合容斥公式", "能用Venn图辅助理解"],
                             key_points=["|A∪B| = |A|+|B|-|A∩B|", "|A∪B∪C| = |A|+|B|+|C|-|A∩B|-|A∩C|-|B∩C|+|A∩B∩C|"],
@@ -487,7 +503,7 @@ AMC_COURSES = [
                     {
                         "code": "C8", "title": "递推",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-CNT-C8",
-                        "estimated_minutes": 30, "sort_order": 5, "is_published": True,
+                        "estimated_minutes": 45, "sort_order": 5, "is_published": True,
                         "content": _content(
                             objectives=["理解递推关系的概念", "掌握斐波那契数列", "能用递推解决计数问题"],
                             key_points=["递推：an = f(a(n-1), …)", "斐波那契: Fn = F(n-1)+F(n-2)", "关键是找递推关系和初始条件"],
@@ -497,12 +513,18 @@ AMC_COURSES = [
                     {
                         "code": "C9", "title": "期望值",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-CNT-C9",
-                        "estimated_minutes": 25, "sort_order": 6, "is_published": True,
+                        "estimated_minutes": 40, "sort_order": 6, "is_published": True,
                         "content": _content(
                             objectives=["理解数学期望的定义", "掌握期望的线性性", "能解决期望值应用题"],
                             key_points=["E[X] = Σ xi·P(xi)", "E[X+Y] = E[X]+E[Y]", "E[aX] = aE[X]"],
                             common_mistakes=["期望和概率混淆", "线性性误用", "分母计算错误"],
                         ),
+                    },
+                    {
+                        "code": "TEST-C2", "title": "计数进阶阶段测试",
+                        "lesson_type": "assessment", "knowledge_point_code": None,
+                        "estimated_minutes": 35, "sort_order": 7, "is_published": True,
+                        "content": _assessment_content("计数进阶阶段测试 C-2", "综合 AMC 10 计数进阶内容 (C3-C9)"),
                     },
                 ],
             },
@@ -515,7 +537,7 @@ AMC_COURSES = [
                     {
                         "code": "D4", "title": "余数与同余基础",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-NT-D4",
-                        "estimated_minutes": 25, "sort_order": 1, "is_published": True,
+                        "estimated_minutes": 40, "sort_order": 1, "is_published": True,
                         "content": _content(
                             objectives=["理解同余的定义 a≡b (mod m)", "掌握模运算的性质", "能解同余方程"],
                             key_points=["a≡b (mod m) 意味着 m|(a-b)", "同余可加、可乘", "模运算保持等式两边"],
@@ -525,7 +547,7 @@ AMC_COURSES = [
                     {
                         "code": "D5", "title": "进位制",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-NT-D5",
-                        "estimated_minutes": 25, "sort_order": 2, "is_published": True,
+                        "estimated_minutes": 40, "sort_order": 2, "is_published": True,
                         "content": _content(
                             objectives=["理解二进制、八进制、十六进制", "掌握不同进位制之间的转换", "能进行进位制运算"],
                             key_points=["n进制按位权展开", "十进制转n进制：不断除以n取余", "n进制转十进制：按位权展开"],
@@ -535,7 +557,7 @@ AMC_COURSES = [
                     {
                         "code": "D6", "title": "不定方程",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-NT-D6",
-                        "estimated_minutes": 30, "sort_order": 3, "is_published": True,
+                        "estimated_minutes": 45, "sort_order": 3, "is_published": True,
                         "content": _content(
                             objectives=["理解二元一次不定方程", "掌握整数解的判定条件", "能求不定方程的全部整数解"],
                             key_points=["ax+by=c 有解 ⟺ gcd(a,b)|c", "特解+通解结构", "x=x0+(b/d)t, y=y0-(a/d)t"],
@@ -545,12 +567,18 @@ AMC_COURSES = [
                     {
                         "code": "D7", "title": "欧拉定理入门",
                         "lesson_type": "concept", "knowledge_point_code": "AMC-NT-D7",
-                        "estimated_minutes": 30, "sort_order": 4, "is_published": True,
+                        "estimated_minutes": 45, "sort_order": 4, "is_published": True,
                         "content": _content(
                             objectives=["理解欧拉函数 φ(n) 的定义和计算", "掌握费马小定理", "理解欧拉定理"],
                             key_points=["φ(n) = n∏(1-1/pi)", "费马小定理: a^(p-1)≡1 (mod p)", "gcd(a,n)=1 时欧拉定理成立"],
                             common_mistakes=["费马小定理要求p是质数", "欧拉函数计算时遗漏质因子", "指数降幂时GCD条件不满足"],
                         ),
+                    },
+                    {
+                        "code": "TEST-D2", "title": "数论进阶阶段测试",
+                        "lesson_type": "assessment", "knowledge_point_code": None,
+                        "estimated_minutes": 35, "sort_order": 5, "is_published": True,
+                        "content": _assessment_content("数论进阶阶段测试 D-2", "综合 AMC 10 数论进阶内容 (D4-D7)"),
                     },
                 ],
             },
@@ -565,48 +593,48 @@ AMC_COURSES = [
 
 AMC_KNOWLEDGE_POINTS = [
     # ── AMC 8 — Algebra ──
-    {"code": "AMC-ALG-A1", "subject": "amc_math", "name": "一次方程与不等式", "name_en": "Linear Equations and Inequalities", "description": "一元一次方程求解、不等式、移项", "pillar": "algebra", "difficulty_level": 2, "amc_level": 8, "amc_levels": "8", "sort_order": 101, "estimated_minutes": 25},
-    {"code": "AMC-ALG-A2", "subject": "amc_math", "name": "方程组", "name_en": "Systems of Equations", "description": "二元一次方程组、代入法、消元法", "pillar": "algebra", "difficulty_level": 2, "amc_level": 8, "amc_levels": "8", "sort_order": 102, "estimated_minutes": 25},
-    {"code": "AMC-ALG-A3", "subject": "amc_math", "name": "函数入门", "name_en": "Introduction to Functions", "description": "函数概念、坐标系、一次函数图像与斜率", "pillar": "algebra", "difficulty_level": 2, "amc_level": 8, "amc_levels": "8", "sort_order": 103, "estimated_minutes": 25},
-    {"code": "AMC-ALG-A4", "subject": "amc_math", "name": "比例、百分比、比率", "name_en": "Ratios, Percentages, and Proportions", "description": "比例运算、百分比转换、比率应用", "pillar": "algebra", "difficulty_level": 2, "amc_level": 8, "amc_levels": "8", "sort_order": 104, "estimated_minutes": 20},
-    {"code": "AMC-ALG-A5", "subject": "amc_math", "name": "指数与根式", "name_en": "Exponents and Radicals", "description": "指数法则、根式化简、科学计数法", "pillar": "algebra", "difficulty_level": 2, "amc_level": 8, "amc_levels": "8", "sort_order": 105, "estimated_minutes": 25},
+    {"code": "AMC-ALG-A1", "subject": "amc_math", "name": "一次方程与不等式", "name_en": "Linear Equations and Inequalities", "description": "一元一次方程求解、不等式、移项", "pillar": "algebra", "difficulty_level": 2, "amc_level": 8, "amc_levels": "8", "sort_order": 101, "estimated_minutes": 40},
+    {"code": "AMC-ALG-A2", "subject": "amc_math", "name": "方程组", "name_en": "Systems of Equations", "description": "二元一次方程组、代入法、消元法", "pillar": "algebra", "difficulty_level": 2, "amc_level": 8, "amc_levels": "8", "sort_order": 102, "estimated_minutes": 40},
+    {"code": "AMC-ALG-A3", "subject": "amc_math", "name": "函数入门", "name_en": "Introduction to Functions", "description": "函数概念、坐标系、一次函数图像与斜率", "pillar": "algebra", "difficulty_level": 2, "amc_level": 8, "amc_levels": "8", "sort_order": 103, "estimated_minutes": 40},
+    {"code": "AMC-ALG-A4", "subject": "amc_math", "name": "比例、百分比、比率", "name_en": "Ratios, Percentages, and Proportions", "description": "比例运算、百分比转换、比率应用", "pillar": "algebra", "difficulty_level": 2, "amc_level": 8, "amc_levels": "8", "sort_order": 104, "estimated_minutes": 35},
+    {"code": "AMC-ALG-A5", "subject": "amc_math", "name": "指数与根式", "name_en": "Exponents and Radicals", "description": "指数法则、根式化简、科学计数法", "pillar": "algebra", "difficulty_level": 2, "amc_level": 8, "amc_levels": "8", "sort_order": 105, "estimated_minutes": 40},
     # ── AMC 8 — Geometry ──
-    {"code": "AMC-GEO-B1", "subject": "amc_math", "name": "角度与平行线", "name_en": "Angles and Parallel Lines", "description": "对顶角、同位角、内错角、互补角", "pillar": "geometry", "difficulty_level": 2, "amc_level": 8, "amc_levels": "8", "sort_order": 201, "estimated_minutes": 20},
-    {"code": "AMC-GEO-B2", "subject": "amc_math", "name": "三角形(面积、全等)", "name_en": "Triangles: Area and Congruence", "description": "三角形面积公式、SSS/SAS/ASA全等判定", "pillar": "geometry", "difficulty_level": 2, "amc_level": 8, "amc_levels": "8", "sort_order": 202, "estimated_minutes": 25},
-    {"code": "AMC-GEO-B3", "subject": "amc_math", "name": "勾股定理", "name_en": "Pythagorean Theorem", "description": "a²+b²=c²、勾股数、逆定理", "pillar": "geometry", "difficulty_level": 2, "amc_level": 8, "amc_levels": "8", "sort_order": 203, "estimated_minutes": 25},
-    {"code": "AMC-GEO-B5", "subject": "amc_math", "name": "四边形与多边形", "name_en": "Quadrilaterals and Polygons", "description": "平行四边形、梯形、正多边形内角和", "pillar": "geometry", "difficulty_level": 2, "amc_level": 8, "amc_levels": "8", "sort_order": 205, "estimated_minutes": 25},
-    {"code": "AMC-GEO-B7", "subject": "amc_math", "name": "组合图形面积计算", "name_en": "Composite Figure Areas", "description": "割补法、差集法、网格面积", "pillar": "geometry", "difficulty_level": 2, "amc_level": 8, "amc_levels": "8", "sort_order": 207, "estimated_minutes": 25},
+    {"code": "AMC-GEO-B1", "subject": "amc_math", "name": "角度与平行线", "name_en": "Angles and Parallel Lines", "description": "对顶角、同位角、内错角、互补角", "pillar": "geometry", "difficulty_level": 2, "amc_level": 8, "amc_levels": "8", "sort_order": 201, "estimated_minutes": 35},
+    {"code": "AMC-GEO-B2", "subject": "amc_math", "name": "三角形(面积、全等)", "name_en": "Triangles: Area and Congruence", "description": "三角形面积公式、SSS/SAS/ASA全等判定", "pillar": "geometry", "difficulty_level": 2, "amc_level": 8, "amc_levels": "8", "sort_order": 202, "estimated_minutes": 40},
+    {"code": "AMC-GEO-B3", "subject": "amc_math", "name": "勾股定理", "name_en": "Pythagorean Theorem", "description": "a²+b²=c²、勾股数、逆定理", "pillar": "geometry", "difficulty_level": 2, "amc_level": 8, "amc_levels": "8", "sort_order": 203, "estimated_minutes": 40},
+    {"code": "AMC-GEO-B5", "subject": "amc_math", "name": "四边形与多边形", "name_en": "Quadrilaterals and Polygons", "description": "平行四边形、梯形、正多边形内角和", "pillar": "geometry", "difficulty_level": 2, "amc_level": 8, "amc_levels": "8", "sort_order": 205, "estimated_minutes": 40},
+    {"code": "AMC-GEO-B7", "subject": "amc_math", "name": "组合图形面积计算", "name_en": "Composite Figure Areas", "description": "割补法、差集法、网格面积", "pillar": "geometry", "difficulty_level": 2, "amc_level": 8, "amc_levels": "8", "sort_order": 207, "estimated_minutes": 40},
     # ── AMC 8 — Counting ──
-    {"code": "AMC-CNT-C1", "subject": "amc_math", "name": "加法原理与乘法原理", "name_en": "Addition and Multiplication Principles", "description": "分类计数、分步计数、树形图", "pillar": "counting", "difficulty_level": 2, "amc_level": 8, "amc_levels": "8", "sort_order": 301, "estimated_minutes": 20},
-    {"code": "AMC-CNT-C2", "subject": "amc_math", "name": "排列", "name_en": "Permutations", "description": "排列数公式P(n,k)、排列应用", "pillar": "counting", "difficulty_level": 2, "amc_level": 8, "amc_levels": "8", "sort_order": 302, "estimated_minutes": 25},
-    {"code": "AMC-CNT-C5", "subject": "amc_math", "name": "基础概率", "name_en": "Basic Probability", "description": "古典概型、互斥事件、独立事件", "pillar": "counting", "difficulty_level": 2, "amc_level": 8, "amc_levels": "8", "sort_order": 305, "estimated_minutes": 25},
+    {"code": "AMC-CNT-C1", "subject": "amc_math", "name": "加法原理与乘法原理", "name_en": "Addition and Multiplication Principles", "description": "分类计数、分步计数、树形图", "pillar": "counting", "difficulty_level": 2, "amc_level": 8, "amc_levels": "8", "sort_order": 301, "estimated_minutes": 35},
+    {"code": "AMC-CNT-C2", "subject": "amc_math", "name": "排列", "name_en": "Permutations", "description": "排列数公式P(n,k)、排列应用", "pillar": "counting", "difficulty_level": 2, "amc_level": 8, "amc_levels": "8", "sort_order": 302, "estimated_minutes": 40},
+    {"code": "AMC-CNT-C5", "subject": "amc_math", "name": "基础概率", "name_en": "Basic Probability", "description": "古典概型、互斥事件、独立事件", "pillar": "counting", "difficulty_level": 2, "amc_level": 8, "amc_levels": "8", "sort_order": 305, "estimated_minutes": 40},
     # ── AMC 8 — Number Theory ──
-    {"code": "AMC-NT-D1", "subject": "amc_math", "name": "整除与整除规则", "name_en": "Divisibility Rules", "description": "整除判定、被2/3/4/5/9/11整除的特征", "pillar": "number_theory", "difficulty_level": 2, "amc_level": 8, "amc_levels": "8", "sort_order": 401, "estimated_minutes": 25},
-    {"code": "AMC-NT-D2", "subject": "amc_math", "name": "质数与质因数分解", "name_en": "Primes and Prime Factorization", "description": "质数判定、唯一分解定理、质因数分解", "pillar": "number_theory", "difficulty_level": 2, "amc_level": 8, "amc_levels": "8", "sort_order": 402, "estimated_minutes": 25},
-    {"code": "AMC-NT-D3", "subject": "amc_math", "name": "GCD与LCM", "name_en": "GCD and LCM", "description": "最大公约数、最小公倍数、辗转相除法", "pillar": "number_theory", "difficulty_level": 2, "amc_level": 8, "amc_levels": "8", "sort_order": 403, "estimated_minutes": 25},
+    {"code": "AMC-NT-D1", "subject": "amc_math", "name": "整除与整除规则", "name_en": "Divisibility Rules", "description": "整除判定、被2/3/4/5/9/11整除的特征", "pillar": "number_theory", "difficulty_level": 2, "amc_level": 8, "amc_levels": "8", "sort_order": 401, "estimated_minutes": 40},
+    {"code": "AMC-NT-D2", "subject": "amc_math", "name": "质数与质因数分解", "name_en": "Primes and Prime Factorization", "description": "质数判定、唯一分解定理、质因数分解", "pillar": "number_theory", "difficulty_level": 2, "amc_level": 8, "amc_levels": "8", "sort_order": 402, "estimated_minutes": 40},
+    {"code": "AMC-NT-D3", "subject": "amc_math", "name": "GCD与LCM", "name_en": "GCD and LCM", "description": "最大公约数、最小公倍数、辗转相除法", "pillar": "number_theory", "difficulty_level": 2, "amc_level": 8, "amc_levels": "8", "sort_order": 403, "estimated_minutes": 40},
     # ── AMC 10 — Algebra ──
-    {"code": "AMC-ALG-A6", "subject": "amc_math", "name": "二次方程 — 因式分解法", "name_en": "Quadratic Equations: Factoring", "description": "二次方程、十字相乘、因式分解求解", "pillar": "algebra", "difficulty_level": 3, "amc_level": 10, "amc_levels": "10", "sort_order": 106, "estimated_minutes": 30},
-    {"code": "AMC-ALG-A7", "subject": "amc_math", "name": "二次方程 — 配方法与求根公式", "name_en": "Quadratic Equations: Completing the Square & Quadratic Formula", "description": "配方法、判别式、求根公式", "pillar": "algebra", "difficulty_level": 3, "amc_level": 10, "amc_levels": "10", "sort_order": 107, "estimated_minutes": 30},
-    {"code": "AMC-ALG-A8", "subject": "amc_math", "name": "特殊因式分解", "name_en": "Special Factoring: Difference of Squares, Sum/Difference of Cubes", "description": "平方差、立方和/差公式", "pillar": "algebra", "difficulty_level": 3, "amc_level": 10, "amc_levels": "10", "sort_order": 108, "estimated_minutes": 25},
-    {"code": "AMC-ALG-A9", "subject": "amc_math", "name": "函数进阶", "name_en": "Advanced Functions: Composition, Inverses, Quadratics", "description": "复合函数、反函数、二次函数顶点与对称轴", "pillar": "algebra", "difficulty_level": 4, "amc_level": 10, "amc_levels": "10", "sort_order": 109, "estimated_minutes": 30},
-    {"code": "AMC-ALG-A10", "subject": "amc_math", "name": "数列", "name_en": "Sequences: Arithmetic, Geometric, and Telescoping", "description": "等差/等比数列通项与求和、裂项相消", "pillar": "algebra", "difficulty_level": 4, "amc_level": 10, "amc_levels": "10", "sort_order": 110, "estimated_minutes": 30},
+    {"code": "AMC-ALG-A6", "subject": "amc_math", "name": "二次方程 — 因式分解法", "name_en": "Quadratic Equations: Factoring", "description": "二次方程、十字相乘、因式分解求解", "pillar": "algebra", "difficulty_level": 3, "amc_level": 10, "amc_levels": "10", "sort_order": 106, "estimated_minutes": 45},
+    {"code": "AMC-ALG-A7", "subject": "amc_math", "name": "二次方程 — 配方法与求根公式", "name_en": "Quadratic Equations: Completing the Square & Quadratic Formula", "description": "配方法、判别式、求根公式", "pillar": "algebra", "difficulty_level": 3, "amc_level": 10, "amc_levels": "10", "sort_order": 107, "estimated_minutes": 45},
+    {"code": "AMC-ALG-A8", "subject": "amc_math", "name": "特殊因式分解", "name_en": "Special Factoring: Difference of Squares, Sum/Difference of Cubes", "description": "平方差、立方和/差公式", "pillar": "algebra", "difficulty_level": 3, "amc_level": 10, "amc_levels": "10", "sort_order": 108, "estimated_minutes": 40},
+    {"code": "AMC-ALG-A9", "subject": "amc_math", "name": "函数进阶", "name_en": "Advanced Functions: Composition, Inverses, Quadratics", "description": "复合函数、反函数、二次函数顶点与对称轴", "pillar": "algebra", "difficulty_level": 4, "amc_level": 10, "amc_levels": "10", "sort_order": 109, "estimated_minutes": 45},
+    {"code": "AMC-ALG-A10", "subject": "amc_math", "name": "数列", "name_en": "Sequences: Arithmetic, Geometric, and Telescoping", "description": "等差/等比数列通项与求和、裂项相消", "pillar": "algebra", "difficulty_level": 4, "amc_level": 10, "amc_levels": "10", "sort_order": 110, "estimated_minutes": 45},
     # ── AMC 10 — Geometry ──
-    {"code": "AMC-GEO-B4", "subject": "amc_math", "name": "相似三角形", "name_en": "Similar Triangles", "description": "AA/SSS/SAS相似判定、相似比与面积比", "pillar": "geometry", "difficulty_level": 3, "amc_level": 10, "amc_levels": "10", "sort_order": 204, "estimated_minutes": 25},
-    {"code": "AMC-GEO-B6", "subject": "amc_math", "name": "圆", "name_en": "Circles: Angles, Tangents, Power of a Point", "description": "圆心角与圆周角关系、切线性质、割线定理", "pillar": "geometry", "difficulty_level": 4, "amc_level": 10, "amc_levels": "10", "sort_order": 206, "estimated_minutes": 30},
-    {"code": "AMC-GEO-B8", "subject": "amc_math", "name": "坐标几何", "name_en": "Coordinate Geometry", "description": "两点距离、中点公式、直线方程、坐标法证几何", "pillar": "geometry", "difficulty_level": 3, "amc_level": 10, "amc_levels": "10", "sort_order": 208, "estimated_minutes": 30},
-    {"code": "AMC-GEO-B9", "subject": "amc_math", "name": "立体几何", "name_en": "Solid Geometry", "description": "表面积与体积、正方体/圆柱/圆锥、展开图", "pillar": "geometry", "difficulty_level": 3, "amc_level": 10, "amc_levels": "10", "sort_order": 209, "estimated_minutes": 25},
+    {"code": "AMC-GEO-B4", "subject": "amc_math", "name": "相似三角形", "name_en": "Similar Triangles", "description": "AA/SSS/SAS相似判定、相似比与面积比", "pillar": "geometry", "difficulty_level": 3, "amc_level": 10, "amc_levels": "10", "sort_order": 204, "estimated_minutes": 40},
+    {"code": "AMC-GEO-B6", "subject": "amc_math", "name": "圆", "name_en": "Circles: Angles, Tangents, Power of a Point", "description": "圆心角与圆周角关系、切线性质、割线定理", "pillar": "geometry", "difficulty_level": 4, "amc_level": 10, "amc_levels": "10", "sort_order": 206, "estimated_minutes": 45},
+    {"code": "AMC-GEO-B8", "subject": "amc_math", "name": "坐标几何", "name_en": "Coordinate Geometry", "description": "两点距离、中点公式、直线方程、坐标法证几何", "pillar": "geometry", "difficulty_level": 3, "amc_level": 10, "amc_levels": "10", "sort_order": 208, "estimated_minutes": 45},
+    {"code": "AMC-GEO-B9", "subject": "amc_math", "name": "立体几何", "name_en": "Solid Geometry", "description": "表面积与体积、正方体/圆柱/圆锥、展开图", "pillar": "geometry", "difficulty_level": 3, "amc_level": 10, "amc_levels": "10", "sort_order": 209, "estimated_minutes": 40},
     # ── AMC 10 — Counting ──
-    {"code": "AMC-CNT-C3", "subject": "amc_math", "name": "组合", "name_en": "Combinations", "description": "组合数公式C(n,k)、组合应用", "pillar": "counting", "difficulty_level": 3, "amc_level": 10, "amc_levels": "10", "sort_order": 303, "estimated_minutes": 25},
-    {"code": "AMC-CNT-C4", "subject": "amc_math", "name": "杨辉三角与二项式定理", "name_en": "Pascal's Triangle and Binomial Theorem", "description": "杨辉三角性质、二项式展开、系数", "pillar": "counting", "difficulty_level": 3, "amc_level": 10, "amc_levels": "10", "sort_order": 304, "estimated_minutes": 25},
-    {"code": "AMC-CNT-C6", "subject": "amc_math", "name": "互补计数与分类讨论", "name_en": "Complementary Counting and Casework", "description": "正难则反、补集思想、多情况分类", "pillar": "counting", "difficulty_level": 3, "amc_level": 10, "amc_levels": "10", "sort_order": 306, "estimated_minutes": 25},
-    {"code": "AMC-CNT-C7", "subject": "amc_math", "name": "容斥原理", "name_en": "Inclusion-Exclusion Principle", "description": "两集合/三集合容斥、Venn图", "pillar": "counting", "difficulty_level": 3, "amc_level": 10, "amc_levels": "10", "sort_order": 307, "estimated_minutes": 25},
-    {"code": "AMC-CNT-C8", "subject": "amc_math", "name": "递推", "name_en": "Recurrence Relations", "description": "递推关系、斐波那契、通项公式", "pillar": "counting", "difficulty_level": 4, "amc_level": 10, "amc_levels": "10", "sort_order": 308, "estimated_minutes": 30},
-    {"code": "AMC-CNT-C9", "subject": "amc_math", "name": "期望值", "name_en": "Expected Value", "description": "数学期望定义、线性性、期望应用", "pillar": "counting", "difficulty_level": 4, "amc_level": 10, "amc_levels": "10", "sort_order": 309, "estimated_minutes": 25},
+    {"code": "AMC-CNT-C3", "subject": "amc_math", "name": "组合", "name_en": "Combinations", "description": "组合数公式C(n,k)、组合应用", "pillar": "counting", "difficulty_level": 3, "amc_level": 10, "amc_levels": "8,10", "sort_order": 303, "estimated_minutes": 40},
+    {"code": "AMC-CNT-C4", "subject": "amc_math", "name": "杨辉三角与二项式定理", "name_en": "Pascal's Triangle and Binomial Theorem", "description": "杨辉三角性质、二项式展开、系数", "pillar": "counting", "difficulty_level": 3, "amc_level": 10, "amc_levels": "10", "sort_order": 304, "estimated_minutes": 40},
+    {"code": "AMC-CNT-C6", "subject": "amc_math", "name": "互补计数与分类讨论", "name_en": "Complementary Counting and Casework", "description": "正难则反、补集思想、多情况分类", "pillar": "counting", "difficulty_level": 3, "amc_level": 10, "amc_levels": "10", "sort_order": 306, "estimated_minutes": 40},
+    {"code": "AMC-CNT-C7", "subject": "amc_math", "name": "容斥原理", "name_en": "Inclusion-Exclusion Principle", "description": "两集合/三集合容斥、Venn图", "pillar": "counting", "difficulty_level": 3, "amc_level": 10, "amc_levels": "10", "sort_order": 307, "estimated_minutes": 40},
+    {"code": "AMC-CNT-C8", "subject": "amc_math", "name": "递推", "name_en": "Recurrence Relations", "description": "递推关系、斐波那契、通项公式", "pillar": "counting", "difficulty_level": 4, "amc_level": 10, "amc_levels": "10", "sort_order": 308, "estimated_minutes": 45},
+    {"code": "AMC-CNT-C9", "subject": "amc_math", "name": "期望值", "name_en": "Expected Value", "description": "数学期望定义、线性性、期望应用", "pillar": "counting", "difficulty_level": 4, "amc_level": 10, "amc_levels": "10", "sort_order": 309, "estimated_minutes": 40},
     # ── AMC 10 — Number Theory ──
-    {"code": "AMC-NT-D4", "subject": "amc_math", "name": "余数与同余基础", "name_en": "Modular Arithmetic", "description": "同余定义、模运算、同余方程", "pillar": "number_theory", "difficulty_level": 3, "amc_level": 10, "amc_levels": "10", "sort_order": 404, "estimated_minutes": 25},
-    {"code": "AMC-NT-D5", "subject": "amc_math", "name": "进位制", "name_en": "Number Bases", "description": "二进制、八进制、十六进制转换", "pillar": "number_theory", "difficulty_level": 3, "amc_level": 10, "amc_levels": "10", "sort_order": 405, "estimated_minutes": 25},
-    {"code": "AMC-NT-D6", "subject": "amc_math", "name": "不定方程", "name_en": "Diophantine Equations", "description": "二元一次不定方程、整数解、丢番图方程", "pillar": "number_theory", "difficulty_level": 4, "amc_level": 10, "amc_levels": "10", "sort_order": 406, "estimated_minutes": 30},
-    {"code": "AMC-NT-D7", "subject": "amc_math", "name": "欧拉定理入门", "name_en": "Introduction to Euler's Theorem", "description": "欧拉函数、费马小定理、模逆元", "pillar": "number_theory", "difficulty_level": 4, "amc_level": 10, "amc_levels": "10", "sort_order": 407, "estimated_minutes": 30},
+    {"code": "AMC-NT-D4", "subject": "amc_math", "name": "余数与同余基础", "name_en": "Modular Arithmetic", "description": "同余定义、模运算、同余方程", "pillar": "number_theory", "difficulty_level": 3, "amc_level": 10, "amc_levels": "10", "sort_order": 404, "estimated_minutes": 40},
+    {"code": "AMC-NT-D5", "subject": "amc_math", "name": "进位制", "name_en": "Number Bases", "description": "二进制、八进制、十六进制转换", "pillar": "number_theory", "difficulty_level": 3, "amc_level": 10, "amc_levels": "10", "sort_order": 405, "estimated_minutes": 40},
+    {"code": "AMC-NT-D6", "subject": "amc_math", "name": "不定方程", "name_en": "Diophantine Equations", "description": "二元一次不定方程、整数解、丢番图方程", "pillar": "number_theory", "difficulty_level": 4, "amc_level": 10, "amc_levels": "10", "sort_order": 406, "estimated_minutes": 45},
+    {"code": "AMC-NT-D7", "subject": "amc_math", "name": "欧拉定理入门", "name_en": "Introduction to Euler's Theorem", "description": "欧拉函数、费马小定理、模逆元", "pillar": "number_theory", "difficulty_level": 4, "amc_level": 10, "amc_levels": "10", "sort_order": 407, "estimated_minutes": 45},
 ]
 
 
