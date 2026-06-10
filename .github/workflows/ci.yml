@@ -19,6 +19,10 @@ jobs:
           cache: pip
           cache-dependency-path: backend/requirements.txt
 
+      - name: Install system dependencies (Manim)
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libpango1.0-dev libcairo2-dev libffi-dev pkg-config
+        shell: bash
+
       - name: Install dependencies
         run: pip install -r requirements.txt
         working-directory: backend
