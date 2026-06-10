@@ -1,0 +1,254 @@
+{
+  "title": "勾股定理面积证明",
+  "width": 1280,
+  "height": 720,
+  "fps": 30,
+  "background_color": "#1a1a2e",
+  "elements": [
+    {
+      "id": "title_text",
+      "type": "text_label",
+      "config": {
+        "text": "勾股定理的面积证明",
+        "font_size": 40,
+        "color": "#FFFFFF",
+        "position": [0, 3.2, 0]
+      },
+      "layer": 0
+    },
+    {
+      "id": "right_triangle",
+      "type": "geometric_shape",
+      "config": {
+        "shape_type": "triangle",
+        "vertices": [[-2, -1], [1, -1], [-2, 2]],
+        "stroke_color": "#58C4DD",
+        "stroke_width": 3.0,
+        "fill_color": "#58C4DD",
+        "fill_opacity": 0.3
+      },
+      "layer": 1
+    },
+    {
+      "id": "side_a_label",
+      "type": "text_label",
+      "config": {
+        "text": "$a = 3$",
+        "font_size": 28,
+        "color": "#58C4DD",
+        "position": [-0.5, -1.7, 0]
+      },
+      "layer": 2
+    },
+    {
+      "id": "side_b_label",
+      "type": "text_label",
+      "config": {
+        "text": "$b = 4$",
+        "font_size": 28,
+        "color": "#58C4DD",
+        "position": [-2.7, 0.5, 0]
+      },
+      "layer": 2
+    },
+    {
+      "id": "side_c_label",
+      "type": "text_label",
+      "config": {
+        "text": "$c = 5$",
+        "font_size": 28,
+        "color": "#E74C3C",
+        "position": [0.2, 1.3, 0]
+      },
+      "layer": 2
+    },
+    {
+      "id": "square_a",
+      "type": "geometric_shape",
+      "config": {
+        "shape_type": "rectangle",
+        "width": 3.0,
+        "height": 3.0,
+        "center": [-0.5, -2.5, 0],
+        "stroke_color": "#27AE60",
+        "stroke_width": 3.0,
+        "fill_color": "#27AE60",
+        "fill_opacity": 0.3
+      },
+      "layer": 1
+    },
+    {
+      "id": "square_a_label",
+      "type": "text_label",
+      "config": {
+        "text": "$a^2 = 9$",
+        "font_size": 32,
+        "color": "#27AE60",
+        "position": [-0.5, -2.5, 0]
+      },
+      "layer": 2
+    },
+    {
+      "id": "square_b",
+      "type": "geometric_shape",
+      "config": {
+        "shape_type": "rectangle",
+        "width": 4.0,
+        "height": 4.0,
+        "center": [-4.0, 0.5, 0],
+        "stroke_color": "#F39C12",
+        "stroke_width": 3.0,
+        "fill_color": "#F39C12",
+        "fill_opacity": 0.3
+      },
+      "layer": 1
+    },
+    {
+      "id": "square_b_label",
+      "type": "text_label",
+      "config": {
+        "text": "$b^2 = 16$",
+        "font_size": 32,
+        "color": "#F39C12",
+        "position": [-4.0, 0.5, 0]
+      },
+      "layer": 2
+    },
+    {
+      "id": "equation_1",
+      "type": "equation_step",
+      "config": {
+        "expressions": [
+          "a^2 + b^2 = c^2",
+          "3^2 + 4^2 = 5^2",
+          "9 + 16 = 25",
+          "25 = 25 \\checkmark"
+        ],
+        "font_size": 30,
+        "color": "#FFFFFF",
+        "highlight_color": "#FFFF00",
+        "position": [2.5, -0.5, 0]
+      },
+      "layer": 3
+    },
+    {
+      "id": "conclusion_text",
+      "type": "text_label",
+      "config": {
+        "text": "$a^2 + b^2 = c^2$",
+        "font_size": 44,
+        "color": "#FFFF00",
+        "position": [2.5, -2.5, 0]
+      },
+      "layer": 4
+    }
+  ],
+  "steps": [
+    {
+      "time_start": 0,
+      "duration": 2.0,
+      "action": "write",
+      "target_element_id": "title_text",
+      "params": {}
+    },
+    {
+      "time_start": 2.0,
+      "duration": 2.0,
+      "action": "create",
+      "target_element_id": "right_triangle",
+      "params": {}
+    },
+    {
+      "time_start": 3.0,
+      "duration": 1.0,
+      "action": "write",
+      "target_element_id": "side_a_label",
+      "params": {}
+    },
+    {
+      "time_start": 3.5,
+      "duration": 1.0,
+      "action": "write",
+      "target_element_id": "side_b_label",
+      "params": {}
+    },
+    {
+      "time_start": 4.0,
+      "duration": 1.0,
+      "action": "write",
+      "target_element_id": "side_c_label",
+      "params": {}
+    },
+    {
+      "time_start": 5.5,
+      "duration": 2.0,
+      "action": "create",
+      "target_element_id": "square_a",
+      "params": {}
+    },
+    {
+      "time_start": 6.0,
+      "duration": 1.5,
+      "action": "write",
+      "target_element_id": "square_a_label",
+      "params": {}
+    },
+    {
+      "time_start": 8.0,
+      "duration": 2.0,
+      "action": "create",
+      "target_element_id": "square_b",
+      "params": {}
+    },
+    {
+      "time_start": 8.5,
+      "duration": 1.5,
+      "action": "write",
+      "target_element_id": "square_b_label",
+      "params": {}
+    },
+    {
+      "time_start": 11.0,
+      "duration": 1.5,
+      "action": "indicate",
+      "target_element_id": "square_a",
+      "params": {
+        "indicate_type": "circumscribe"
+      }
+    },
+    {
+      "time_start": 11.5,
+      "duration": 1.5,
+      "action": "indicate",
+      "target_element_id": "square_b",
+      "params": {
+        "indicate_type": "circumscribe"
+      }
+    },
+    {
+      "time_start": 13.5,
+      "duration": 6.0,
+      "action": "create",
+      "target_element_id": "equation_1",
+      "params": {}
+    },
+    {
+      "time_start": 20.0,
+      "duration": 2.0,
+      "action": "write",
+      "target_element_id": "conclusion_text",
+      "params": {}
+    },
+    {
+      "time_start": 22.0,
+      "duration": 2.0,
+      "action": "highlight",
+      "target_element_id": "conclusion_text",
+      "params": {
+        "color": "#FFFF00"
+      }
+    }
+  ],
+  "narration": "同学们，今天我们用面积法来证明勾股定理。首先，我们画一个直角三角形，三条边分别是 a 等于 3，b 等于 4，c 等于 5。接下来，我们在两条直角边上分别向外构造正方形。在边 a 上构造的正方形，面积等于 a 的平方，也就是 3 的平方等于 9。在边 b 上构造的正方形，面积等于 b 的平方，也就是 4 的平方等于 16。现在，我们把两个小正方形的面积加起来：a 的平方加 b 的平方等于 9 加 16 等于 25。而斜边 c 等于 5，c 的平方也正好是 25。所以我们验证了勾股定理：a 的平方加上 b 的平方等于 c 的平方。这个定理不仅对 3、4、5 成立，对所有的直角三角形都成立！",
+  "voice": "zh-CN-YunxiNeural"
+}
