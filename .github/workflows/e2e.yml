@@ -54,6 +54,7 @@ jobs:
         working-directory: backend
         env:
           ENVIRONMENT: development
+          DISABLE_REDIS: "true"
 
       - name: Start backend server
         run: |
@@ -69,6 +70,7 @@ jobs:
         working-directory: backend
         env:
           ENVIRONMENT: development
+          DISABLE_REDIS: "true"
 
       - name: Start frontend server
         run: |
