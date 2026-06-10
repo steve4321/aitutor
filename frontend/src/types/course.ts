@@ -60,12 +60,29 @@ export interface PracticeProblem {
 }
 
 export interface LessonSection {
-  type: 'introduction' | 'concept' | 'example' | 'practice' | 'summary';
+  type: 'introduction' | 'concept' | 'example' | 'practice' | 'summary' | 'animation'
+    | 'text' | 'formula' | 'expandable' | 'interactive_table' | 'voice_input' | 'illustration';
   title?: string;
   content?: string;
+  variant?: string;
   problem?: string;
   solution?: string;
   problems?: PracticeProblem[];
+  animationUrl?: string;
+  animationType?: 'manim' | 'lottie' | 'css' | 'canvas';
+  thumbnailUrl?: string;
+  durationSec?: number;
+  note?: string;
+  /** For interactive_table blocks */
+  tableHeaders?: string[];
+  tableRows?: string[][];
+  tableAnswerRows?: string[][];
+  /** For expandable blocks */
+  expandableItems?: { type: string; content: string; variant?: string }[];
+  /** For voice_input blocks */
+  voicePrompt?: string;
+  /** Phase label from step */
+  phase?: string;
 }
 
 /** Enriched lesson detail returned by GET /lessons/:id */

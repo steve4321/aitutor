@@ -131,26 +131,151 @@ export default function LessonPage() {
     }
 
     if (Array.isArray(content.steps)) {
-      for (const raw of content.steps as Array<Record<string, unknown>>) {
-        const t = String(raw.type ?? '').toLowerCase();
-        const sec: LessonSection = {
-          type: (['introduction', 'concept', 'example', 'practice', 'summary'].includes(t)
-            ? t
-            : 'concept') as LessonSection['type'],
-          title: typeof raw.title === 'string' ? raw.title : undefined,
-          content: typeof raw.content === 'string' ? raw.content : undefined,
-          problem: typeof raw.problem === 'string' ? raw.problem : undefined,
-          solution: typeof raw.solution === 'string' ? raw.solution : undefined,
-          problems: Array.isArray(raw.problems)
-            ? (raw.problems as LessonSection['problems'])
-            : undefined,
-        };
-        out.push(sec);
+      for (const step of content.steps as Array<Record<string, unknown>>) {
+        const phase = String(step.phase ?? step.id ?? '');
+        const stepTitle = typeof step.title === 'string' ? step.title : undefined;
+        const blocks = step.blocks as Array<Record<string, unknown>> | undefined;
+
+        if (!Array.isArray(blocks) || blocks.length === 0) {
+          const t = String(step.type ?? '').toLowerCase();
+          out.push({
+            type: (['introduction', 'concept', 'example', 'practice', 'summary'].includes(t)
+              ? t : 'concept') as LessonSection['type'],
+            title: stepTitle,
+            content: typeof step.content === 'string' ? step.content : undefined,
+            phase,
+          });
+          continue;
+        }
+
+        for (const block of blocks) {
+          const blockType = String(block.type ?? '').toLowerCase();
+
+          switch (blockType) {
+            case 'text': {
+              const variant = typeof block.variant === 'string' ? block.variant : 'body';
+              const blockContent = typeof block.content === 'string' ? block.content : '';
+              out.push({
+                type: variant === 'callout' || variant === 'tip' ? 'introduction' : 'text',
+                title: stepTitle,
+                content: blockContent,
+                variant,
+                phase,
+              });
+              break;
+            }
+            case 'formula': {
+              const latex = typeof block.latex === 'string' ? block.latex : '';
+              const formulaTitle = typeof block.title === 'string' ? block.title : '';
+              const note = typeof block.note === 'string' ? block.note : undefined;
+              out.push({
+                type: 'formula',
+                title: formulaTitle,
+                content: latex,
+                note,
+                phase,
+              });
+              break;
+            }
+            case 'animation': {
+              let animUrl = typeof block.url === 'string' ? block.url : undefined;
+              if (animUrl && animUrl.startsWith('/static/')) {
+                const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+                const backendBase = apiBase.replace(/\/api\/v\d+\/?$/, '');
+                animUrl = `${backendBase}${animUrl}`;
+              }
+              out.push({
+                type: 'animation',
+                title: typeof block.title === 'string' ? block.title : '动画演示',
+                animationUrl: animUrl,
+                animationType: typeof block.animation_type === 'string' ? block.animation_type as 'manim' : undefined,
+                durationSec: typeof block.duration_sec === 'number' ? block.duration_sec : undefined,
+                content: typeof block.description === 'string' ? block.description : undefined,
+                phase,
+              });
+              break;
+            }
+            case 'multiple_choice':
+            case 'problem': {
+              const q = typeof block.question === 'string' ? block.question : '';
+              const rawOpts = Array.isArray(block.options) ? block.options : [];
+              const opts = rawOpts.map((o: unknown) => {
+                if (typeof o === 'string') return o;
+                if (o && typeof o === 'object') {
+                  const obj = o as Record<string, unknown>;
+                  return String(obj.content ?? obj.label ?? obj.text ?? '');
+                }
+                return String(o);
+              });
+              const rawAnswer = block.correct_answer ?? block.answer;
+              const ans = typeof rawAnswer === 'string' ? rawAnswer : '';
+              if (q && opts.length > 0) {
+                out.push({
+                  type: 'practice',
+                  problems: [{ question: q, options: opts, answer: ans }],
+                  phase,
+                });
+              }
+              break;
+            }
+            case 'expandable': {
+              const expTitle = typeof block.title === 'string' ? block.title : '展开查看';
+              const expContent = typeof block.content === 'string' ? block.content : '';
+              if (expContent) {
+                out.push({
+                  type: 'expandable',
+                  title: expTitle,
+                  content: expContent,
+                  phase,
+                });
+              }
+              break;
+            }
+            case 'interactive_table': {
+              const headers = Array.isArray(block.headers) ? block.headers.map(String) : [];
+              const rows = Array.isArray(block.rows) ? (block.rows as unknown[][])?.map(r => r.map(String)) : [];
+              out.push({
+                type: 'interactive_table',
+                title: stepTitle,
+                tableHeaders: headers,
+                tableRows: rows,
+                phase,
+              });
+              break;
+            }
+            case 'voice_input': {
+              const prompt = typeof block.prompt === 'string' ? block.prompt : '';
+              if (prompt) {
+                out.push({
+                  type: 'voice_input',
+                  voicePrompt: prompt,
+                  phase,
+                });
+              }
+              break;
+            }
+            case 'illustration': {
+              const illTitle = typeof block.title === 'string' ? block.title : '';
+              const illDesc = typeof block.description === 'string' ? block.description : '';
+              if (illDesc) {
+                out.push({
+                  type: 'illustration',
+                  title: illTitle,
+                  content: illDesc,
+                  phase,
+                });
+              }
+              break;
+            }
+            default:
+              break;
+          }
+        }
       }
     }
 
     if (Array.isArray(content.objectives) && content.objectives.length > 0) {
-      out.push({
+      out.unshift({
         type: 'introduction',
         title: '本课目标',
         content: (content.objectives as string[]).map((o, i) => `${i + 1}. ${o}`).join('\n'),
