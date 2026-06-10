@@ -28,6 +28,9 @@ langchain-anthropic>=0.3.0  # for Anthropic-compatible providers (e.g. MiniMax)
 faster-whisper>=1.0.0
 edge-tts>=6.1.0
 
+# Animation
+manim>=0.18.0
+
 # Auth
 python-jose[cryptography]>=3.3.0
 passlib[bcrypt]>=1.7.4
