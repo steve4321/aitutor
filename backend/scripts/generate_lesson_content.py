@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 DISPLAY_BLOCK_TYPES = {
     "text", "audio", "image", "formula", "geogebra", "video",
     "animation", "expandable", "divider", "illustration", "code", "table",
+    "callout", "tip", "note", "warning",
 }
 INTERACTIVE_BLOCK_TYPES = {
     "problem", "interactive_table", "scratchpad", "voice_input", "photo_upload",
@@ -66,7 +67,8 @@ SYSTEM_PROMPT = """你是一个专业的教育内容设计师，负责为AI家�
 8. 语文古诗词使用分层深化模型: read_poem → decipher → appreciate → comprehend → verify
 9. audio/video 的 url 字段用 "placeholder" 占位，后续由系统填充
 10. 生成内容要有教育价值，题目要有原创性，不要照搬常见例题
-11. AMC 数学的 explain 步骤中，对于涉及函数图像、几何变换、面积证明等可视化概念，应使用 animation block 代替 illustration。url 用 "placeholder"，后续由渲染管线生成。"""
+11. AMC 数学的 explain 步骤中，对于涉及函数图像、几何变换、面积证明等可视化概念，应使用 animation block 代替 illustration。url 用 "placeholder"，后续由渲染管线生成。
+12. 每个 block 的 content 控制在 200 字以内，agent_instruction 控制在 100 字以内。避免 JSON 过长被截断。"""
 
 # ============================================================
 # SHARED BLOCK TYPE REFERENCE
@@ -563,7 +565,18 @@ def _try_parse_json(text: str) -> dict | None:
         except json.JSONDecodeError:
             pass
 
-    # Strategy 4: Try fixing unescaped quotes in strings
+    # Strategy 4: Try fixing truncated JSON by closing unclosed brackets
+    if start != -1 and end != -1:
+        try:
+            snippet = text[start:]
+            open_braces = snippet.count('{') - snippet.count('}')
+            open_brackets = snippet.count('[') - snippet.count(']')
+            fixed = snippet + ']' * max(0, open_brackets) + '}' * max(0, open_braces)
+            return json.loads(fixed)
+        except (json.JSONDecodeError, Exception):
+            pass
+
+    # Strategy 5: Try fixing unescaped quotes in strings
     try:
         cleaned = re.sub(r'(?<!\\)"(?=[^":,}\]]*"[:}\],])', r'\\"', text[start:end + 1])
         return json.loads(cleaned)
@@ -597,6 +610,20 @@ def _clean_json_content(content: dict) -> dict:
             step["estimated_seconds"] = 120
         if "completion_mode" not in step:
             step["completion_mode"] = "all_viewed"
+
+        # Fix common LLM block type mistakes
+        for block in step["blocks"]:
+            if not isinstance(block, dict):
+                continue
+            # LLM sometimes outputs {"type": "callout"} instead of {"type": "text", "variant": "callout"}
+            if block.get("type") == "callout":
+                block["type"] = "text"
+                block.setdefault("variant", "callout")
+            # Same for "tip", "note", "warning" used as standalone types
+            if block.get("type") in ("tip", "note", "warning"):
+                variant = block["type"]
+                block["type"] = "text"
+                block.setdefault("variant", variant)
 
     return content
 
@@ -749,19 +776,30 @@ async def generate_for_lesson(lesson: Lesson, dry_run: bool = False) -> dict | N
     logger.info("Generating content for lesson %s (%s): %s",
                 lesson.code, lesson_type, lesson.title)
 
-    try:
-        response = await llm.ainvoke(messages)
-        raw_text = response.content
-    except Exception as e:
-        logger.error("LLM call failed for lesson %s: %s", lesson.code, e)
-        return None
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            response = await llm.ainvoke(messages)
+            raw_text = response.content
+        except Exception as e:
+            logger.error("LLM call failed for lesson %s (attempt %d): %s", lesson.code, attempt + 1, e)
+            if attempt < max_retries - 1:
+                continue
+            return None
 
-    # Extract and parse JSON
-    json_text = _extract_json(raw_text)
-    content = _try_parse_json(json_text)
-    if content is None:
-        logger.error("JSON parse error for lesson %s (all strategies failed)", lesson.code)
-        logger.info("Raw LLM output (first 3000 chars):\n%s", raw_text[:3000])
+        json_text = _extract_json(raw_text)
+        content = _try_parse_json(json_text)
+        if content is not None:
+            break
+
+        logger.warning("JSON parse error for lesson %s (attempt %d/%d)",
+                       lesson.code, attempt + 1, max_retries)
+        if attempt == 0:
+            logger.info("Raw LLM output (first 2000 chars):\n%s", raw_text[:2000])
+        if attempt < max_retries - 1:
+            continue
+
+        logger.error("JSON parse failed after %d attempts for lesson %s", max_retries, lesson.code)
         return None
 
     # Clean up
