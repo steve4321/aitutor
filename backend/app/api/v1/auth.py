@@ -13,6 +13,7 @@ from app.core.security import (
 from app.models.user import StudentProfile, User
 from app.schemas.user import LoginRequest, RefreshTokenRequest, RegisterRequest, TokenResponse
 from app.core.rate_limit import limiter
+from app.config import settings
 
 router = APIRouter()
 
@@ -33,7 +34,7 @@ async def login(request: Request, body: LoginRequest, db: DbSession) -> TokenRes
 
 
 @router.post("/register", status_code=201)
-@limiter.limit("3/minute")
+@limiter.limit("100/minute" if settings.DISABLE_REDIS else "3/minute")
 async def register(request: Request, body: RegisterRequest, db: DbSession) -> TokenResponse:
     result = await db.execute(select(User).where(User.name == body.username))
     if result.scalar_one_or_none():
