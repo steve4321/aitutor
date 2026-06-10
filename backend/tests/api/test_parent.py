@@ -1,6 +1,6 @@
 import pytest
 
-from app.core.security import hash_password, create_access_token
+from app.core.security import hash_password
 from app.models.user import User, ParentLink
 
 

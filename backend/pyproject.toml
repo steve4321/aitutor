@@ -3,6 +3,9 @@ testpaths = ["tests"]
 asyncio_mode = "auto"
 filterwarnings = ["ignore::DeprecationWarning"]
 
+[tool.ruff]
+extend-exclude = ["static", "scripts/samples"]
+
 [tool.coverage.run]
 source = ["app"]
 omit = ["tests/*", "app/models/*", "scripts/*"]

@@ -2,7 +2,6 @@
 import pytest
 import pytest_asyncio
 from unittest.mock import AsyncMock, patch
-from uuid import uuid4
 
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import (
@@ -14,10 +13,8 @@ from sqlalchemy.ext.asyncio import (
 from app.main import app
 from app.models.base import Base
 from app.models.user import User, StudentProfile
-from app.models.problem import Problem, ProblemSolution
+from app.models.problem import Problem
 from app.models.knowledge import KnowledgePoint
-from app.models.learning import KnowledgeState, LearningSession, StudentAttempt
-from app.models.message import Message
 from app.models.course import Course, Unit, Lesson
 from app.db.session import get_db
 from app.core.security import hash_password, create_access_token

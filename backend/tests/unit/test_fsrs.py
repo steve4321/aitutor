@@ -1,5 +1,4 @@
 """Unit tests for the FSRS spaced-repetition algorithm."""
-import math
 
 import pytest
 

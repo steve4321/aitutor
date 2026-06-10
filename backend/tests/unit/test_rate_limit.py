@@ -1,5 +1,4 @@
 """Unit tests for the rate limiter module."""
-from unittest.mock import MagicMock
 
 from slowapi import Limiter
 from slowapi.util import get_remote_address

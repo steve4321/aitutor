@@ -1,6 +1,5 @@
 """Lesson progress and XP integration tests for /api/v1/lessons/{id}/progress."""
 import pytest
-from datetime import datetime, timezone
 
 
 @pytest.mark.asyncio

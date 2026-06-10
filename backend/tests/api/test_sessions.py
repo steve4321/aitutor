@@ -24,7 +24,7 @@ async def test_create_session_with_knowledge_point(client, auth_headers, knowled
         "/api/v1/sessions",
         json={
             "session_type": "lesson",
-            "subject": "amc_math",
+            "subject": "math",
             "knowledge_point_id": str(kp_id),
         },
         headers=auth_headers,
@@ -73,7 +73,7 @@ async def test_get_session_not_found(client, auth_headers):
 @pytest.mark.asyncio
 async def test_get_session_other_user(client, db_session, student, auth_headers):
     from datetime import datetime, timezone
-    from app.core.security import hash_password, create_access_token
+    from app.core.security import hash_password
     from app.models.learning import LearningSession
     from app.models.user import User
 

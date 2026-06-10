@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 SessionType = Literal["practice", "lesson", "review"]
 SessionSubject = Literal["math", "english", "chinese"]

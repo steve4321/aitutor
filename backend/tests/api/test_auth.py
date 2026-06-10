@@ -1,5 +1,4 @@
 import pytest
-from unittest.mock import patch
 from sqlalchemy import select
 
 from app.models.user import User, StudentProfile
