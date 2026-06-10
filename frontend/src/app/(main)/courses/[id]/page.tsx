@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Play, ChevronDown, ChevronRight, BookOpen } from 'lucide-react';
@@ -49,16 +49,18 @@ export default function CourseDetailPage() {
   });
 
   const units = useMemo<UnitWithLessons[]>(() => {
-    const result = unitsData.map((u) => ({
+    return unitsData.map((u) => ({
       ...u,
       lessons: lessonsData.filter((l) => l.unit_id === u.id),
     }));
-    if (result.length > 0 && expandedUnits.size === 0) {
-      setExpandedUnits(new Set(result.map((u) => u.id)));
-    }
-    return result;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unitsData, lessonsData]);
+
+  useEffect(() => {
+    if (units.length > 0 && expandedUnits.size === 0) {
+      setExpandedUnits(new Set(units.map((u) => u.id)));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [units]);
 
   const loading = courseLoading;
 
