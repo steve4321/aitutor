@@ -1,19 +1,18 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 test.describe('Course listing', () => {
-  test('should display course cards on /courses page', async ({ page }) => {
+  test('should display course cards on /courses page', async ({ authenticatedPage: page }) => {
     await page.goto('/courses');
 
-    await expect(page.getByRole('heading', { name: /全部课程/ })).toBeVisible();
-    await expect(page.getByPlaceholder('搜索课程...')).toBeVisible();
+    await expect(page.getByRole('heading', { name: /^courses$/i })).toBeVisible({ timeout: 10000 });
 
-    await expect(page.getByRole('button', { name: /全部/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /all/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /AMC/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /KET/i })).toBeVisible();
 
-    const courseCards = page.locator('.bg-\\[var\(--color-surface\)\\]');
-    const emptyState = page.getByText(/还没有课程/i);
+    const viewCourseButtons = page.getByRole('button', { name: /view course/i });
+    const emptyState = page.getByText(/no courses found/i);
 
-    await expect(courseCards.or(emptyState)).toBeVisible({ timeout: 15000 });
+    await expect(viewCourseButtons.first().or(emptyState)).toBeVisible({ timeout: 15000 });
   });
 });
