@@ -32,7 +32,7 @@ jobs:
         run: npm ci
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium webkit
 
       - name: Install backend dependencies
         run: |
@@ -89,6 +89,7 @@ jobs:
       - name: Run E2E tests
         env:
           ENVIRONMENT: development
+          NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
         run: npx playwright test
 
       - name: Upload Playwright report
