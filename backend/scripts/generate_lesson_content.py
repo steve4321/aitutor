@@ -624,6 +624,14 @@ def _clean_json_content(content: dict) -> dict:
                 variant = block["type"]
                 block["type"] = "text"
                 block.setdefault("variant", variant)
+            # Coerce hint levels to int (LLM sometimes returns strings)
+            if block.get("type") == "problem":
+                for hint in block.get("hints", []) or []:
+                    if isinstance(hint, dict) and "level" in hint:
+                        try:
+                            hint["level"] = int(hint["level"])
+                        except (TypeError, ValueError):
+                            pass
 
     return content
 
@@ -692,8 +700,16 @@ async def validate_content(content: dict) -> list[str]:
                             errors.append(
                                 f"{block_prefix}: ProblemBlock should have at least 2 hints, got {len(hints)}"
                             )
-                        # Check hint levels
-                        levels = {h.get("level") for h in hints if isinstance(h, dict)}
+                        # Check hint levels (coerce to int — LLM sometimes returns strings)
+                        levels = set()
+                        for h in hints:
+                            if isinstance(h, dict):
+                                lvl = h.get("level")
+                                if lvl is not None:
+                                    try:
+                                        levels.add(int(lvl))
+                                    except (TypeError, ValueError):
+                                        pass
                         if levels and max(levels) > 4:
                             errors.append(
                                 f"{block_prefix}: hint level > 4 found"
