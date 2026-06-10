@@ -7,10 +7,8 @@ from app.agents.services.knowledge_tracker import (
     apply_knowledge_updates,
 )
 from app.agents.services.fsrs import classify_mastery_level
-from app.models.learning import KnowledgeState, StudentAttempt
+from app.models.learning import KnowledgeState
 from app.models.knowledge import KnowledgePoint
-from app.models.problem import Problem
-from app.models.user import User
 
 
 # ---------------------------------------------------------------------------

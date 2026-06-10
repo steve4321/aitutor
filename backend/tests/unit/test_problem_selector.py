@@ -109,7 +109,7 @@ class TestSelectNextProblem:
         db_session.add(attempt)
         await db_session.flush()
 
-        other_problem = await _seed_problem(db_session, difficulty=3)
+        await _seed_problem(db_session, difficulty=3)
 
         result = await select_next_problem(
             db=db_session,
@@ -124,7 +124,7 @@ class TestSelectNextProblem:
     @pytest.mark.asyncio
     async def test_excludes_session_problems(self, db_session, student):
         excluded = await _seed_problem(db_session, difficulty=3)
-        available = await _seed_problem(db_session, difficulty=3)
+        await _seed_problem(db_session, difficulty=3)
 
         result = await select_next_problem(
             db=db_session,

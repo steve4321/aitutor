@@ -1,5 +1,4 @@
 """Unit tests for agent constants module."""
-import pytest
 
 from app.agents.constants import MasteryConstants, SelectionConstants
 

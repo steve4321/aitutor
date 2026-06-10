@@ -1,5 +1,4 @@
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 from app.services.embedding_service import (
     generate_embedding,
@@ -8,7 +7,6 @@ from app.services.embedding_service import (
     find_similar_problems,
 )
 from app.models.problem import Problem
-from app.models.knowledge import KnowledgePoint
 
 
 class TestGenerateEmbedding:

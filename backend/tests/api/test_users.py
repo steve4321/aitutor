@@ -1,7 +1,6 @@
 import pytest
-from sqlalchemy import select
 
-from app.models.user import StudentProfile, User
+from app.models.user import User
 
 
 @pytest.mark.asyncio
