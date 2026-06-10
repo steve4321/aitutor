@@ -1,0 +1,275 @@
+{
+  "title": "二次函数图像变换",
+  "width": 1280,
+  "height": 720,
+  "fps": 30,
+  "background_color": "#1a1a2e",
+  "elements": [
+    {
+      "id": "axes",
+      "type": "coordinate_system",
+      "config": {
+        "x_range": [-4, 8, 1],
+        "y_range": [-2, 8, 1],
+        "x_label": "x",
+        "y_label": "y",
+        "show_grid": true
+      },
+      "layer": 0
+    },
+    {
+      "id": "base_curve",
+      "type": "function_plot",
+      "config": {
+        "expression": "lambda x: x**2",
+        "color": "#58C4DD",
+        "stroke_width": 3.0,
+        "label": "y = x^2"
+      },
+      "layer": 1
+    },
+    {
+      "id": "transformed_curve",
+      "type": "function_plot",
+      "config": {
+        "expression": "lambda x: (x - 2)**2 + 1",
+        "color": "#E74C3C",
+        "stroke_width": 3.0,
+        "label": "y = (x-2)^2 + 1"
+      },
+      "layer": 1
+    },
+    {
+      "id": "vertex_origin",
+      "type": "point",
+      "config": {
+        "position": [0, 0],
+        "radius": 0.1,
+        "color": "#58C4DD"
+      },
+      "layer": 2
+    },
+    {
+      "id": "vertex_new",
+      "type": "point",
+      "config": {
+        "position": [2, 1],
+        "radius": 0.1,
+        "color": "#E74C3C"
+      },
+      "layer": 2
+    },
+    {
+      "id": "vertex_label_origin",
+      "type": "text_label",
+      "config": {
+        "text": "$(0, 0)$",
+        "font_size": 28,
+        "color": "#58C4DD",
+        "position": [0.8, -0.8, 0]
+      },
+      "layer": 3
+    },
+    {
+      "id": "vertex_label_new",
+      "type": "text_label",
+      "config": {
+        "text": "$(2, 1)$",
+        "font_size": 28,
+        "color": "#E74C3C",
+        "position": [3.2, 0.2, 0]
+      },
+      "layer": 3
+    },
+    {
+      "id": "shift_arrow_h",
+      "type": "arrow",
+      "config": {
+        "start": [0, -1.5, 0],
+        "end": [2, -1.5, 0],
+        "color": "#FFFF00",
+        "stroke_width": 3.0,
+        "buff": 0.1
+      },
+      "layer": 2
+    },
+    {
+      "id": "shift_arrow_v",
+      "type": "arrow",
+      "config": {
+        "start": [2.5, 0, 0],
+        "end": [2.5, 1, 0],
+        "color": "#FFFF00",
+        "stroke_width": 3.0,
+        "buff": 0.1
+      },
+      "layer": 2
+    },
+    {
+      "id": "shift_label_h",
+      "type": "text_label",
+      "config": {
+        "text": "$\\Delta x = 2$",
+        "font_size": 24,
+        "color": "#FFFF00",
+        "position": [1, -2.2, 0]
+      },
+      "layer": 3
+    },
+    {
+      "id": "shift_label_v",
+      "type": "text_label",
+      "config": {
+        "text": "$\\Delta y = 1$",
+        "font_size": 24,
+        "color": "#FFFF00",
+        "position": [3.8, 0.5, 0]
+      },
+      "layer": 3
+    },
+    {
+      "id": "title_text",
+      "type": "text_label",
+      "config": {
+        "text": "$y = (x-2)^2 + 1$ 的图像变换",
+        "font_size": 36,
+        "color": "#FFFFFF",
+        "position": [0, 3.5, 0]
+      },
+      "layer": 4
+    },
+    {
+      "id": "equation_summary",
+      "type": "equation_step",
+      "config": {
+        "expressions": [
+          "y = x^2",
+          "\\downarrow \\quad x \\to x-2",
+          "y = (x-2)^2",
+          "\\downarrow \\quad +1",
+          "y = (x-2)^2 + 1"
+        ],
+        "font_size": 32,
+        "color": "#FFFFFF",
+        "highlight_color": "#FFFF00",
+        "position": [-3.5, -1, 0]
+      },
+      "layer": 4
+    }
+  ],
+  "steps": [
+    {
+      "time_start": 0,
+      "duration": 1.5,
+      "action": "create",
+      "target_element_id": "axes",
+      "params": {}
+    },
+    {
+      "time_start": 1.5,
+      "duration": 2.0,
+      "action": "create",
+      "target_element_id": "base_curve",
+      "params": {}
+    },
+    {
+      "time_start": 3.5,
+      "duration": 1.0,
+      "action": "create",
+      "target_element_id": "vertex_origin",
+      "params": {}
+    },
+    {
+      "time_start": 4.5,
+      "duration": 1.5,
+      "action": "write",
+      "target_element_id": "vertex_label_origin",
+      "params": {}
+    },
+    {
+      "time_start": 6.0,
+      "duration": 2.0,
+      "action": "create",
+      "target_element_id": "shift_arrow_h",
+      "params": {}
+    },
+    {
+      "time_start": 6.5,
+      "duration": 1.5,
+      "action": "write",
+      "target_element_id": "shift_label_h",
+      "params": {}
+    },
+    {
+      "time_start": 8.0,
+      "duration": 2.0,
+      "action": "create",
+      "target_element_id": "shift_arrow_v",
+      "params": {}
+    },
+    {
+      "time_start": 8.5,
+      "duration": 1.5,
+      "action": "write",
+      "target_element_id": "shift_label_v",
+      "params": {}
+    },
+    {
+      "time_start": 10.5,
+      "duration": 3.0,
+      "action": "transform",
+      "target_element_id": "transformed_curve",
+      "params": {
+        "source_element_id": "base_curve"
+      }
+    },
+    {
+      "time_start": 11.0,
+      "duration": 1.5,
+      "action": "highlight",
+      "target_element_id": "transformed_curve",
+      "params": {
+        "color": "#E74C3C"
+      }
+    },
+    {
+      "time_start": 13.5,
+      "duration": 1.0,
+      "action": "create",
+      "target_element_id": "vertex_new",
+      "params": {}
+    },
+    {
+      "time_start": 14.5,
+      "duration": 1.5,
+      "action": "write",
+      "target_element_id": "vertex_label_new",
+      "params": {}
+    },
+    {
+      "time_start": 16.0,
+      "duration": 1.5,
+      "action": "write",
+      "target_element_id": "title_text",
+      "params": {}
+    },
+    {
+      "time_start": 17.5,
+      "duration": 6.0,
+      "action": "create",
+      "target_element_id": "equation_summary",
+      "params": {}
+    },
+    {
+      "time_start": 23.5,
+      "duration": 1.0,
+      "action": "indicate",
+      "target_element_id": "transformed_curve",
+      "params": {
+        "indicate_type": "circumscribe"
+      }
+    }
+  ],
+  "narration": "同学们，今天我们来学习二次函数的图像变换。首先，我们在坐标系中画出最基本的二次函数 y 等于 x 平方的图像，它是一条蓝色的抛物线，顶点在原点 (0, 0)。现在，我们来看变换过程。先将抛物线向右平移 2 个单位，再向上平移 1 个单位。可以看到，红色的新抛物线 y 等于 (x 减 2) 的平方加 1，顶点从 (0, 0) 移动到了 (2, 1)。总结一下变换规律：在函数表达式中，x 减 h 表示向右平移 h 个单位，加 k 表示向上平移 k 个单位。",
+  "voice": "zh-CN-YunxiNeural"
+}
