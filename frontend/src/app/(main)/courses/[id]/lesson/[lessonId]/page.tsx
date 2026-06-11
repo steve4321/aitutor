@@ -10,6 +10,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { ROUTES } from '@/lib/constants';
+import { renderWithLatex } from '@/lib/render-content';
 import { useChat } from '@/hooks/use-chat';
 import type { LessonDetailResponse, LessonProgressResponse, LessonSection } from '@/types/course';
 import type { SessionResponse } from '@/types/session';
@@ -331,7 +332,7 @@ export default function LessonPage() {
           </button>
           <div className="flex-1 min-w-0">
             <h1 className="text-lg font-bold text-[var(--color-foreground)] truncate">
-              {lesson.title}
+              {renderWithLatex(lesson.title)}
             </h1>
             <p className="text-xs text-[var(--color-muted-foreground)]">
               {lesson.unit_title} · {lesson.course_name}

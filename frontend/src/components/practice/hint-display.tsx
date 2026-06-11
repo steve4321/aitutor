@@ -2,6 +2,7 @@
 
 import { Lightbulb, Lock, Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { renderWithLatex } from '@/lib/render-content';
 
 interface HintDisplayProps {
   hints: string[];
@@ -48,7 +49,7 @@ export function HintDisplay({ hints, maxLevel, currentLevel = hints.length }: Hi
                 {LEVEL_LABELS[index] || `提示 ${index + 1}`}
               </span>
             </div>
-            <p className="text-sm text-slate-700 dark:text-slate-300">{hint}</p>
+            <p className="text-sm text-slate-700 dark:text-slate-300">{renderWithLatex(hint)}</p>
           </div>
         ))}
 

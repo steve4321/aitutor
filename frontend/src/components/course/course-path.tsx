@@ -1,6 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/utils';
+import { renderWithLatex } from '@/lib/render-content';
 import { LessonCard } from './lesson-card';
 
 interface CoursePathProps {
@@ -50,7 +51,7 @@ export function CoursePath({ lessons, onLessonClick, className }: CoursePathProp
             >
               <div className={cn('w-28', isLeft ? 'text-right' : 'text-left')}>
                 <p className="text-sm font-medium text-gray-700">
-                  {lesson.title}
+                  {renderWithLatex(lesson.title)}
                 </p>
               </div>
               <LessonCard

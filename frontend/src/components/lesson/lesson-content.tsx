@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp, Check, X, BookOpen, Lightbulb, Target, FileText, Sparkles, Play, Volume2, Image, Table, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { renderWithLatex, renderMarkdownWithLatex } from '@/lib/render-content';
 import type { PracticeProblem, LessonSection } from '@/types/course';
 
 const KatexRenderer = dynamic(
@@ -87,8 +88,8 @@ function IntroductionCard({ content, title }: { content: string; title?: string 
           <BookOpen className="w-5 h-5 text-white" />
         </div>
         <div className="flex-1">
-          <h3 className="text-lg font-bold text-[var(--color-foreground)] mb-2">{title || '开篇引言'}</h3>
-          <p className="text-base text-[var(--color-foreground)] leading-relaxed whitespace-pre-line">{content}</p>
+          <h3 className="text-lg font-bold text-[var(--color-foreground)] mb-2">{renderWithLatex(title || '开篇引言')}</h3>
+          <div className="text-base text-[var(--color-foreground)] leading-relaxed whitespace-pre-line">{renderWithLatex(content)}</div>
         </div>
       </div>
     </Card>
@@ -107,7 +108,7 @@ function ConceptCard({ title, content, variant }: { title: string; content: stri
           <Lightbulb className="w-5 h-5 text-white" />
         </div>
         <div className="flex-1">
-          <h3 className="text-lg font-bold text-[var(--color-foreground)] mb-2">{title || '核心概念'}</h3>
+          <h3 className="text-lg font-bold text-[var(--color-foreground)] mb-2">{renderWithLatex(title || '核心概念')}</h3>
           <div className="text-base text-[var(--color-foreground)] leading-relaxed prose prose-slate dark:prose-invert max-w-none">
             {renderMarkdownWithLatex(content)}
           </div>
@@ -216,7 +217,7 @@ function PracticeProblemItem({ problem, index, onAnswer }: { problem: PracticePr
               )}
             >
               <span className="font-bold mr-2">{optKey}.</span>
-              {opt}
+              {renderWithLatex(opt)}
               {isCorrectAnswer && <Check className="inline w-4 h-4 ml-2 text-[var(--color-success)]" />}
               {isWrongSelected && <X className="inline w-4 h-4 ml-2 text-[var(--color-danger)]" />}
             </button>
@@ -248,7 +249,7 @@ function SummaryCard({ content }: { content: string }) {
         </div>
         <div className="flex-1">
           <h3 className="text-lg font-bold text-[var(--color-foreground)] mb-2">本节小结</h3>
-          <p className="text-base text-[var(--color-foreground)] leading-relaxed whitespace-pre-line">{content}</p>
+          <p className="text-base text-[var(--color-foreground)] leading-relaxed whitespace-pre-line">{renderWithLatex(content)}</p>
         </div>
       </div>
     </Card>
@@ -277,7 +278,7 @@ function AnimationCard({
           <Play className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h3 className="text-lg font-bold text-[var(--color-foreground)]">{title || '动画演示'}</h3>
+          <h3 className="text-lg font-bold text-[var(--color-foreground)]">{renderWithLatex(title || '动画演示')}</h3>
           {description && (
             <p className="text-sm text-[var(--color-muted-foreground)] mt-0.5">{description}</p>
           )}
@@ -304,7 +305,7 @@ function FormulaCard({ title, latex, note }: { title?: string; latex: string; no
           <span className="text-white font-bold text-lg">ƒ</span>
         </div>
         <div className="flex-1">
-          {title && <h3 className="text-lg font-bold text-[var(--color-foreground)] mb-3">{title}</h3>}
+          {title && <h3 className="text-lg font-bold text-[var(--color-foreground)] mb-3">{renderWithLatex(title)}</h3>}
           <div className="bg-white dark:bg-slate-800 rounded-lg p-4 flex items-center justify-center">
             <KatexRenderer latex={latex} displayMode />
           </div>
@@ -326,7 +327,7 @@ function ExpandableCard({ title, content }: { title: string; content: string }) 
         className="w-full flex items-center gap-3 p-4 text-left hover:bg-[var(--color-surface-muted)] transition-colors"
       >
         <ChevronRight className={cn("w-5 h-5 text-[var(--color-muted-foreground)] transition-transform", open && "rotate-90")} />
-        <span className="text-base font-semibold text-[var(--color-foreground)]">{title}</span>
+        <span className="text-base font-semibold text-[var(--color-foreground)]">{renderWithLatex(title)}</span>
       </button>
       {open && (
         <div className="px-5 pb-4 text-base text-[var(--color-foreground)] leading-relaxed prose prose-slate dark:prose-invert max-w-none">
@@ -343,7 +344,7 @@ function TableCard({ title, headers, rows }: { title?: string; headers: string[]
       {title && (
         <div className="flex items-center gap-2 px-5 pt-4 pb-2">
           <Table className="w-5 h-5 text-[var(--color-primary)]" />
-          <h3 className="text-lg font-bold text-[var(--color-foreground)]">{title}</h3>
+          <h3 className="text-lg font-bold text-[var(--color-foreground)]">{renderWithLatex(title)}</h3>
         </div>
       )}
       <div className="overflow-x-auto">
@@ -383,7 +384,7 @@ function VoiceInputCard({ prompt }: { prompt: string }) {
         </div>
         <div className="flex-1">
           <h3 className="text-sm font-semibold text-green-700 dark:text-green-400 mb-1">语音互动</h3>
-          <p className="text-base text-[var(--color-foreground)] leading-relaxed">{prompt}</p>
+          <p className="text-base text-[var(--color-foreground)] leading-relaxed">{renderWithLatex(prompt)}</p>
           <p className="mt-2 text-xs text-[var(--color-muted-foreground)]">（语音输入功能开发中）</p>
         </div>
       </div>
@@ -399,52 +400,10 @@ function IllustrationCard({ title, description }: { title?: string; description:
           <Image className="w-5 h-5 text-white" />
         </div>
         <div className="flex-1">
-          {title && <h3 className="text-sm font-semibold text-amber-700 dark:text-amber-400 mb-1">{title}</h3>}
+          {title && <h3 className="text-sm font-semibold text-amber-700 dark:text-amber-400 mb-1">{renderWithLatex(title)}</h3>}
           <p className="text-sm text-[var(--color-foreground)] leading-relaxed">{description}</p>
         </div>
       </div>
     </Card>
   );
-}
-
-function renderMarkdownWithLatex(text: string): React.ReactNode {
-  if (!text) return null;
-  const lines = text.split('\n');
-  return (
-    <>
-      {lines.map((line, li) => {
-        if (!line.trim()) return <br key={li} />;
-        if (line.startsWith('## ')) return <h2 key={li} className="text-xl font-bold mt-4 mb-2">{renderWithLatex(line.slice(3))}</h2>;
-        if (line.startsWith('### ')) return <h3 key={li} className="text-lg font-semibold mt-3 mb-1">{renderWithLatex(line.slice(4))}</h3>;
-        if (line.startsWith('> ')) return <blockquote key={li} className="border-l-4 border-blue-400 pl-3 my-2 text-[var(--color-muted-foreground)] italic">{renderWithLatex(line.slice(2))}</blockquote>;
-        if (line.startsWith('- ') || line.startsWith('• ')) return <li key={li} className="ml-4">{renderWithLatex(line.slice(2))}</li>;
-        if (line.startsWith('| ') && line.endsWith('|')) {
-          const cells = line.split('|').filter(Boolean).map(c => c.trim());
-          return <div key={li} className="flex gap-2 py-1 border-b border-[var(--color-border)]/30 text-sm">{cells.map((c, ci) => <span key={ci} className="flex-1">{renderWithLatex(c)}</span>)}</div>;
-        }
-        if (line.startsWith('**') && line.endsWith('**')) return <p key={li} className="font-bold mt-2">{renderWithLatex(line.slice(2, -2))}</p>;
-        return <p key={li} className="mb-1">{renderWithLatex(line)}</p>;
-      })}
-    </>
-  );
-}
-
-function renderWithLatex(text: string): React.ReactNode {
-  if (!text) return null;
-  const parts: React.ReactNode[] = [];
-  let lastIdx = 0;
-  const regex = /\$([^$]+)\$/g;
-  let match;
-  let key = 0;
-  while ((match = regex.exec(text)) !== null) {
-    if (match.index > lastIdx) {
-      parts.push(text.slice(lastIdx, match.index));
-    }
-    parts.push(<KatexRenderer key={`latex-${key++}`} latex={match[1]} />);
-    lastIdx = regex.lastIndex;
-  }
-  if (lastIdx < text.length) {
-    parts.push(text.slice(lastIdx));
-  }
-  return <>{parts}</>;
 }

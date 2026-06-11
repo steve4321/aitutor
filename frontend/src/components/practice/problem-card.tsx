@@ -1,6 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/utils';
+import { renderWithLatex } from '@/lib/render-content';
 
 interface ProblemCardProps {
   questionNumber: number;
@@ -31,7 +32,7 @@ export function ProblemCard({
       </div>
 
       <div className="mb-6 text-lg leading-relaxed text-gray-900">
-        {content}
+        {renderWithLatex(content)}
       </div>
 
       {options && (
@@ -61,7 +62,7 @@ export function ProblemCard({
                 >
                   {label}
                 </span>
-                <span>{option}</span>
+                <span>{renderWithLatex(option)}</span>
               </button>
             );
           })}

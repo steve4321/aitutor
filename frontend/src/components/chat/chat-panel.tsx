@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { renderWithLatex } from '@/lib/render-content';
 import type { ChatMessage } from '@/types/problem';
 
 interface ChatPanelProps {
@@ -29,7 +30,7 @@ export function ChatPanel({ messages, className }: ChatPanelProps) {
               : 'mr-auto bg-[var(--color-surface-muted)] text-[var(--color-foreground)]'
           )}
         >
-          {msg.content}
+          {renderWithLatex(msg.content)}
         </div>
       ))}
     </div>

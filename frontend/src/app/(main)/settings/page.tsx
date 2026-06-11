@@ -17,6 +17,7 @@ import {
   Moon,
   Sun,
   Loader2,
+  Pencil,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
@@ -167,7 +168,7 @@ export default function SettingsPage() {
                     )}
                   </div>
                   <button className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 shadow-sm hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600">
-                    ✎
+                    <Pencil className="h-3.5 w-3.5" />
                   </button>
                 </div>
                 <div className="flex-1">

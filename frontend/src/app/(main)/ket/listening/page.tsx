@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Headphones, ChevronLeft, CheckCircle, XCircle, ArrowRight, Loader2 } from 'lucide-react';
+import { renderWithLatex } from '@/lib/render-content';
 import { cn } from '@/lib/utils';
 import { api } from '@/lib/api';
 import { ListeningPlayer } from '@/components/ket/listening-player';
@@ -263,14 +264,14 @@ export default function ListeningPage() {
                     )}
                     <div className="flex-1">
                       <p className="mb-2 font-medium text-slate-900 dark:text-white">
-                        {index + 1}. {q.prompt}
+                        {index + 1}. {renderWithLatex(q.prompt)}
                       </p>
                       <p className="text-sm text-slate-600 dark:text-slate-400">
                         你的答案: {quizState.answers[q.id] || '未作答'} | 正确答案: {q.correct_answer}
                       </p>
                       {q.explanation && (
                         <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-                          解析: {q.explanation}
+                          解析: {renderWithLatex(q.explanation)}
                         </p>
                       )}
                     </div>
@@ -332,7 +333,7 @@ export default function ListeningPage() {
 
         <div className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
           <p className="mb-6 text-lg leading-relaxed text-slate-900 dark:text-white">
-            {currentQuestion.prompt}
+            {renderWithLatex(currentQuestion.prompt)}
           </p>
 
           {currentQuestion.options && (
@@ -381,7 +382,7 @@ export default function ListeningPage() {
                     >
                       {key}
                     </span>
-                    <span className="flex-1 text-slate-900 dark:text-white">{value}</span>
+                    <span className="flex-1 text-slate-900 dark:text-white">{renderWithLatex(value)}</span>
                     {showResult && isCorrectAnswer && (
                       <CheckCircle className="h-5 w-5 text-emerald-500" />
                     )}

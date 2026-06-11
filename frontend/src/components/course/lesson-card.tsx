@@ -1,7 +1,8 @@
 'use client';
 
-import { Video, BookOpen, Pen, Lock, CheckCircle2, Clock, Star } from 'lucide-react';
+import { Video, BookOpen, Pen, Lock, CheckCircle2, Clock, Star, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { renderWithLatex } from '@/lib/render-content';
 
 type LessonType = 'video' | 'interactive' | 'practice' | 'reading' | 'mixed';
 type LessonStatus = 'locked' | 'not_started' | 'in_progress' | 'completed';
@@ -95,7 +96,7 @@ export function LessonCard({
               !isClickable && 'text-slate-400 dark:text-slate-500'
             )}
           >
-            {title}
+            {renderWithLatex(title)}
           </h4>
           {status === 'in_progress' && (
             <span className="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-600 dark:bg-blue-900/50 dark:text-blue-400">
@@ -133,7 +134,7 @@ export function LessonCard({
 
         {isClickable && (
           <span className="text-slate-300 transition-colors group-hover:text-slate-400 dark:text-slate-600">
-            →
+            <ChevronRight className="h-4 w-4" />
           </span>
         )}
       </div>

@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Play, Pause, Volume2, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { renderWithLatex } from '@/lib/render-content';
 
 interface ListeningPlayerProps {
   audioUrl?: string;
@@ -94,7 +95,7 @@ export function ListeningPlayer({ audioUrl, transcript, title }: ListeningPlayer
     <div className="rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
       {title && (
         <div className="border-b border-slate-200 px-6 py-4 dark:border-slate-700">
-          <h3 className="font-semibold text-slate-900 dark:text-white">{title}</h3>
+          <h3 className="font-semibold text-slate-900 dark:text-white">{renderWithLatex(title || '')}</h3>
         </div>
       )}
 
