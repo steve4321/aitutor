@@ -226,7 +226,10 @@ export default function LessonPage() {
             }
             case 'interactive_table': {
               const headers = Array.isArray(block.headers) ? block.headers.map(String) : [];
-              const rows = Array.isArray(block.rows) ? (block.rows as unknown[][])?.map(r => r.map(String)) : [];
+              const rawRows = Array.isArray(block.rows) ? block.rows : [];
+              const rows = rawRows.map((r: unknown) =>
+                Array.isArray(r) ? r.map(String) : [String(r)]
+              );
               out.push({
                 type: 'interactive_table',
                 title: stepTitle,

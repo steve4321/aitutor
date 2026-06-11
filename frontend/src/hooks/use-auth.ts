@@ -39,7 +39,10 @@ export function useAuth() {
         // Parallel requests instead of sequential waterfall
         const [userData, profileData] = await Promise.all([
           api.get<User>('/users/me', undefined, { signal: controller.signal }),
-          api.get<StudentProfile>('/users/me/profile', undefined, { signal: controller.signal }).catch(() => null),
+          api.get<StudentProfile>('/users/me/profile', undefined, { signal: controller.signal }).catch((err) => {
+            console.warn('[useAuth] Failed to fetch profile during init:', err);
+            return null;
+          }),
         ]);
         if (isMounted) {
           useAuthStore.getState().login(userData, profileData);
@@ -73,7 +76,10 @@ export function useAuth() {
 
       const [userData, profileData] = await Promise.all([
         api.get<User>('/users/me'),
-        api.get<StudentProfile>('/users/me/profile').catch(() => null),
+        api.get<StudentProfile>('/users/me/profile').catch((err) => {
+          console.warn('[useAuth] Failed to fetch profile during signIn:', err);
+          return null;
+        }),
       ]);
       login(userData, profileData);
     } finally {

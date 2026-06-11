@@ -10,13 +10,13 @@ from app.models.learning import LearningSession, StudentAttempt
 from app.models.user import User
 from app.schemas.problem import AttemptRequest, AttemptResponse, ProblemResponse
 from app.services import problem_service, xp_service
-from app.core.rate_limit import limiter
+from app.core.rate_limit import limiter, RATE_LIMITS
 
 router = APIRouter(prefix="/problems", tags=["problems"])
 
 
 @router.get("", response_model=list[ProblemResponse])
-@limiter.limit("60/minute")
+@limiter.limit(RATE_LIMITS["api_read"])
 async def list_problems(
     request: Request,
     db: DbSession,
@@ -34,7 +34,7 @@ async def list_problems(
 
 
 @router.get("/{problem_id}", response_model=ProblemResponse)
-@limiter.limit("60/minute")
+@limiter.limit(RATE_LIMITS["api_read"])
 async def get_problem(request: Request, problem_id: UUID, db: DbSession, current_user: User = Depends(get_current_user)):
     problem = await problem_service.get_problem(db, problem_id)
     if not problem:
@@ -43,7 +43,7 @@ async def get_problem(request: Request, problem_id: UUID, db: DbSession, current
 
 
 @router.post("/{problem_id}/attempt", response_model=AttemptResponse)
-@limiter.limit("30/minute")
+@limiter.limit(RATE_LIMITS["api_write"])
 async def submit_attempt(
     request: Request,
     problem_id: UUID,

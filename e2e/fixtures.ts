@@ -1,6 +1,6 @@
 import { test as base, expect } from '@playwright/test';
 
-const API = 'http://localhost:8000/api/v1';
+const API = process.env.E2E_API_URL || 'http://localhost:8000/api/v1';
 
 type Fixtures = {
   authenticatedPage: typeof base;

@@ -57,7 +57,8 @@ export function useXP() {
         dailyGoalProgress,
         dailyGoalMinutes: profile.daily_goal_minutes,
       });
-    } catch {
+    } catch (err) {
+      console.warn('[useXP] Failed to fetch XP data:', err);
     } finally {
       setLoading(false);
     }
@@ -74,7 +75,9 @@ export function useXP() {
           dailyGoalProgress: calculateDailyGoalProgress(profile.minutes_today, profile.daily_goal_minutes),
           dailyGoalMinutes: profile.daily_goal_minutes,
         });
-      }).catch(() => undefined).finally(() => {
+      }).catch((err) => {
+        console.warn('[useXP] Failed to fetch profile:', err);
+      }).finally(() => {
         setLoading(false);
       });
     }
