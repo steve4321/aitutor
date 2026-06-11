@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { BookOpen, Calculator, Target, Clock, ChevronRight, Play } from 'lucide-react';
+import { BookOpen, Calculator, Target, Clock, ChevronRight, Play, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { api } from '@/lib/api';
 import { ROUTES } from '@/lib/constants';
@@ -198,7 +198,7 @@ export default function PracticePage() {
               return (
                 <span key={uid} className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
                   {unit?.name}
-                  <button onClick={(e) => { e.stopPropagation(); toggleUnit(uid); }} className="ml-1 hover:text-primary/80">×</button>
+                  <button onClick={(e) => { e.stopPropagation(); toggleUnit(uid); }} className="ml-1 hover:text-primary/80"><X className="h-3 w-3" /></button>
                 </span>
               );
             })}

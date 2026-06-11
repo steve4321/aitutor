@@ -1,6 +1,8 @@
 'use client';
 
+import { Play } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { renderWithLatex } from '@/lib/render-content';
 
 interface ChatBubbleProps {
   role: 'user' | 'assistant' | 'system';
@@ -20,7 +22,7 @@ export function ChatBubble({ role, content, metadata }: ChatBubbleProps) {
     return (
       <div className="flex justify-center">
         <div className="rounded-lg bg-[var(--color-surface-muted)] px-4 py-2 text-sm text-[var(--color-muted-foreground)]">
-          {content}
+          {renderWithLatex(content)}
         </div>
       </div>
     );
@@ -48,10 +50,10 @@ export function ChatBubble({ role, content, metadata }: ChatBubbleProps) {
       >
         {metadata?.latex ? (
           <div className="text-sm">
-            <code className="bg-[var(--color-surface-muted)] px-1 py-0.5">{content}</code>
+            {renderWithLatex(content)}
           </div>
         ) : (
-          <p className="whitespace-pre-wrap text-sm leading-relaxed">{content}</p>
+          <div className="whitespace-pre-wrap text-sm leading-relaxed">{renderWithLatex(content)}</div>
         )}
         {metadata?.image_url && (
           <img
@@ -63,7 +65,7 @@ export function ChatBubble({ role, content, metadata }: ChatBubbleProps) {
         {metadata?.audio_url && (
           <div className="mt-2 flex items-center gap-2">
             <button className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 hover:bg-white/30">
-              ▶
+              <Play className="h-4 w-4" />
             </button>
             <div className="h-1 w-32 rounded-full bg-white/30">
               <div className="h-full w-1/3 rounded-full bg-white" />

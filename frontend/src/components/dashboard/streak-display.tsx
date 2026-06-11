@@ -1,6 +1,6 @@
 'use client';
 
-import { Flame, Star } from 'lucide-react';
+import { Flame, Star, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface DayInfo {
@@ -90,7 +90,7 @@ export function StreakDisplay({
                     : 'bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400'
                 )}
               >
-                {isActive ? '✓' : '×'}
+                {isActive ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
               </div>
             </div>
           );

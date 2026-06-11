@@ -3,9 +3,10 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { ArrowLeft, Play, ChevronDown, ChevronRight, BookOpen } from 'lucide-react';
+import { ArrowLeft, Play, ChevronDown, ChevronRight, BookOpen, Loader2, Check } from 'lucide-react';
 import { api } from '@/lib/api';
 import { ROUTES } from '@/lib/constants';
+import { renderWithLatex } from '@/lib/render-content';
 import { Button } from '@/components/ui/button';
 import type { Course, Unit, Lesson, UnitWithLessons } from '@/types/course';
 
@@ -140,7 +141,7 @@ export default function CourseDetailPage() {
             >
               {enrollMutation.isPending ? (
                 <>
-                  <span className="animate-spin mr-2">⟳</span>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   报名中...
                 </>
               ) : (
@@ -149,7 +150,7 @@ export default function CourseDetailPage() {
             </Button>
           ) : (
             <Button disabled className="w-full opacity-70">
-              已报名 ✓
+              已报名 <Check className="ml-1 h-4 w-4" />
             </Button>
           )}
         </div>
@@ -193,7 +194,7 @@ export default function CourseDetailPage() {
                       }
                     >
                       <Play className="w-4 h-4 text-[var(--color-primary)]" />
-                      <span className="flex-1 text-foreground">{lesson.title}</span>
+                      <span className="flex-1 text-foreground">{renderWithLatex(lesson.title)}</span>
                       {lesson.estimated_minutes && (
                         <span className="text-xs text-muted-foreground">
                           {lesson.estimated_minutes}min

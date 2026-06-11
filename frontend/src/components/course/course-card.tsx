@@ -2,6 +2,7 @@
 
 import { BookOpen, Lock, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { renderWithLatex } from '@/lib/render-content';
 
 interface CourseCardProps {
   title: string;
@@ -74,7 +75,7 @@ export function CourseCard({
 
       <div className="p-4">
         <h3 className="mb-1 font-semibold text-slate-900 line-clamp-1 dark:text-white">
-          {title}
+          {renderWithLatex(title)}
         </h3>
         <p className="mb-3 line-clamp-2 text-sm text-slate-500 dark:text-slate-400">
           {description}

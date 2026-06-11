@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Play, Pause, RotateCcw, Maximize, Minimize, Volume2, VolumeX } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { renderWithLatex } from '@/lib/render-content';
 
 interface AnimationPlayerProps {
   url?: string;
@@ -159,7 +160,7 @@ export function AnimationPlayer({
     >
       <div className="relative">
         <div className="flex items-center gap-2 px-4 py-3">
-          <span className="text-sm font-medium text-white">{title}</span>
+          <span className="text-sm font-medium text-white">{renderWithLatex(title || '')}</span>
           {animationType && (
             <span className="rounded bg-white/10 px-2 py-0.5 text-xs text-white/70">
               {animationType}

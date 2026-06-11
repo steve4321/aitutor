@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Play, Pause, RotateCcw, Volume2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { renderWithLatex } from '@/lib/render-content';
 
 interface AudioPlayerProps {
   audioUrl?: string;
@@ -37,7 +38,7 @@ export function AudioPlayer({
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Volume2 className="h-5 w-5 text-blue-600" />
-          <span className="text-sm font-medium text-gray-900">{title}</span>
+          <span className="text-sm font-medium text-gray-900">{renderWithLatex(title || '')}</span>
         </div>
         <span className="text-xs text-gray-500">
           {playCount}/{maxPlays} 次

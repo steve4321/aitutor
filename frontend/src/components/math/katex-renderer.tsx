@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useLayoutEffect } from 'react';
+import katex from 'katex';
 import 'katex/dist/katex.min.css';
 import { cn } from '@/lib/utils';
 
@@ -15,53 +16,28 @@ export function KatexRenderer({
   displayMode = true,
   className,
 }: KatexRendererProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [error, setError] = useState(false);
-  const [loaded, setLoaded] = useState(false);
+  const containerRef = useRef<HTMLSpanElement>(null);
 
-  useEffect(() => {
-    if (containerRef.current) {
-      import('katex').then((katex) => {
-        try {
-          katex.default.render(latex, containerRef.current!, {
-            displayMode,
-            throwOnError: false,
-            trust: true,
-          });
-          setError(false);
-          setLoaded(true);
-        } catch (err) {
-          if (containerRef.current) {
-            containerRef.current.textContent = latex;
-          }
-          setError(true);
-          setLoaded(true);
-        }
-      }).catch(() => {
-        if (containerRef.current) {
-          containerRef.current.textContent = latex;
-        }
-        setError(true);
-        setLoaded(true);
+  useLayoutEffect(() => {
+    if (!containerRef.current) return;
+    const el = containerRef.current;
+    el.innerHTML = '';
+    try {
+      katex.render(latex, el, {
+        displayMode,
+        throwOnError: false,
+        trust: true,
       });
+    } catch {
+      el.textContent = latex;
     }
   }, [latex, displayMode]);
 
-  if (!loaded) {
-    return (
-      <span className={cn('animate-pulse text-muted-foreground', className)}>
-        {latex}
-      </span>
-    );
-  }
-
   return (
-    <div
+    <span
       ref={containerRef}
       className={cn(
-        'overflow-x-auto py-2 text-gray-900',
-        displayMode && 'text-center text-lg',
-        error && 'text-red-500',
+        displayMode ? 'block text-center' : 'inline',
         className
       )}
     />

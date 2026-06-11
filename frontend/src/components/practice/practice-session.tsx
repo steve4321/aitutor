@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Clock, ChevronLeft, ChevronRight, CheckCircle2, X, AlertCircle, Lightbulb, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { renderWithLatex } from '@/lib/render-content';
 import { ProgressBar } from '../course/progress-bar';
 import { HintDisplay } from './hint-display';
 
@@ -204,7 +205,7 @@ export function PracticeSession({ problems, onComplete, onExit }: PracticeSessio
       </div>
 
       <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
-        <p className="text-lg font-medium text-slate-900 dark:text-white">{problem.content}</p>
+        <p className="text-lg font-medium text-slate-900 dark:text-white">{renderWithLatex(problem.content)}</p>
         {problem.latexContent && (
           <div className="mt-3 rounded-lg bg-slate-50 p-3 dark:bg-slate-900">
             <code className="text-slate-700 dark:text-slate-300">{problem.latexContent}</code>
@@ -248,7 +249,7 @@ export function PracticeSession({ problems, onComplete, onExit }: PracticeSessio
               >
                 {String.fromCharCode(65 + i)}
               </span>
-              <span className="flex-1 text-slate-700 dark:text-slate-200">{option}</span>
+              <span className="flex-1 text-slate-700 dark:text-slate-200">{renderWithLatex(option)}</span>
               {showResult && option === problem.correctAnswer && (
                 <CheckCircle2 className="h-5 w-5 text-emerald-500" />
               )}
@@ -315,7 +316,7 @@ export function PracticeSession({ problems, onComplete, onExit }: PracticeSessio
               </>
             )}
           </div>
-          <p className="text-sm">{problem.explanation}</p>
+          <p className="text-sm">{renderWithLatex(problem.explanation)}</p>
         </div>
       )}
 

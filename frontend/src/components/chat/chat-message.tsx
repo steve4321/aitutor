@@ -1,5 +1,14 @@
+'use client';
+
+import dynamic from 'next/dynamic';
 import { cn } from '@/lib/utils';
+import { renderWithLatex } from '@/lib/render-content';
 import type { ChatMessage } from '@/types/problem';
+
+const KatexRenderer = dynamic(
+  () => import('@/components/math/katex-renderer').then((m) => ({ default: m.KatexRenderer })),
+  { ssr: false }
+);
 
 interface ChatMessageProps {
   message: ChatMessage;
@@ -31,10 +40,10 @@ export function ChatMessage({ message, className }: ChatMessageProps) {
             : 'rounded-tl-sm bg-[var(--color-surface-muted)] text-[var(--color-foreground)]'
         )}
       >
-        <p>{message.content}</p>
+        <div>{renderWithLatex(message.content)}</div>
         {message.metadata?.latex && (
-          <div className="mt-2 rounded bg-white/10 p-2 font-mono text-xs">
-            {message.metadata.latex}
+          <div className="mt-2 rounded bg-white/10 p-2">
+            <KatexRenderer latex={message.metadata.latex} displayMode />
           </div>
         )}
       </div>
