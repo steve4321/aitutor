@@ -9,13 +9,13 @@ from app.models.learning import LearningSession
 from app.models.message import Message
 from app.models.user import User
 from app.schemas.chat import ChatMessageRequest, ChatMessageResponse
-from app.core.rate_limit import limiter
+from app.core.rate_limit import limiter, RATE_LIMITS
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
 
 @router.post("/message", response_model=ChatMessageResponse)
-@limiter.limit("20/minute")
+@limiter.limit(RATE_LIMITS["chat_message"])
 async def send_message(
     request: Request,
     body: ChatMessageRequest,

@@ -7,6 +7,13 @@ from app.config import settings
 
 logger = logging.getLogger(__name__)
 
+RATE_LIMITS = {
+    "auth_login": "5/minute",
+    "chat_message": "20/minute",
+    "api_read": "60/minute",
+    "api_write": "30/minute",
+}
+
 if not settings.DISABLE_REDIS:
     try:
         import redis

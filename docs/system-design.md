@@ -691,8 +691,8 @@ L4: "The correct form is 'He wants'. Let's practice more examples."
 
 | 层级 | 组件 | 选型 | 理由 |
 |------|------|------|------|
-| **前端** | 跨平台框架 | React Native (Expo) | 一套代码 iOS/Android/Web |
-| **前端** | 数学渲染 | KaTeX + MathJax | LaTeX公式实时渲染 |
+| **前端** | Web 框架 | Next.js 15 (App Router) | SSR/SSG + React 18 + TypeScript |
+| **前端** | 数学渲染 | KaTeX | LaTeX公式实时渲染 |
 | **前端** | 图形交互 | GeoGebra API | 动态几何, 函数图像 |
 | **后端** | API框架 | Python FastAPI | 高性能异步, AI生态好 |
 | **后端** | Agent编排 | LangGraph | 状态机+人工介入+检查点 |
@@ -1053,87 +1053,30 @@ CREATE TABLE lessons (
     lesson_type VARCHAR(30),                  -- 'concept', 'practice', 'assessment', 'review'
     
     -- 课程内容 (JSON结构, 由AI生成或人工编辑)
+    -- 完整 Schema 定义见 docs/lesson-content-schema.md
     content     JSONB NOT NULL,
     /*
-    content结构示例 (支持图文并茂+语音):
+    content 结构遵循 lesson-content-schema.md v1.0 规范:
     {
-      "introduction": {
-        "text": "今天我们来学勾股定理...",
-        "audio_url": "s3://.../intro.mp3",
-        "visual": {
-          "type": "geogebra",
-          "applet_id": "pythagoras_explore",
-          "instructions": "拖动三角形顶点, 观察边长变化"
-        }
-      },
-      "exploration": [
+      "schema_version": "1.0",
+      "subject": "amc_math",
+      "lesson_type": "concept",
+      "objectives": ["..."],
+      "steps": [
         {
-          "prompt": "你能量出斜边多长吗？",
-          "prompt_audio_url": "s3://.../prompt1.mp3",
-          "input_mode": ["voice", "text", "drawing"],
-          "expected_discovery": "a² + b² = c²",
-          "interactive_table": {
-            "columns": ["a", "b", "c", "a²+b²"],
-            "rows": [[3,4,5,null],[5,12,null,null]]
-          }
-        }
-      ],
-      "explanation": {
-        "text": "勾股定理: 直角三角形中 a² + b² = c²",
-        "audio_url": "s3://.../explain.mp3",
-        "formula_card": {
-          "latex": "a^2 + b^2 = c^2",
-          "color_coding": {"a_b": "#4A90D9", "c": "#E74C3C"},
-          "note": "只适用于直角三角形!"
-        },
-        "illustrations": [
-          {
-            "type": "image",
-            "url": "s3://.../pythagorean_squares.png",
-            "caption": "经典面积图解: a²+b²=c²"
-          }
-        ],
-        "animations": [
-          {
-            "type": "manim",
-            "video_url": "s3://.../area_proof.mp4",
-            "thumbnail_url": "s3://.../area_proof_thumb.png",
-            "duration_sec": 45,
-            "title": "面积证明动画"
-          }
-        ],
-        "expandable_proofs": [
-          {
-            "title": "面积证明",
-            "type": "manim",
-            "video_url": "s3://.../area_proof.mp4"
-          },
-          {
-            "title": "代数证明",
-            "type": "text",
-            "markdown": "设..."
-          }
-        ]
-      },
-      "guided_practice": [
-        {
-          "problem_id": "...",
-          "scratchpad": true,
-          "hint_levels": [
-            {"level": 0, "text": "你觉得第一步做什么？", "audio_url": "..."},
-            {"level": 1, "text": "这是直角三角形, 用勾股定理", "audio_url": "..."}
+          "id": "engage",
+          "phase": "engage",
+          "blocks": [
+            { "type": "text", "content": "..." },
+            { "type": "formula", "latex": "a^2 + b^2 = c^2" },
+            { "type": "problem", "problem_type": "fill_blank", ... },
+            ...
           ]
         }
       ],
-      "assessment": [
-        {"problem_id": "..."}
-      ],
-      "summary": {
-        "key_points": ["a²+b²=c²", "只适用于直角三角形", "可用于求边长"],
-        "amc_tip": "AMC约50%几何题会用到此定理",
-        "next_lesson": "B4"
-      }
+      "summary": { "key_points": [...], ... }
     }
+    详细 ContentBlock 类型（27种）及流程模板见 lesson-content-schema.md。
     */
     
     estimated_minutes SMALLINT,

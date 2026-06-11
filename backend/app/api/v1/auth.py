@@ -12,14 +12,14 @@ from app.core.security import (
 )
 from app.models.user import StudentProfile, User
 from app.schemas.user import LoginRequest, RefreshTokenRequest, RegisterRequest, TokenResponse
-from app.core.rate_limit import limiter
+from app.core.rate_limit import limiter, RATE_LIMITS
 from app.config import settings
 
 router = APIRouter()
 
 
 @router.post("/login")
-@limiter.limit("5/minute")
+@limiter.limit(RATE_LIMITS["auth_login"])
 async def login(request: Request, body: LoginRequest, db: DbSession) -> TokenResponse:
     result = await db.execute(select(User).where(User.name == body.username))
     user = result.scalar_one_or_none()

@@ -7,7 +7,9 @@
     "doc": "docs"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "npm run test --workspace=frontend",
+    "test:backend": "cd backend && python -m pytest tests/ -v",
+    "test:all": "npm run test --workspace=frontend && npm run test:backend",
     "test:e2e": "npx playwright test"
   },
   "repository": {

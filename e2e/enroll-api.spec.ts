@@ -1,6 +1,6 @@
 import { test, expect, request } from '@playwright/test';
 
-const API = 'http://localhost:8000/api/v1';
+const API = process.env.E2E_API_URL || 'http://localhost:8000/api/v1';
 
 test.describe('Enroll API', () => {
   test('enroll endpoint is reachable and creates an enrollment', async () => {

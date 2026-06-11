@@ -11,6 +11,7 @@ export interface ChatMessage extends Omit<ChatMessageResponse, 'session_id'> {
 interface UseChatOptions {
   sessionId?: string | null;
   autoCreate?: boolean;
+  subject?: string;
 }
 
 interface UseChatReturn {
@@ -24,7 +25,7 @@ interface UseChatReturn {
 }
 
 export function useChat(options: UseChatOptions = {}): UseChatReturn {
-  const { sessionId: initialSessionId, autoCreate = true } = options;
+  const { sessionId: initialSessionId, autoCreate = true, subject = 'math' } = options;
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -96,8 +97,8 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
         `/sessions/${sessionId}`
       );
       setMessages(session.messages || []);
-    } catch {
-      // Session may not have messages endpoint yet — silently ignore
+    } catch (err) {
+      console.warn('[useChat] Failed to reload session messages:', err);
     }
   }, [sessionId]);
 
@@ -106,11 +107,11 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
       api
         .post<{ id: string }>('/sessions', {
           session_type: 'chat',
-          subject: 'math',
+          subject,
         })
         .then((data) => setSessionId(data.id))
-        .catch(() => {
-          // Will create on first message instead
+        .catch((err) => {
+          console.warn('[useChat] Auto-create session failed, will create on first message:', err);
         });
     }
   }, [autoCreate, sessionId]);

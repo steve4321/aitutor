@@ -15,13 +15,13 @@ from app.schemas.ket import (
     KETSpeakingTaskResponse,
 )
 from app.services import ket_service
-from app.core.rate_limit import limiter
+from app.core.rate_limit import limiter, RATE_LIMITS
 
 router = APIRouter(prefix="/ket", tags=["ket"])
 
 
 @router.get("/questions", response_model=KETQuestionListResponse)
-@limiter.limit("60/minute")
+@limiter.limit(RATE_LIMITS["api_read"])
 async def list_questions(
     request: Request,
     db: DbSession,
@@ -35,7 +35,7 @@ async def list_questions(
 
 
 @router.get("/questions/{question_id}", response_model=KETQuestionResponse)
-@limiter.limit("60/minute")
+@limiter.limit(RATE_LIMITS["api_read"])
 async def get_question(
     request: Request,
     question_id: UUID,
@@ -49,7 +49,7 @@ async def get_question(
 
 
 @router.get("/writing/tasks", response_model=list[KETWritingTaskResponse])
-@limiter.limit("60/minute")
+@limiter.limit(RATE_LIMITS["api_read"])
 async def list_writing_tasks(
     request: Request,
     db: DbSession,
@@ -61,7 +61,7 @@ async def list_writing_tasks(
 
 
 @router.get("/speaking/tasks", response_model=list[KETSpeakingTaskResponse])
-@limiter.limit("60/minute")
+@limiter.limit(RATE_LIMITS["api_read"])
 async def list_speaking_tasks(
     request: Request,
     db: DbSession,
@@ -73,7 +73,7 @@ async def list_speaking_tasks(
 
 
 @router.post("/writing/submit", response_model=KETWritingScoreResponse)
-@limiter.limit("30/minute")
+@limiter.limit(RATE_LIMITS["api_write"])
 async def submit_writing(
     request: Request,
     body: KETWritingSubmitRequest,
@@ -88,7 +88,7 @@ async def submit_writing(
 
 
 @router.post("/speaking/submit", response_model=KETSpeakingScoreResponse)
-@limiter.limit("30/minute")
+@limiter.limit(RATE_LIMITS["api_write"])
 async def submit_speaking(
     request: Request,
     body: KETSpeakingSubmitRequest,
