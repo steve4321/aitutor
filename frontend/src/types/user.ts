@@ -32,6 +32,24 @@ export interface StudentProfileResponse {
   minutes_today: number;
 }
 
+/** Backend: UserPreferencesResponse – GET /users/me/preferences */
+export interface UserPreferencesResponse {
+  language: string;
+  font_size: number;
+  sound_enabled: boolean;
+  notifications_enabled: boolean;
+  theme: string;
+}
+
+/** Backend: UserPreferencesUpdateRequest – PUT /users/me/preferences */
+export interface UserPreferencesUpdateRequest {
+  language?: string | null;
+  font_size?: number | null;
+  sound_enabled?: boolean | null;
+  notifications_enabled?: boolean | null;
+  theme?: string | null;
+}
+
 // ── Backward-compatible aliases ─────────────────────────────────────────
 
 export type User = UserResponse;

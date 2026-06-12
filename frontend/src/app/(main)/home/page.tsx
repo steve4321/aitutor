@@ -1,11 +1,13 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { Flame, Trophy, BookOpen, ArrowRight } from 'lucide-react';
+import { Flame, Trophy } from 'lucide-react';
 import { api } from '@/lib/api';
-import { ROUTES } from '@/lib/constants';
 import { cn } from '@/lib/utils';
+import { useDashboard } from '@/hooks/use-dashboard';
+import { DailyTasks } from '@/components/dashboard/daily-tasks';
+import { MasteryRadar } from '@/components/dashboard/mastery-radar';
+import { StreakDisplay } from '@/components/dashboard/streak-display';
 import type { UserResponse, StudentProfileResponse } from '@/types/user';
 
 function StatCard({ icon: Icon, label, value, color }: { icon: typeof Flame; label: string; value: string | number; color: string }) {
@@ -33,8 +35,6 @@ function SkeletonCard() {
 }
 
 export default function HomePage() {
-  const router = useRouter();
-
   const { data: userRes, isLoading: isLoadingUser } = useQuery({
     queryKey: ['user'],
     queryFn: () => api.get<UserResponse>('/users/me'),
@@ -44,6 +44,8 @@ export default function HomePage() {
     queryKey: ['profile'],
     queryFn: () => api.get<StudentProfileResponse>('/users/me/profile'),
   });
+
+  const { data: dashboard, isLoading: isLoadingDashboard } = useDashboard();
 
   const userName = userRes?.name ?? 'Learner';
   const xp = profileRes?.xp_total ?? 0;
@@ -78,41 +80,6 @@ export default function HomePage() {
       </div>
 
       <div>
-        <h2 className="text-lg font-semibold text-foreground mb-3">Quick Actions</h2>
-        <div className="grid grid-cols-3 gap-3">
-          <button
-            onClick={() => router.push(ROUTES.PRACTICE)}
-            className="flex flex-col items-center gap-2 p-4 bg-background rounded-xl border border-border hover:border-[var(--color-primary)]/50 transition-colors"
-          >
-            <div className="w-10 h-10 rounded-full bg-[var(--color-accent)]/10 flex items-center justify-center">
-              <BookOpen className="w-5 h-5 text-[var(--color-accent)]" />
-            </div>
-            <span className="text-xs font-medium text-foreground">Practice</span>
-          </button>
-          <button
-            onClick={() => router.push(`${ROUTES.COURSES}?filter=KET`)}
-            className="flex flex-col items-center gap-2 p-4 bg-background rounded-xl border border-border hover:border-[var(--color-primary)]/50 transition-colors"
-          >
-            <div className="w-10 h-10 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center">
-              <svg className="w-5 h-5 text-[var(--color-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A7 7 0 0118 9.5M10 19h4" />
-              </svg>
-            </div>
-            <span className="text-xs font-medium text-foreground">KET</span>
-          </button>
-          <button
-            onClick={() => router.push(ROUTES.COURSES)}
-            className="flex flex-col items-center gap-2 p-4 bg-background rounded-xl border border-border hover:border-[var(--color-primary)]/50 transition-colors"
-          >
-            <div className="w-10 h-10 rounded-full bg-[var(--color-secondary)]/10 flex items-center justify-center">
-              <ArrowRight className="w-5 h-5 text-[var(--color-secondary)]" />
-            </div>
-            <span className="text-xs font-medium text-foreground">Browse</span>
-          </button>
-        </div>
-      </div>
-
-      <div>
         <h2 className="text-lg font-semibold text-foreground mb-3">Daily Progress</h2>
         <div className="bg-background rounded-xl border border-border p-4">
           <div className="flex items-center justify-between mb-2">
@@ -129,6 +96,23 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+
+      <StreakDisplay
+        currentStreak={dashboard?.streak.current_streak ?? 0}
+        longestStreak={dashboard?.streak.longest_streak ?? 0}
+        weekData={dashboard?.streak.week_data}
+        isLoading={isLoadingDashboard}
+      />
+
+      <DailyTasks
+        tasks={dashboard?.daily_tasks.tasks}
+        isLoading={isLoadingDashboard}
+      />
+
+      <MasteryRadar
+        subjects={dashboard?.mastery_summary.subjects ?? []}
+        isLoading={isLoadingDashboard}
+      />
     </div>
   );
 }

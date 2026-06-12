@@ -1,5 +1,5 @@
 from app.models.base import Base
-from app.models.user import ParentLink, StudentProfile, User
+from app.models.user import ParentLink, StudentProfile, User, UserPreferences
 from app.models.knowledge import KnowledgeDependency, KnowledgePoint
 from app.models.problem import Problem, ProblemSolution
 from app.models.learning import KnowledgeState, LearningSession, StudentAttempt
@@ -13,6 +13,7 @@ __all__ = [
     "User",
     "StudentProfile",
     "ParentLink",
+    "UserPreferences",
     "KnowledgePoint",
     "KnowledgeDependency",
     "Problem",

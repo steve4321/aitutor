@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTheme } from 'next-themes';
@@ -18,22 +18,33 @@ import {
   Sun,
   Loader2,
   Pencil,
+  Monitor,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
+import { useEInk } from '@/hooks/use-eink';
 import { api } from '@/lib/api';
 import { ROUTES } from '@/lib/constants';
-import type { StudentProfileResponse, UserResponse } from '@/types/user';
+import type { StudentProfileResponse, UserResponse, UserPreferencesResponse, UserPreferencesUpdateRequest } from '@/types/user';
 
 type Theme = 'light' | 'dark' | 'system';
 type Language = 'zh-CN' | 'en';
 type FontSize = 'small' | 'medium' | 'large';
+
+const FONT_SIZE_MAP: Record<FontSize, number> = { small: 14, medium: 16, large: 18 };
+const FONT_SIZE_REVERSE: Record<number, FontSize> = { 14: 'small', 16: 'medium', 18: 'large' };
+
+function fontSizeToLabel(size: number): FontSize {
+  return FONT_SIZE_REVERSE[size] ?? 'medium';
+}
 
 export default function SettingsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { signOut } = useAuth();
   const { theme: activeTheme, setTheme: setActiveTheme } = useTheme();
+  const { preference: einkPreference, setPreference: setEinkPreference, autoDetect } = useEInk();
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const [displayName, setDisplayName] = useState('');
   const [gradeLevel, setGradeLevel] = useState(6);
@@ -43,7 +54,7 @@ export default function SettingsPage() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [parentLinkCode, setParentLinkCode] = useState('');
   const [linkMessage, setLinkMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [avatarUrl] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   const profileQuery = useQuery({
     queryKey: ['profile'],
@@ -55,9 +66,15 @@ export default function SettingsPage() {
     queryFn: () => api.get<UserResponse>('/users/me'),
   });
 
+  const prefsQuery = useQuery({
+    queryKey: ['preferences'],
+    queryFn: () => api.get<UserPreferencesResponse>('/users/me/preferences'),
+  });
+
   useEffect(() => {
     if (userQuery.data) {
       setDisplayName(userQuery.data.name);
+      setAvatarUrl(userQuery.data.avatar_url);
     }
   }, [userQuery.data]);
 
@@ -66,6 +83,18 @@ export default function SettingsPage() {
       setGradeLevel(profileQuery.data.grade_level);
     }
   }, [profileQuery.data]);
+
+  useEffect(() => {
+    if (prefsQuery.data) {
+      setLanguage(prefsQuery.data.language as Language);
+      setFontSize(fontSizeToLabel(prefsQuery.data.font_size));
+      setSoundEnabled(prefsQuery.data.sound_enabled);
+      setNotificationsEnabled(prefsQuery.data.notifications_enabled);
+      if (prefsQuery.data.theme && ['light', 'dark', 'system'].includes(prefsQuery.data.theme)) {
+        setActiveTheme(prefsQuery.data.theme);
+      }
+    }
+  }, [prefsQuery.data, setActiveTheme]);
 
   const saveNameMutation = useMutation({
     mutationFn: (name: string) =>
@@ -80,6 +109,14 @@ export default function SettingsPage() {
       api.patch<StudentProfileResponse>('/users/me/profile', updates),
     onSuccess: (data) => {
       queryClient.setQueryData(['profile'], data);
+    },
+  });
+
+  const savePrefsMutation = useMutation({
+    mutationFn: (updates: UserPreferencesUpdateRequest) =>
+      api.put<UserPreferencesResponse>('/users/me/preferences', updates),
+    onSuccess: (data) => {
+      queryClient.setQueryData(['preferences'], data);
     },
   });
 
@@ -101,6 +138,22 @@ export default function SettingsPage() {
     },
   });
 
+  const prefsDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const savePreference = useCallback((updates: UserPreferencesUpdateRequest) => {
+    if (prefsDebounceRef.current) clearTimeout(prefsDebounceRef.current);
+    const id = setTimeout(() => {
+      savePrefsMutation.mutate(updates);
+    }, 400);
+    prefsDebounceRef.current = id;
+  }, [savePrefsMutation]);
+
+  useEffect(() => {
+    return () => {
+      if (prefsDebounceRef.current) clearTimeout(prefsDebounceRef.current);
+    };
+  }, []);
+
   const handleSaveName = () => {
     const trimmed = displayName.trim();
     if (trimmed && trimmed !== (userQuery.data?.name ?? '')) {
@@ -115,12 +168,49 @@ export default function SettingsPage() {
 
   const handleThemeChange = (t: Theme) => {
     setActiveTheme(t);
+    savePreference({ theme: t });
+  };
+
+  const handleLanguageChange = (lang: Language) => {
+    setLanguage(lang);
+    savePreference({ language: lang });
+  };
+
+  const handleFontSizeChange = (size: FontSize) => {
+    setFontSize(size);
+    savePreference({ font_size: FONT_SIZE_MAP[size] });
+  };
+
+  const handleSoundToggle = () => {
+    const next = !soundEnabled;
+    setSoundEnabled(next);
+    savePreference({ sound_enabled: next });
+  };
+
+  const handleNotificationsToggle = () => {
+    const next = !notificationsEnabled;
+    setNotificationsEnabled(next);
+    savePreference({ notifications_enabled: next });
   };
 
   const handleParentLink = () => {
     if (parentLinkCode.length === 6) {
       parentLinkMutation.mutate(parentLinkCode);
     }
+  };
+
+  const handleAvatarClick = () => {
+    avatarInputRef.current?.click();
+  };
+
+  const handleAvatarFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setAvatarUrl(reader.result as string);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleLogout = () => {
@@ -167,7 +257,17 @@ export default function SettingsPage() {
                       displayName.charAt(0) || '?'
                     )}
                   </div>
-                  <button className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 shadow-sm hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600">
+                  <input
+                    ref={avatarInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAvatarFileSelect}
+                  />
+                  <button
+                    onClick={handleAvatarClick}
+                    className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 shadow-sm hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600"
+                  >
                     <Pencil className="h-3.5 w-3.5" />
                   </button>
                 </div>
@@ -259,8 +359,9 @@ export default function SettingsPage() {
               </div>
               <select
                 value={language}
-                onChange={(e) => setLanguage(e.target.value as Language)}
-                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 transition-colors focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                onChange={(e) => handleLanguageChange(e.target.value as Language)}
+                disabled={prefsQuery.isLoading}
+                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 transition-colors focus:border-blue-500 focus:outline-none disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
               >
                 <option value="zh-CN">简体中文</option>
                 <option value="en">English</option>
@@ -276,9 +377,10 @@ export default function SettingsPage() {
                 {(['small', 'medium', 'large'] as FontSize[]).map((size) => (
                   <button
                     key={size}
-                    onClick={() => setFontSize(size)}
+                    onClick={() => handleFontSizeChange(size)}
+                    disabled={prefsQuery.isLoading}
                     className={cn(
-                      'rounded-lg px-3 py-2 text-sm transition-all',
+                      'rounded-lg px-3 py-2 text-sm transition-all disabled:opacity-50',
                       fontSize === size
                         ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300'
                         : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'
@@ -291,6 +393,56 @@ export default function SettingsPage() {
                 ))}
               </div>
             </div>
+          </div>
+        </section>
+
+        <section className="mb-6 rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+          <div className="border-b border-slate-200 px-6 py-4 dark:border-slate-700">
+            <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
+              <Monitor className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+              显示模式
+            </h2>
+          </div>
+          <div className="p-6">
+            <div className="mb-4 space-y-3">
+              <label className="flex items-center gap-3">
+                <input
+                  type="radio"
+                  name="display-mode"
+                  checked={einkPreference === 'auto'}
+                  onChange={() => setEinkPreference('auto')}
+                  className="h-5 w-5 text-blue-600"
+                />
+                <span className="text-slate-900 dark:text-white">自动检测设备</span>
+              </label>
+              <label className="flex items-center gap-3">
+                <input
+                  type="radio"
+                  name="display-mode"
+                  checked={einkPreference === 'enabled'}
+                  onChange={() => setEinkPreference('enabled')}
+                  className="h-5 w-5 text-blue-600"
+                />
+                <span className="text-slate-900 dark:text-white">墨水屏模式</span>
+                <span className="text-sm text-slate-500">高对比/无动画/分页</span>
+              </label>
+              <label className="flex items-center gap-3">
+                <input
+                  type="radio"
+                  name="display-mode"
+                  checked={einkPreference === 'disabled'}
+                  onChange={() => setEinkPreference('disabled')}
+                  className="h-5 w-5 text-blue-600"
+                />
+                <span className="text-slate-900 dark:text-white">标准模式</span>
+              </label>
+            </div>
+            <button
+              onClick={autoDetect}
+              className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+            >
+              自动检测设备
+            </button>
           </div>
         </section>
 
@@ -359,9 +511,10 @@ export default function SettingsPage() {
                 </div>
               </div>
               <button
-                onClick={() => setSoundEnabled(!soundEnabled)}
+                onClick={handleSoundToggle}
+                disabled={prefsQuery.isLoading}
                 className={cn(
-                  'relative h-6 w-11 rounded-full transition-colors',
+                  'relative h-6 w-11 rounded-full transition-colors disabled:opacity-50',
                   soundEnabled ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-600'
                 )}
               >
@@ -383,9 +536,10 @@ export default function SettingsPage() {
                 </div>
               </div>
               <button
-                onClick={() => setNotificationsEnabled(!notificationsEnabled)}
+                onClick={handleNotificationsToggle}
+                disabled={prefsQuery.isLoading}
                 className={cn(
-                  'relative h-6 w-11 rounded-full transition-colors',
+                  'relative h-6 w-11 rounded-full transition-colors disabled:opacity-50',
                   notificationsEnabled ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-600'
                 )}
               >

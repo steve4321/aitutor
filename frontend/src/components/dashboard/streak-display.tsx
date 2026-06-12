@@ -1,18 +1,18 @@
 'use client';
 
-import { Flame, Star, Check, X } from 'lucide-react';
+import { Flame, Star, Check, X, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface DayInfo {
   day: string;
   short: string;
-  isToday?: boolean;
 }
 
 interface StreakDisplayProps {
   currentStreak: number;
   longestStreak: number;
   weekData?: boolean[];
+  isLoading?: boolean;
 }
 
 const DAYS: DayInfo[] = [
@@ -28,7 +28,8 @@ const DAYS: DayInfo[] = [
 export function StreakDisplay({
   currentStreak,
   longestStreak,
-  weekData = [true, true, true, true, false, true, true],
+  weekData = [false, false, false, false, false, false, false],
+  isLoading = false,
 }: StreakDisplayProps) {
   const todayIndex = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
 
@@ -73,29 +74,35 @@ export function StreakDisplay({
         </div>
       </div>
 
-      <div className="mb-4 flex justify-between">
-        {DAYS.map((day, index) => {
-          const isActive = weekData[index];
-          const isToday = index === todayIndex;
+      {isLoading ? (
+        <div className="flex items-center justify-center py-4">
+          <Loader2 className="h-6 w-6 animate-spin text-rose-400" />
+        </div>
+      ) : (
+        <div className="mb-4 flex justify-between">
+          {DAYS.map((day, index) => {
+            const isActive = weekData[index];
+            const isToday = index === todayIndex;
 
-          return (
-            <div key={day.day} className="flex flex-col items-center gap-1">
-              <span className="text-xs text-rose-600 dark:text-rose-400">{day.short}</span>
-              <div
-                className={cn(
-                  'flex h-8 w-8 items-center justify-center rounded-full text-xs font-medium transition-all',
-                  isToday && 'ring-2 ring-rose-400 ring-offset-2 dark:ring-offset-slate-900',
-                  isActive
-                    ? 'bg-gradient-to-br from-orange-500 to-rose-500 text-white'
-                    : 'bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400'
-                )}
-              >
-                {isActive ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
+            return (
+              <div key={day.day} className="flex flex-col items-center gap-1">
+                <span className="text-xs text-rose-600 dark:text-rose-400">{day.short}</span>
+                <div
+                  className={cn(
+                    'flex h-8 w-8 items-center justify-center rounded-full text-xs font-medium transition-all',
+                    isToday && 'ring-2 ring-rose-400 ring-offset-2 dark:ring-offset-slate-900',
+                    isActive
+                      ? 'bg-gradient-to-br from-orange-500 to-rose-500 text-white'
+                      : 'bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400'
+                  )}
+                >
+                  {isActive ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       <div className="flex items-center justify-center gap-2 text-sm text-rose-700 dark:text-rose-400">
         <Star className="h-4 w-4" />

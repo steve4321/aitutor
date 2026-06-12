@@ -49,6 +49,10 @@ class User(Base):
         "ParentLink", foreign_keys="ParentLink.student_id", back_populates="student",
         cascade="all, delete-orphan",
     )
+    preferences: Mapped["UserPreferences | None"] = relationship(
+        "UserPreferences", back_populates="user", uselist=False,
+        cascade="all, delete-orphan",
+    )
 
 
 class StudentProfile(Base):
@@ -83,6 +87,21 @@ class StudentProfile(Base):
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
+
+
+class UserPreferences(Base):
+    __tablename__ = "user_preferences"
+
+    user_id: Mapped[UUID] = mapped_column(
+        Uuid(), ForeignKey("users.id", ondelete="CASCADE"), unique=True
+    )
+    language: Mapped[str] = mapped_column(String(10), default="zh-CN")
+    font_size: Mapped[int] = mapped_column(SmallInteger, default=16)
+    sound_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    notifications_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    theme: Mapped[str] = mapped_column(String(20), default="system")
+
+    user: Mapped["User"] = relationship("User", back_populates="preferences")
 
 
 class ParentLink(Base):

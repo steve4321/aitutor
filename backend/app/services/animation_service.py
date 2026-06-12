@@ -22,6 +22,27 @@ from app.schemas.animation import (
 
 logger = logging.getLogger(__name__)
 
+# 模块级缓存: manim 是否可用
+_MANIM_AVAILABLE: bool | None = None
+_MANIM_WARNING_LOGGED: bool = False
+
+
+def check_manim_available() -> bool:
+    """检测 manim 渲染器是否安装在系统 PATH 中。
+
+    结果会被缓存,不会重复调用 shutil.which。
+    """
+    global _MANIM_AVAILABLE
+    if _MANIM_AVAILABLE is None:
+        _MANIM_AVAILABLE = shutil.which("manim") is not None
+        if not _MANIM_AVAILABLE and not _MANIM_WARNING_LOGGED:
+            logger.warning(
+                "manim 未安装在系统 PATH 中,动画渲染将降级为静态文本说明. "
+                "如需启用视频渲染,请安装 manim: pip install manim"
+            )
+            _MANIM_WARNING_LOGGED = True
+    return _MANIM_AVAILABLE
+
 
 def _python_color(hex_color: str) -> str:
     """将 hex 颜色转为 Manim 颜色字符串。Manim 接受 '#RRGGBB' 格式。"""
@@ -486,15 +507,72 @@ async def merge_audio_video(video_path: Path, audio_path: Path, output_path: Pat
     return output_path
 
 
+def _generate_static_steps(description: AnimationTimeline) -> list[str]:
+    """将 AnimationTimeline 转换为文本步骤描述(用于 manim 不可用时的降级)。"""
+    steps: list[str] = []
+    steps.append(f"动画标题: {description.title}")
+    if description.narration:
+        steps.append(f"旁白: {description.narration}")
+
+    elements_by_id: dict[str, AnimationElement] = {e.id: e for e in description.elements}
+
+    steps.append("\n--- 动画步骤 ---")
+    for i, step in enumerate(description.steps, 1):
+        elem = elements_by_id.get(step.target_element_id)
+        elem_desc = elem.type if elem else step.target_element_id
+
+        match step.action:
+            case "create":
+                steps.append(
+                    f"{i}. 创建元素 '{elem_desc}' (持续 {step.duration:.1f}秒)"
+                )
+            case "transform":
+                src = step.params.get("source_element_id", "?")
+                steps.append(f"{i}. 变换元素: {src} → {elem_desc} (持续 {step.duration:.1f}秒)")
+            case "replace":
+                src = step.params.get("source_element_id", "?")
+                steps.append(f"{i}. 替换元素: {src} → {elem_desc} (持续 {step.duration:.1f}秒)")
+            case "move":
+                shift = step.params.get("shift", [0, 0, 0])
+                to_pos = step.params.get("to_position")
+                if to_pos:
+                    steps.append(f"{i}. 移动 '{elem_desc}' 到 {to_pos} (持续 {step.duration:.1f}秒)")
+                else:
+                    steps.append(f"{i}. 平移 '{elem_desc}' {shift} (持续 {step.duration:.1f}秒)")
+            case "highlight":
+                color = step.params.get("color", "?")
+                steps.append(f"{i}. 高亮 '{elem_desc}' (颜色: {color},持续 {step.duration:.1f}秒)")
+            case "fade":
+                steps.append(f"{i}. 淡出 '{elem_desc}' (持续 {step.duration:.1f}秒)")
+            case "write":
+                steps.append(f"{i}. 写入 '{elem_desc}' (持续 {step.duration:.1f}秒)")
+            case "indicate":
+                ind_type = step.params.get("indicate_type", "flash")
+                steps.append(f"{i}. 指示 '{elem_desc}' ({ind_type}, 持续 {step.duration:.1f}秒)")
+            case _:
+                steps.append(f"{i}. 执行动作 '{step.action}' 于 '{elem_desc}' (持续 {step.duration:.1f}秒)")
+
+    return steps
+
+
 async def render_animation_pipeline(
     description: AnimationTimeline,
     output_dir: Path,
     skip_video: bool = False,
     skip_audio: bool = False,
 ) -> AnimationResult:
-    """完整动画渲染管线：生成脚本 → 渲染视频 → 生成音频 → 合并。"""
+    """完整动画渲染管线：生成脚本 → 渲染视频 → 生成音频 → 合并。
+
+    如果 manim 不可用,降级为静态文本说明。
+    """
     output_dir.mkdir(parents=True, exist_ok=True)
     result = AnimationResult()
+
+    if not check_manim_available():
+        result.status = "static"
+        result.static_steps = _generate_static_steps(description)
+        logger.info("manim 不可用,返回静态说明")
+        return result
 
     script, scene_name = generate_manim_script(description)
     script_path = output_dir / f"{scene_name}.py"

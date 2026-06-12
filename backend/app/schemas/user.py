@@ -76,6 +76,24 @@ class ParentLinkResponse(BaseModel):
     parent_name: str | None = None
 
 
+class UserPreferencesResponse(BaseModel):
+    language: str
+    font_size: int
+    sound_enabled: bool
+    notifications_enabled: bool
+    theme: str
+
+    model_config = {"from_attributes": True}
+
+
+class UserPreferencesUpdateRequest(BaseModel):
+    language: str | None = None
+    font_size: int | None = None
+    sound_enabled: bool | None = None
+    notifications_enabled: bool | None = None
+    theme: str | None = None
+
+
 class RegisterRequest(BaseModel):
     username: str = Field(min_length=1, max_length=64)
     email: str | None = Field(default=None, max_length=255)

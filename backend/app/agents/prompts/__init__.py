@@ -11,6 +11,14 @@ from app.agents.prompts.chn_writing import CHN_WRITING_TEMPLATE
 from app.agents.prompts.poetry_teaching import POETRY_TEACHING_TEMPLATE
 from app.agents.prompts.poetry_dictation import POETRY_DICTATION_TEMPLATE
 from app.agents.prompts.poetry_scoring import POETRY_SCORING_TEMPLATE
+from app.agents.prompts.curriculum_recommendation import (
+    CURRICULUM_SESSION_INIT_TEMPLATE,
+    CURRICULUM_PROGRESS_TEMPLATE,
+)
+from app.agents.prompts.ket_speaking import KET_SPEAKING_TEMPLATE
+from app.agents.prompts.chn_poetry_practice import CHN_POETRY_PRACTICE_TEMPLATE
+from app.agents.prompts.amc_math_review import AMC_MATH_REVIEW_TEMPLATE
+from app.agents.prompts.amc_math_diagnostic import AMC_MATH_DIAGNOSTIC_TEMPLATE
 
 _PROMPTS = {
     "math_socratic": MATH_SOCRATIC_TEMPLATE,
@@ -21,6 +29,12 @@ _PROMPTS = {
     "poetry_teaching": POETRY_TEACHING_TEMPLATE,
     "poetry_dictation": POETRY_DICTATION_TEMPLATE,
     "poetry_scoring": POETRY_SCORING_TEMPLATE,
+    "curriculum_session_init": CURRICULUM_SESSION_INIT_TEMPLATE,
+    "curriculum_progress": CURRICULUM_PROGRESS_TEMPLATE,
+    "ket_speaking": KET_SPEAKING_TEMPLATE,
+    "chn_poetry_practice": CHN_POETRY_PRACTICE_TEMPLATE,
+    "amc_math_review": AMC_MATH_REVIEW_TEMPLATE,
+    "amc_math_diagnostic": AMC_MATH_DIAGNOSTIC_TEMPLATE,
 }
 
 

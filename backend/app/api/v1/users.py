@@ -5,11 +5,13 @@ from sqlalchemy import func, select
 
 from app.api.deps import DbSession, get_current_user
 from app.models.learning import LearningSession
-from app.models.user import StudentProfile, User
+from app.models.user import StudentProfile, User, UserPreferences
 from app.schemas.user import (
     ProfileUpdateRequest,
     StudentProfileResponse,
     UserNameUpdateRequest,
+    UserPreferencesResponse,
+    UserPreferencesUpdateRequest,
     UserResponse,
 )
 
@@ -105,3 +107,49 @@ async def update_student_profile(
     await db.commit()
     await db.refresh(profile)
     return await _build_profile_response(db, profile)
+
+
+async def _get_or_create_preferences(
+    db: DbSession, user: User
+) -> UserPreferences:
+    result = await db.execute(
+        select(UserPreferences).where(UserPreferences.user_id == user.id)
+    )
+    prefs = result.scalar_one_or_none()
+    if prefs is None:
+        prefs = UserPreferences(user_id=user.id)
+        db.add(prefs)
+        await db.commit()
+        await db.refresh(prefs)
+    return prefs
+
+
+@router.get("/me/preferences", response_model=UserPreferencesResponse)
+async def get_preferences(
+    db: DbSession,
+    current_user: User = Depends(get_current_user),
+):
+    prefs = await _get_or_create_preferences(db, current_user)
+    return prefs
+
+
+@router.put("/me/preferences", response_model=UserPreferencesResponse)
+async def update_preferences(
+    body: UserPreferencesUpdateRequest,
+    db: DbSession,
+    current_user: User = Depends(get_current_user),
+):
+    prefs = await _get_or_create_preferences(db, current_user)
+    if body.language is not None:
+        prefs.language = body.language
+    if body.font_size is not None:
+        prefs.font_size = body.font_size
+    if body.sound_enabled is not None:
+        prefs.sound_enabled = body.sound_enabled
+    if body.notifications_enabled is not None:
+        prefs.notifications_enabled = body.notifications_enabled
+    if body.theme is not None:
+        prefs.theme = body.theme
+    await db.commit()
+    await db.refresh(prefs)
+    return prefs
