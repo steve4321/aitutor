@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./eink.css";
 
 :root {
   /* Color palette */

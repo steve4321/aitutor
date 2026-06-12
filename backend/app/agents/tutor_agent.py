@@ -27,18 +27,19 @@ async def tutor_node(state: AgentState) -> dict:
     mode_map = {
         ("amc_math", "practice"): "math_socratic",
         ("amc_math", "course"): "math_course",
-        ("amc_math", "review"): "math_socratic",
-        ("amc_math", "diagnostic"): "math_socratic",
+        ("amc_math", "review"): "amc_math_review",
+        ("amc_math", "diagnostic"): "amc_math_diagnostic",
         ("ket_english", "course"): "ket_writing",
         ("ket_english", "practice"): "ket_writing",
         ("ket_english", "review"): "ket_writing",
         ("ket_english", "diagnostic"): "ket_writing",
+        ("ket_english", "speaking"): "ket_speaking",
         ("chn_composition", "course"): "chn_writing",
         ("chn_composition", "practice"): "chn_writing",
         ("chn_composition", "review"): "chn_writing",
         ("chn_composition", "diagnostic"): "chn_writing",
         ("chn_poetry", "course"): "poetry_teaching",
-        ("chn_poetry", "practice"): "poetry_scoring",
+        ("chn_poetry", "practice"): "chn_poetry_practice",
         ("chn_poetry", "review"): "poetry_teaching",
         ("chn_poetry", "diagnostic"): "poetry_scoring",
     }
@@ -148,6 +149,44 @@ def _get_subject_prompt_vars(prompt_key: str, state: AgentState) -> dict:
             "reference_points": ", ".join(problem_data.get("reference_points", problem_data.get("key_points", []))),
             "student_answer": user_message,
             "max_score": problem_data.get("max_score", problem_data.get("points", 10)),
+        }
+
+    if prompt_key == "ket_speaking":
+        return {
+            "speaking_phase": problem_data.get("speaking_phase", "part1_warmup"),
+            "student_response": user_message,
+            "asr_transcript": problem_data.get("asr_transcript", ""),
+        }
+
+    if prompt_key == "chn_poetry_practice":
+        content = lesson_data.get("content", {})
+        return {
+            "poem_title": content.get("title", content.get("poem_title", "未知")),
+            "poet": content.get("poet", "未知"),
+            "dynasty": content.get("dynasty", "未知"),
+            "full_text": content.get("full_text", content.get("text", "")),
+            "practice_mode": problem_data.get("practice_mode", "dictation"),
+            "practice_question": problem_data.get("question_markdown", ""),
+            "student_answer": user_message,
+            "max_score": problem_data.get("max_score", problem_data.get("points", 10)),
+            "chn_grade": student.get("grade_level", 5),
+            "learned_poems": ", ".join(student.get("learned_poems", [])),
+            "mastered_imagery": ", ".join(student.get("mastered_imagery", [])),
+        }
+
+    if prompt_key == "amc_math_review":
+        review_data = state.get("review_data") or {}
+        return {
+            "review_schedule": review_data.get("schedule_summary", "按FSRS调度安排复习"),
+            "due_knowledge_points": ", ".join(review_data.get("due_knowledge_points", [])),
+            "review_history": review_data.get("history_summary", "暂无历史复习记录"),
+        }
+
+    if prompt_key == "amc_math_diagnostic":
+        diagnostic_data = state.get("diagnostic_data") or {}
+        return {
+            "diagnostic_progress": diagnostic_data.get("progress", 1),
+            "student_answer": user_message,
         }
 
     return {}

@@ -17,6 +17,9 @@ export const ROUTES = {
   KET_SPEAKING: '/ket/speaking',
   REPORTS: '/reports',
   SETTINGS: '/settings',
+  PARENT: '/parent',
+  PARENT_REPORTS: '/parent/reports',
+  PARENT_SETTINGS: '/parent/settings',
   LOGIN: '/login',
   REGISTER: '/register',
 } as const;

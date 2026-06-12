@@ -1,0 +1,319 @@
+/* E-Ink Screen Adaptation - Boox 10" (1404×1872, 227 PPI, 16-level grayscale) */
+/* Ref: docs/system-design.md §6.9 */
+
+:root {
+  --eink-bg: #ffffff;
+  --eink-text: #000000;
+  --eink-border: #000000;
+  --eink-accent: #333333;
+  --eink-alt-bg: #eeeeee;
+}
+
+@media (monochrome) {
+  :root {
+    --eink-bg: #ffffff;
+    --eink-text: #000000;
+    --eink-border: #000000;
+    --eink-accent: #333333;
+    --eink-alt-bg: #eeeeee;
+  }
+
+  * {
+    animation: none !important;
+    transition: none !important;
+    box-shadow: none !important;
+    filter: none !important;
+    transform: none !important;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 18px !important;
+    line-height: 1.6 !important;
+  }
+
+  p, h1, h2, h3, h4, h5, h6, span, div, li, td, th, label {
+    color: #000000 !important;
+  }
+
+  img {
+    filter: grayscale(100%) contrast(1.2) !important;
+  }
+
+  button, .btn {
+    border: 2px solid #000 !important;
+    background: #fff !important;
+    color: #000 !important;
+    min-height: 44px !important;
+    font-weight: 600 !important;
+    border-radius: 0 !important;
+    padding: 0.75rem 1rem !important;
+  }
+
+  button:active {
+    background: #000 !important;
+    color: #fff !important;
+  }
+
+  *:hover {}
+
+  *:active {
+    outline: 3px solid #000 !important;
+  }
+
+  input, textarea, select {
+    border: 2px solid #000 !important;
+    border-radius: 0 !important;
+    font-size: 16px !important;
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .animate, .spinner, .loading-dots, .loading-animation {
+    display: none !important;
+  }
+
+  .loading-text-eink, .loading-text-fallback {
+    display: block !important;
+  }
+
+  a {
+    color: #000 !important;
+    text-decoration: underline !important;
+  }
+
+  .progress-bar, .progress-fill {
+    border: 2px solid #000 !important;
+    background: #fff !important;
+  }
+
+  .progress-fill {
+    background: #000 !important;
+  }
+
+  .card, .tutor-surface, .tutor-surface-elevated {
+    border: 2px solid #000 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+  }
+
+  .option-list > li {
+    border: 2px solid #000 !important;
+    margin-bottom: 0.75rem !important;
+    padding: 0.75rem !important;
+  }
+
+  .option-list > li.selected {
+    background: #000 !important;
+    color: #fff !important;
+  }
+
+  .lesson-content {
+    overflow: hidden !important;
+    height: 100vh !important;
+  }
+
+  .lesson-page {
+    display: none !important;
+    height: 100% !important;
+    padding: 1rem !important;
+  }
+
+  .lesson-page.active {
+    display: block !important;
+  }
+
+  .page-nav {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    padding: 0.5rem 1rem !important;
+    background: #fff !important;
+    border-top: 2px solid #000 !important;
+  }
+
+  button, a, .clickable {
+    min-height: 44px !important;
+    min-width: 44px !important;
+  }
+
+  .bottom-nav-text {
+    font-weight: 600 !important;
+  }
+
+  .tab-icon {
+    display: none !important;
+  }
+
+  .dark {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .dark *, .dark ::before, .dark ::after {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border-color: #000000 !important;
+  }
+}
+
+/* Manual toggle: .eink-mode class applies same rules */
+.eink-mode {
+  --eink-bg: #ffffff;
+  --eink-text: #000000;
+  --eink-border: #000000;
+  --eink-accent: #333333;
+  --eink-alt-bg: #eeeeee;
+}
+
+.eink-mode * {
+  animation: none !important;
+  transition: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+  transform: none !important;
+}
+
+.eink-mode body {
+  background: #ffffff !important;
+  color: #000000 !important;
+  font-size: 18px !important;
+  line-height: 1.6 !important;
+}
+
+.eink-mode p, .eink-mode h1, .eink-mode h2, .eink-mode h3,
+.eink-mode h4, .eink-mode h5, .eink-mode h6, .eink-mode span,
+.eink-mode div, .eink-mode li, .eink-mode td, .eink-mode th,
+.eink-mode label {
+  color: #000000 !important;
+}
+
+.eink-mode img {
+  filter: grayscale(100%) contrast(1.2) !important;
+}
+
+.eink-mode button, .eink-mode .btn {
+  border: 2px solid #000 !important;
+  background: #fff !important;
+  color: #000 !important;
+  min-height: 44px !important;
+  font-weight: 600 !important;
+  border-radius: 0 !important;
+  padding: 0.75rem 1rem !important;
+}
+
+.eink-mode button:active {
+  background: #000 !important;
+  color: #fff !important;
+}
+
+.eink-mode *:hover {}
+
+.eink-mode *:active {
+  outline: 3px solid #000 !important;
+}
+
+.eink-mode input, .eink-mode textarea, .eink-mode select {
+  border: 2px solid #000 !important;
+  border-radius: 0 !important;
+  font-size: 16px !important;
+  background: #fff !important;
+  color: #000 !important;
+}
+
+.eink-mode .animate, .eink-mode .spinner,
+.eink-mode .loading-dots, .eink-mode .loading-animation {
+  display: none !important;
+}
+
+.eink-mode .loading-text-eink, .eink-mode .loading-text-fallback {
+  display: block !important;
+}
+
+.eink-mode a {
+  color: #000 !important;
+  text-decoration: underline !important;
+}
+
+.eink-mode .progress-bar, .eink-mode .progress-fill {
+  border: 2px solid #000 !important;
+  background: #fff !important;
+}
+
+.eink-mode .progress-fill {
+  background: #000 !important;
+}
+
+.eink-mode .card, .eink-mode .tutor-surface,
+.eink-mode .tutor-surface-elevated {
+  border: 2px solid #000 !important;
+  box-shadow: none !important;
+  background: #fff !important;
+}
+
+.eink-mode .option-list > li {
+  border: 2px solid #000 !important;
+  margin-bottom: 0.75rem !important;
+  padding: 0.75rem !important;
+}
+
+.eink-mode .option-list > li.selected {
+  background: #000 !important;
+  color: #fff !important;
+}
+
+.eink-mode .lesson-content {
+  overflow: hidden !important;
+  height: 100vh !important;
+}
+
+.eink-mode .lesson-page {
+  display: none !important;
+  height: 100% !important;
+  padding: 1rem !important;
+}
+
+.eink-mode .lesson-page.active {
+  display: block !important;
+}
+
+.eink-mode .page-nav {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  padding: 0.5rem 1rem !important;
+  background: #fff !important;
+  border-top: 2px solid #000 !important;
+}
+
+.eink-mode button, .eink-mode a, .eink-mode .clickable {
+  min-height: 44px !important;
+  min-width: 44px !important;
+}
+
+.eink-mode .tab-icon {
+  display: none !important;
+}
+
+/* Secondary trigger: prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .spinner, .loading-animation {
+    display: none !important;
+  }
+
+  .loading-text-fallback {
+    display: block !important;
+  }
+
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

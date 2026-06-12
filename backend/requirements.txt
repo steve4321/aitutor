@@ -24,7 +24,7 @@ langgraph>=0.2.0
 openai>=1.40.0
 langchain-anthropic>=0.3.0  # for Anthropic-compatible providers (e.g. MiniMax)
 
-# Speech
+# Speech (optional — services degrade gracefully if missing)
 faster-whisper>=1.0.0
 edge-tts>=6.1.0
 

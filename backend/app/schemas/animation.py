@@ -5,6 +5,8 @@
 """
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 
@@ -137,6 +139,9 @@ class AnimationTimeline(BaseModel):
 
 class AnimationResult(BaseModel):
     """渲染管线输出"""
+    status: Literal["video", "static"] = Field(
+        "video", description="渲染状态: video=成功生成视频, static=降级为静态说明"
+    )
     video_path: str | None = None
     audio_path: str | None = None
     merged_path: str | None = None
@@ -144,3 +149,6 @@ class AnimationResult(BaseModel):
     thumbnail_path: str | None = None
     duration_sec: float | None = None
     error: str | None = None
+    static_steps: list[str] | None = Field(
+        None, description="当 manim 不可用时,文本描述的动画步骤列表"
+    )

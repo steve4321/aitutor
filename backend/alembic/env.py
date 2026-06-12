@@ -27,6 +27,7 @@ from app.models import (  # noqa: F401
     StudentProfile,
     Unit,
     User,
+    UserPreferences,
 )
 
 config = context.config

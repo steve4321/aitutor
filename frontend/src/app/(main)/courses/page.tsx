@@ -1,12 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { BookOpen } from 'lucide-react';
 import { api } from '@/lib/api';
 import { ROUTES } from '@/lib/constants';
-import { cn } from '@/lib/utils';
 import type { Course } from '@/types/course';
 
 const SUBJECT_LABELS: Record<string, string> = {
@@ -14,13 +12,6 @@ const SUBJECT_LABELS: Record<string, string> = {
   english: 'KET',
   chinese: '语文',
 };
-
-const SUBJECT_FILTERS = [
-  { label: 'All', value: '' },
-  { label: 'AMC', value: 'math' },
-  { label: 'KET', value: 'english' },
-  { label: '语文', value: 'chinese' },
-];
 
 function CourseCardSkeleton() {
   return (
@@ -37,16 +28,10 @@ function CourseCardSkeleton() {
 
 export default function CoursesPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const [filter, setFilter] = useState(searchParams.get('filter') || '');
 
   const { data: courses = [], isLoading: loading } = useQuery<Course[]>({
-    queryKey: ['courses', filter],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (filter) params.set('subject', filter);
-      return api.get<Course[]>(`/courses?${params.toString()}`);
-    },
+    queryKey: ['courses'],
+    queryFn: () => api.get<Course[]>('/courses'),
   });
 
   return (
@@ -54,23 +39,6 @@ export default function CoursesPage() {
       <div>
         <h1 className="text-2xl font-bold text-foreground">Courses</h1>
         <p className="text-muted-foreground mt-1">Explore and enroll in courses</p>
-      </div>
-
-      <div className="flex gap-2">
-        {SUBJECT_FILTERS.map((f) => (
-          <button
-            key={f.value || 'all'}
-            onClick={() => setFilter(f.value)}
-            className={cn(
-              'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
-              filter === f.value
-                ? 'bg-[var(--color-primary)] text-white'
-                : 'bg-background border border-border text-foreground hover:border-[var(--color-primary)]/50'
-            )}
-          >
-            {f.label}
-          </button>
-        ))}
       </div>
 
       {loading ? (
