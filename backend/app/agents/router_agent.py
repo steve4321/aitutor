@@ -100,6 +100,14 @@ async def router_node(state: AgentState) -> dict:
             "session_mode": "practice",
         }
 
+    if state.get("request_type") == "lesson_progress":
+        return {
+            "intent": "learn",
+            "target_agent": "curriculum",
+            "subject": _infer_subject(state, default="amc_math"),
+            "session_mode": "course",
+        }
+
     user_message = state.get("user_message", "")
     request_type = state.get("request_type", "chat")
 
@@ -131,7 +139,15 @@ async def router_node(state: AgentState) -> dict:
 
 
 def _infer_subject(state: AgentState, default: str = "amc_math") -> str:
-    """Try to infer subject from student profile or enrolled courses."""
+    """Try to infer subject from state data, student profile, or enrolled courses."""
+    problem_data = state.get("problem_data")
+    if problem_data and problem_data.get("subject"):
+        return problem_data["subject"]
+
+    lesson_data = state.get("lesson_data")
+    if lesson_data and lesson_data.get("subject"):
+        return lesson_data["subject"]
+
     student = state.get("student") or {}
     target_exam = student.get("target_exam")
     exam_to_subject = {

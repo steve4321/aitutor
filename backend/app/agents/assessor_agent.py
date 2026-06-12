@@ -1,5 +1,7 @@
 """Assessor node: evaluates answers, scores essays, diagnoses errors."""
 import json
+import logging
+
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from app.agents.llm import get_llm, is_llm_available
@@ -7,6 +9,8 @@ from app.agents.prompts import get_system_prompt
 from app.agents.state import AgentState
 from app.agents.constants import MasteryConstants
 from app.agents.evaluation_helpers import heuristic_evaluate
+
+logger = logging.getLogger(__name__)
 
 
 async def assessor_node(state: AgentState) -> dict:
@@ -61,13 +65,9 @@ async def assessor_node(state: AgentState) -> dict:
 
     # Select prompt based on subject
     prompt_key = _select_assessment_prompt(subject, problem_format)
-    system_prompt = get_system_prompt(
-        prompt_key,
-        problem=problem.get("question_markdown", ""),
-        correct_answer=problem.get("correct_answer", "N/A"),
-        student_answer=answer,
-        student_work="",  # Could be extracted from media
-    )
+    student_work = _extract_student_work(state)
+    prompt_vars = _get_assessor_prompt_vars(prompt_key, state, answer, student_work)
+    system_prompt = get_system_prompt(prompt_key, **prompt_vars)
 
     llm = get_llm("strong")
     messages = [
@@ -96,6 +96,70 @@ async def assessor_node(state: AgentState) -> dict:
             "knowledge_updates": [],
             "model_used": "strong",
         }
+
+
+def _extract_student_work(state: AgentState) -> str:
+    """Try to extract student work content from media attachments."""
+    media = state.get("media")
+    if media and isinstance(media, dict):
+        if media.get("transcription"):
+            return media["transcription"]
+        if media.get("ocr_text"):
+            return media["ocr_text"]
+        if media.get("content"):
+            return media["content"]
+    return ""
+
+
+def _get_assessor_prompt_vars(prompt_key: str, state: AgentState, answer: str, student_work: str) -> dict:
+    """Build prompt variables for the assessor based on the selected prompt template."""
+    problem = state.get("problem_data") or {}
+    student = state.get("student") or {}
+    base = {
+        "student_answer": answer,
+        "student_work": student_work,
+    }
+
+    if prompt_key == "ket_writing":
+        base.update({
+            "task_description": problem.get("question_markdown", ""),
+            "required_points": ", ".join(problem.get("required_points", [])),
+            "student_essay": answer,
+        })
+    elif prompt_key == "chn_writing":
+        grade = student.get("grade_level", 5)
+        grade_chars = {4: (200, 400, 300), 5: (300, 500, 400), 6: (350, 550, 450)}
+        min_c, max_c, target_c = grade_chars.get(grade, (300, 500, 400))
+        base.update({
+            "task_description": problem.get("question_markdown", ""),
+            "writing_type": problem.get("writing_type", problem.get("format", "记叙文")),
+            "min_chars": problem.get("min_chars", min_c),
+            "max_chars": problem.get("max_chars", max_c),
+            "target_chars": problem.get("target_chars", target_c),
+            "chn_grade": problem.get("grade", grade),
+            "student_essay": answer,
+        })
+    elif prompt_key == "poetry_scoring":
+        base.update({
+            "question": problem.get("question_markdown", ""),
+            "reference_points": ", ".join(problem.get("reference_points", problem.get("key_points", []))),
+            "max_score": problem.get("max_score", problem.get("points", 10)),
+        })
+    elif prompt_key == "poetry_dictation":
+        lesson_data = state.get("lesson_data") or {}
+        content = lesson_data.get("content", {})
+        base.update({
+            "full_text": content.get("full_text", content.get("text", "")),
+            "student_dictation": answer,
+            "acceptable_variants": ", ".join(content.get("acceptable_variants", [])),
+        })
+    else:
+        base.update({
+            "problem": problem.get("question_markdown", ""),
+            "correct_answer": problem.get("correct_answer", "N/A"),
+        })
+
+    return base
 
 
 def _select_assessment_prompt(subject: str, problem_format: str) -> str:

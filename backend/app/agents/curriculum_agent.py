@@ -1,9 +1,14 @@
 """Curriculum node: course scheduling, recommendations, FSRS reviews."""
+import logging
+from uuid import UUID
+
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from app.agents.llm import get_llm, is_llm_available
 from app.agents.state import AgentState
 from app.agents.services.problem_selector import select_next_problem
+
+logger = logging.getLogger(__name__)
 
 
 async def curriculum_node(state: AgentState) -> dict:
@@ -74,6 +79,8 @@ async def _handle_next_problem(state, knowledge_states, student) -> dict:
     subject = state.get("subject", "amc_math")
     target_exam = student.get("target_exam", "AMC8")
 
+    session_problem_ids = _get_session_problem_ids(state)
+
     db = state.get("db_session")
     if db is None:
         from app.db.session import async_session_factory
@@ -84,6 +91,7 @@ async def _handle_next_problem(state, knowledge_states, student) -> dict:
                 subject=subject,
                 target_exam=target_exam,
                 knowledge_states=knowledge_states,
+                session_problem_ids=session_problem_ids,
             )
     else:
         problem = await select_next_problem(
@@ -92,6 +100,7 @@ async def _handle_next_problem(state, knowledge_states, student) -> dict:
             subject=subject,
             target_exam=target_exam,
             knowledge_states=knowledge_states,
+            session_problem_ids=session_problem_ids,
         )
 
     if problem:
@@ -106,6 +115,23 @@ async def _handle_next_problem(state, knowledge_states, student) -> dict:
     return {
         "agent_response": "No more problems available for this topic right now. Try a different area!",
     }
+
+
+def _get_session_problem_ids(state) -> list[UUID] | None:
+    """Extract attempted problem IDs from session messages metadata."""
+    session_messages = state.get("session_messages", [])
+    if not session_messages:
+        return None
+    ids = []
+    for msg in session_messages:
+        meta = msg.get("metadata") or msg.get("metadata_") or {}
+        pid = meta.get("problem_id")
+        if pid:
+            try:
+                ids.append(UUID(str(pid)))
+            except (ValueError, AttributeError):
+                continue
+    return ids if ids else None
 
 
 async def _handle_general(state, knowledge_states, student) -> dict:

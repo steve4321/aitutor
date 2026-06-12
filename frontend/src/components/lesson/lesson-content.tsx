@@ -31,7 +31,7 @@ const AnimationPlayer = dynamic(
 
 interface LessonContentProps {
   sections: LessonSection[];
-  onAnswer?: (problemIndex: number, isCorrect: boolean) => void;
+  onAnswer?: (problemIndex: number, isCorrect: boolean, answer?: string, problemId?: string) => void;
 }
 
 export function LessonContent({ sections, onAnswer }: LessonContentProps) {
@@ -72,6 +72,16 @@ export function LessonContent({ sections, onAnswer }: LessonContentProps) {
             return <VoiceInputCard key={idx} prompt={section.voicePrompt || ''} />;
           case 'illustration':
             return <IllustrationCard key={idx} title={section.title} description={section.content || ''} />;
+          case 'audio':
+            return <AudioBlockCard key={idx} url={section.audioUrl || ''} duration={section.audioDuration} transcript={section.audioTranscript} label={section.audioLabel} autoplay={section.audioAutoplay} />;
+          case 'image':
+            return <ImageBlockCard key={idx} url={section.imageUrl || ''} alt={section.imageAlt || ''} caption={section.imageCaption} />;
+          case 'geogebra':
+            return <GeoGebraCard key={idx} materialId={section.geogebraMaterialId} instructions={section.geogebraInstructions || ''} width={section.geogebraWidth} height={section.geogebraHeight} />;
+          case 'divider':
+            return <DividerCard key={idx} variant={section.dividerVariant} label={section.dividerLabel} />;
+          case 'code':
+            return <CodeBlockCard key={idx} code={section.codeContent || ''} language={section.codeLanguage} title={section.title} />;
           default:
             return null;
         }
@@ -154,7 +164,7 @@ function ExampleCard({ problem, solution }: { problem: string; solution: string 
   );
 }
 
-function PracticeCard({ problems, onAnswer }: { problems: PracticeProblem[]; onAnswer?: (idx: number, correct: boolean) => void }) {
+function PracticeCard({ problems, onAnswer }: { problems: PracticeProblem[]; onAnswer?: (idx: number, correct: boolean, answer?: string, problemId?: string) => void }) {
   return (
     <Card className="p-5 border-2 border-[var(--color-warning)]/30 bg-[var(--color-warning-light)]/30">
       <div className="flex items-center gap-2 mb-4">
@@ -175,7 +185,7 @@ function PracticeCard({ problems, onAnswer }: { problems: PracticeProblem[]; onA
   );
 }
 
-function PracticeProblemItem({ problem, index, onAnswer }: { problem: PracticeProblem; index: number; onAnswer?: (idx: number, correct: boolean) => void }) {
+function PracticeProblemItem({ problem, index, onAnswer }: { problem: PracticeProblem; index: number; onAnswer?: (idx: number, correct: boolean, answer?: string, problemId?: string) => void }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const isCorrect = selected === problem.answer;
@@ -183,7 +193,7 @@ function PracticeProblemItem({ problem, index, onAnswer }: { problem: PracticePr
   const handleSubmit = () => {
     if (!selected) return;
     setSubmitted(true);
-    onAnswer?.(index, isCorrect);
+    onAnswer?.(index, isCorrect, selected, problem.problem_id);
   };
 
   return (
@@ -404,6 +414,106 @@ function IllustrationCard({ title, description }: { title?: string; description:
           <p className="text-sm text-[var(--color-foreground)] leading-relaxed">{description}</p>
         </div>
       </div>
+    </Card>
+  );
+}
+
+function AudioBlockCard({ url, duration, transcript, label, autoplay }: { url: string; duration?: number; transcript?: string; label?: string; autoplay?: boolean }) {
+  if (!url) return null;
+  return (
+    <Card className="p-4 border-2 border-teal-200 dark:border-teal-800/50 bg-teal-50/50 dark:bg-teal-950/20">
+      <div className="flex items-start gap-3">
+        <div className="w-10 h-10 rounded-full bg-teal-500 flex items-center justify-center shrink-0">
+          <Volume2 className="w-5 h-5 text-white" />
+        </div>
+        <div className="flex-1">
+          <h3 className="text-sm font-semibold text-teal-700 dark:text-teal-400 mb-1">{label || '音频播放'}</h3>
+          <audio
+            controls
+            src={url}
+            autoPlay={autoplay}
+            className="w-full h-10 mt-1"
+          />
+          {duration != null && (
+            <p className="text-xs text-[var(--color-muted-foreground)] mt-1">时长: {Math.floor(duration / 60)}:{String(duration % 60).padStart(2, '0')}</p>
+          )}
+          {transcript && (
+            <details className="mt-2">
+              <summary className="text-xs text-[var(--color-muted-foreground)] cursor-pointer">显示文本</summary>
+              <p className="mt-1 text-sm text-[var(--color-foreground)] leading-relaxed whitespace-pre-line">{transcript}</p>
+            </details>
+          )}
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function ImageBlockCard({ url, alt, caption }: { url: string; alt: string; caption?: string }) {
+  if (!url) return null;
+  return (
+    <Card className="overflow-hidden p-0">
+      <img src={url} alt={alt} className="w-full object-contain" loading="lazy" />
+      {caption && (
+        <p className="px-4 py-2 text-sm text-[var(--color-muted-foreground)] border-t border-[var(--color-border)]">{caption}</p>
+      )}
+    </Card>
+  );
+}
+
+function GeoGebraCard({ materialId, instructions, width, height }: { materialId?: string; instructions: string; width?: number; height?: number }) {
+  const embedWidth = width ?? 800;
+  const embedHeight = height ?? 500;
+  return (
+    <Card className="overflow-hidden">
+      <div className="p-4">
+        <div className="flex items-start gap-3 mb-3">
+          <div className="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center shrink-0">
+            <Sparkles className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-[var(--color-foreground)]">GeoGebra 互动</h3>
+            {instructions && <p className="text-sm text-[var(--color-muted-foreground)] mt-0.5">{instructions}</p>}
+          </div>
+        </div>
+        {materialId ? (
+          <iframe
+            src={`https://www.geogebra.org/material/iframe/id/${materialId}/width/${embedWidth}/height/${embedHeight}`}
+            width={embedWidth}
+            height={embedHeight}
+            className="w-full border-0 rounded-lg"
+            title="GeoGebra"
+            allowFullScreen
+          />
+        ) : (
+          <div className="flex items-center justify-center bg-[var(--color-surface-muted)] rounded-lg p-8 text-sm text-[var(--color-muted-foreground)]">
+            GeoGebra 组件加载中…
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+}
+
+function DividerCard({ variant, label }: { variant?: 'line' | 'spacing' | 'dots' | 'label'; label?: string }) {
+  if (variant === 'spacing') return <div className="h-6" />;
+  if (variant === 'dots') return <div className="flex items-center justify-center gap-1 py-4"><span className="w-1.5 h-1.5 rounded-full bg-[var(--color-muted-foreground)]" /><span className="w-1.5 h-1.5 rounded-full bg-[var(--color-muted-foreground)]" /><span className="w-1.5 h-1.5 rounded-full bg-[var(--color-muted-foreground)]" /></div>;
+  if (variant === 'label' && label) return <div className="flex items-center gap-3 py-2"><hr className="flex-1 border-[var(--color-border)]" /><span className="text-xs text-[var(--color-muted-foreground)] font-medium">{label}</span><hr className="flex-1 border-[var(--color-border)]" /></div>;
+  return <hr className="border-[var(--color-border)]" />;
+}
+
+function CodeBlockCard({ code, language, title }: { code: string; language?: string; title?: string }) {
+  return (
+    <Card className="overflow-hidden">
+      {(title || language) && (
+        <div className="flex items-center justify-between px-4 py-2 bg-[var(--color-surface-muted)] border-b border-[var(--color-border)]">
+          {title && <span className="text-sm font-medium text-[var(--color-foreground)]">{title}</span>}
+          {language && <span className="text-xs text-[var(--color-muted-foreground)] uppercase">{language}</span>}
+        </div>
+      )}
+      <pre className="p-4 overflow-x-auto text-sm leading-relaxed bg-slate-950 text-slate-100 dark:bg-slate-900 dark:text-slate-200">
+        <code>{code}</code>
+      </pre>
     </Card>
   );
 }

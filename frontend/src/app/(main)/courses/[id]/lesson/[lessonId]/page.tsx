@@ -12,8 +12,9 @@ import { api } from '@/lib/api';
 import { ROUTES } from '@/lib/constants';
 import { renderWithLatex } from '@/lib/render-content';
 import { useChat } from '@/hooks/use-chat';
-import type { LessonDetailResponse, LessonProgressResponse, LessonSection } from '@/types/course';
+import type { LessonDetailResponse, LessonProgressResponse, LessonSection, CourseResponse } from '@/types/course';
 import type { SessionResponse } from '@/types/session';
+import type { AttemptResponse } from '@/types/problem';
 
 export default function LessonPage() {
   const params = useParams();
@@ -31,6 +32,12 @@ export default function LessonPage() {
     queryFn: () => api.get<LessonDetailResponse>(`/lessons/${lessonId}`),
   });
 
+  const { data: course } = useQuery<CourseResponse>({
+    queryKey: ['course', courseId],
+    queryFn: () => api.get<CourseResponse>(`/courses/${courseId}`),
+    enabled: !!courseId,
+  });
+
   useEffect(() => {
     if (lesson) {
       setCompleted(lesson.status === 'completed');
@@ -41,7 +48,7 @@ export default function LessonPage() {
     mutationFn: () =>
       api.post<SessionResponse>('/sessions', {
         session_type: 'lesson',
-        subject: 'math',
+        subject: course?.subject ?? 'math',
         lesson_id: lessonId,
       }),
     onSuccess: (data) => {
@@ -50,11 +57,11 @@ export default function LessonPage() {
   });
 
   useEffect(() => {
-    if (lesson && !sessionId) {
+    if (lesson && course && !sessionId) {
       createSessionMutation.mutate();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lesson]);
+  }, [lesson, course]);
 
   useEffect(() => {
     if (lessonError) {
@@ -62,7 +69,11 @@ export default function LessonPage() {
     }
   }, [lessonError]);
 
-  const { messages, send, isLoading: chatLoading } = useChat({ sessionId, autoCreate: false });
+  const { messages, send, isLoading: chatLoading } = useChat({
+    sessionId,
+    autoCreate: false,
+    subject: course?.subject ?? 'math',
+  });
 
   useEffect(() => {
     return () => {
@@ -74,10 +85,18 @@ export default function LessonPage() {
   }, [sessionId]);
 
   const handleAnswer = useCallback(
-    (_problemIndex: number, _isCorrect: boolean) => {
-      // Inline MCQs have no problem_id; progress is tracked in handleComplete
+    async (_problemIndex: number, _isCorrect: boolean, answer?: string, problemId?: string) => {
+      if (!problemId || !answer) return;
+      try {
+        await api.post<AttemptResponse>(`/problems/${problemId}/attempt`, {
+          answer,
+          session_id: sessionId,
+        });
+      } catch (err) {
+        console.error('[LessonPage] Failed to submit answer:', err);
+      }
     },
-    []
+    [sessionId]
   );
 
   const handleComplete = useCallback(async () => {
@@ -202,10 +221,11 @@ export default function LessonPage() {
               });
               const rawAnswer = block.correct_answer ?? block.answer;
               const ans = typeof rawAnswer === 'string' ? rawAnswer : '';
+              const pid = typeof block.problem_id === 'string' ? block.problem_id : undefined;
               if (q && opts.length > 0) {
                 out.push({
                   type: 'practice',
-                  problems: [{ question: q, options: opts, answer: ans }],
+                  problems: [{ question: q, options: opts, answer: ans, problem_id: pid }],
                   phase,
                 });
               }
@@ -261,6 +281,79 @@ export default function LessonPage() {
                   phase,
                 });
               }
+              break;
+            }
+            case 'audio': {
+              const audioUrl = typeof block.url === 'string' ? block.url : '';
+              const audioDuration = typeof block.duration_sec === 'number' ? block.duration_sec : 0;
+              const audioTranscript = typeof block.transcript === 'string' ? block.transcript : undefined;
+              const audioLabel = typeof block.label === 'string' ? block.label : undefined;
+              const audioAutoplay = typeof block.autoplay === 'boolean' ? block.autoplay : undefined;
+              out.push({
+                type: 'audio',
+                title: audioLabel,
+                audioUrl,
+                audioDuration,
+                audioTranscript,
+                audioLabel,
+                audioAutoplay,
+                phase,
+              });
+              break;
+            }
+            case 'image': {
+              const imgUrl = typeof block.url === 'string' ? block.url : '';
+              const imgAlt = typeof block.alt === 'string' ? block.alt : '';
+              const imgCaption = typeof block.caption === 'string' ? block.caption : undefined;
+              out.push({
+                type: 'image',
+                title: imgCaption,
+                imageUrl: imgUrl,
+                imageAlt: imgAlt,
+                imageCaption: imgCaption,
+                phase,
+              });
+              break;
+            }
+            case 'geogebra': {
+              const ggbMaterialId = typeof block.material_id === 'string' ? block.material_id : undefined;
+              const ggbInstructions = typeof block.instructions === 'string' ? block.instructions : '';
+              const ggbWidth = typeof block.width === 'number' ? block.width : undefined;
+              const ggbHeight = typeof block.height === 'number' ? block.height : undefined;
+              out.push({
+                type: 'geogebra',
+                title: stepTitle,
+                geogebraMaterialId: ggbMaterialId,
+                geogebraInstructions: ggbInstructions,
+                geogebraWidth: ggbWidth,
+                geogebraHeight: ggbHeight,
+                phase,
+              });
+              break;
+            }
+            case 'divider': {
+              const divVariant = typeof block.variant === 'string'
+                ? (block.variant as 'line' | 'spacing' | 'dots' | 'label') : 'line';
+              const divLabel = typeof block.label === 'string' ? block.label : undefined;
+              out.push({
+                type: 'divider',
+                dividerVariant: divVariant,
+                dividerLabel: divLabel,
+                phase,
+              });
+              break;
+            }
+            case 'code': {
+              const codeContent = typeof block.code === 'string' ? block.code : '';
+              const codeLanguage = typeof block.language === 'string' ? block.language : undefined;
+              const codeTitle = typeof block.title === 'string' ? block.title : undefined;
+              out.push({
+                type: 'code',
+                title: codeTitle,
+                codeContent,
+                codeLanguage,
+                phase,
+              });
               break;
             }
             default:
