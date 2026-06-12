@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Clock, ChevronLeft, ChevronRight, CheckCircle2, X, AlertCircle, Lightbulb, Zap } from 'lucide-react';
+import { Clock, ChevronLeft, ChevronRight, CheckCircle2, X, AlertCircle, Lightbulb, Zap, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { renderWithLatex } from '@/lib/render-content';
 import { ProgressBar } from '../course/progress-bar';
@@ -36,6 +36,7 @@ export function PracticeSession({ problems, onComplete, onExit }: PracticeSessio
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [fillAnswer, setFillAnswer] = useState('');
+  const [shortAnswer, setShortAnswer] = useState('');
   const [showResult, setShowResult] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [results, setResults] = useState<Record<string, { correct: boolean; time: number }>>({});
@@ -113,11 +114,25 @@ export function PracticeSession({ problems, onComplete, onExit }: PracticeSessio
     }));
   };
 
+  const handleShortSubmit = () => {
+    if (!shortAnswer.trim() || showResult) return;
+    setShowResult(true);
+    setAnswers((prev) => ({ ...prev, [problem.id]: shortAnswer.trim() }));
+    setResults((prev) => ({
+      ...prev,
+      [problem.id]: {
+        correct: problem.correctAnswer.toLowerCase() === shortAnswer.trim().toLowerCase(),
+        time: 0,
+      },
+    }));
+  };
+
   const handleNext = () => {
     if (currentIndex < problems.length - 1) {
       setCurrentIndex(currentIndex + 1);
       setSelectedAnswer(null);
       setFillAnswer('');
+      setShortAnswer('');
       setShowResult(false);
       setCurrentHintLevel(0);
     } else {
@@ -131,6 +146,7 @@ export function PracticeSession({ problems, onComplete, onExit }: PracticeSessio
       const prevAnswer = answers[problems[currentIndex - 1].id];
       setSelectedAnswer(prevAnswer ?? null);
       setFillAnswer(prevAnswer ?? '');
+      setShortAnswer(prevAnswer ?? '');
       setShowResult(prevAnswer !== undefined);
     }
   };
@@ -290,6 +306,35 @@ export function PracticeSession({ problems, onComplete, onExit }: PracticeSessio
         </div>
       )}
 
+      {problem.type === 'short_answer' && (
+        <div className="mb-6 space-y-4">
+          <textarea
+            value={shortAnswer}
+            onChange={(e) => !showResult && setShortAnswer(e.target.value)}
+            disabled={showResult}
+            placeholder="输入你的答案..."
+            rows={4}
+            className={cn(
+              'w-full resize-none rounded-xl border-2 px-4 py-3 text-slate-900 transition-colors focus:outline-none dark:text-white dark:placeholder:text-slate-500',
+              showResult
+                ? problem.correctAnswer.toLowerCase() === shortAnswer.trim().toLowerCase()
+                  ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/30'
+                  : 'border-rose-500 bg-rose-50 dark:bg-rose-900/30'
+                : 'border-slate-200 focus:border-blue-500 dark:border-slate-700'
+            )}
+          />
+          {!showResult && (
+            <button
+              onClick={handleShortSubmit}
+              disabled={!shortAnswer.trim()}
+              className="w-full rounded-xl bg-blue-600 py-3 font-medium text-white transition-all hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              提交答案
+            </button>
+          )}
+        </div>
+      )}
+
       {showResult && problem.hintLevels.length > 0 && (
         <HintDisplay hints={currentHints} maxLevel={problem.hintLevels.length} />
       )}
@@ -303,17 +348,25 @@ export function PracticeSession({ problems, onComplete, onExit }: PracticeSessio
               : 'bg-rose-50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300'
           )}
         >
-          <div className="mb-2 flex items-center gap-2 font-semibold">
-            {isCorrect ? (
-              <>
-                <CheckCircle2 className="h-5 w-5" />
-                回答正确！
-              </>
-            ) : (
-              <>
-                <AlertCircle className="h-5 w-5" />
-                回答错误
-              </>
+          <div className="mb-2 flex items-center justify-between">
+            <div className="flex items-center gap-2 font-semibold">
+              {isCorrect ? (
+                <>
+                  <CheckCircle2 className="h-5 w-5" />
+                  回答正确！
+                </>
+              ) : (
+                <>
+                  <AlertCircle className="h-5 w-5" />
+                  回答错误
+                </>
+              )}
+            </div>
+            {isCorrect && (
+              <span className="flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-sm font-bold text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
+                <Sparkles className="h-4 w-4" />
+                +{problem.xpReward} XP
+              </span>
             )}
           </div>
           <p className="text-sm">{renderWithLatex(problem.explanation)}</p>

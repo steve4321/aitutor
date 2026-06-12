@@ -166,6 +166,8 @@ def _select_assessment_prompt(subject: str, problem_format: str) -> str:
     """Select the right assessment prompt."""
     if subject == "ket_english" and problem_format in ("essay", "email"):
         return "ket_writing"
+    elif subject == "ket_english" and problem_format == "speaking":
+        return "error_diagnosis"  # Will use LLM to evaluate transcribed response
     elif subject == "chn_composition":
         return "chn_writing"
     elif subject == "chn_poetry" and problem_format == "dictation":
