@@ -51,6 +51,7 @@ export function ProblemCard({
 }: ProblemCardProps) {
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [fillAnswer, setFillAnswer] = useState('');
+  const [shortAnswer, setShortAnswer] = useState('');
   const [showResult, setShowResult] = useState(false);
 
   const handleOptionSelect = (index: number) => {
@@ -64,6 +65,12 @@ export function ProblemCard({
     if (!fillAnswer.trim() || !onAnswer) return;
     setShowResult(true);
     onAnswer(fillAnswer.trim());
+  };
+
+  const handleShortSubmit = () => {
+    if (!shortAnswer.trim() || !onAnswer) return;
+    setShowResult(true);
+    onAnswer(shortAnswer.trim());
   };
 
   const isCorrect =
@@ -179,6 +186,35 @@ export function ProblemCard({
             <button
               onClick={handleFillSubmit}
               disabled={!fillAnswer.trim()}
+              className="w-full rounded-xl bg-blue-600 py-3 font-medium text-white transition-all hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              提交答案
+            </button>
+          )}
+        </div>
+      )}
+
+      {type === 'short_answer' && (
+        <div className="space-y-4">
+          <textarea
+            value={shortAnswer}
+            onChange={(e) => !showResult && setShortAnswer(e.target.value)}
+            disabled={showResult}
+            placeholder="输入你的答案..."
+            rows={4}
+            className={cn(
+              'w-full resize-none rounded-xl border-2 px-4 py-3 text-slate-900 transition-colors focus:outline-none dark:text-white',
+              showResult
+                ? shortAnswer.trim().toLowerCase() === correctAnswer?.toLowerCase()
+                  ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/30'
+                  : 'border-rose-500 bg-rose-50 dark:bg-rose-900/30'
+                : 'border-slate-200 focus:border-blue-500 dark:border-slate-700'
+            )}
+          />
+          {!showResult && (
+            <button
+              onClick={handleShortSubmit}
+              disabled={!shortAnswer.trim()}
               className="w-full rounded-xl bg-blue-600 py-3 font-medium text-white transition-all hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               提交答案

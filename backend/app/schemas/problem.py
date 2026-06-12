@@ -12,6 +12,10 @@ class ProblemResponse(BaseModel):
     options: dict | None
     difficulty: int | None
     estimated_time_sec: int | None
+    hints: list[str] | None = None
+    correct_answer: str | None = None
+    knowledge_point_ids: list[str] | None = None
+    explanation: str | None = None
 
     model_config = {"from_attributes": True}
 
@@ -20,6 +24,7 @@ class AttemptRequest(BaseModel):
     answer: str
     session_id: UUID | None = None
     time_spent_sec: int | None = None
+    hint_level: int = 0
 
 
 class AttemptResponse(BaseModel):

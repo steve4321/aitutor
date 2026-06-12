@@ -71,6 +71,7 @@ async def submit_attempt(
         request_type="attempt",
         problem_id=problem_id,
         student_answer=body.answer,
+        hint_level=body.hint_level,
         db_session=db,
     )
 
