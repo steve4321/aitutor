@@ -33,6 +33,7 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
     initialSessionId ?? null
   );
   const inFlightRef = useRef(false);
+  const hadInitialSession = useRef(initialSessionId != null);
 
   const send = useCallback(
     async (content: string) => {
@@ -102,7 +103,16 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
     }
   }, [sessionId]);
 
+  // Sync external sessionId prop into local state when it changes
   useEffect(() => {
+    if (initialSessionId) {
+      setSessionId(initialSessionId);
+    }
+  }, [initialSessionId]);
+
+  useEffect(() => {
+    // Skip auto-create when a session was explicitly provided
+    if (hadInitialSession.current) return;
     if (autoCreate && !sessionId) {
       api
         .post<{ id: string }>('/sessions', {
@@ -114,7 +124,7 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
           console.warn('[useChat] Auto-create session failed, will create on first message:', err);
         });
     }
-  }, [autoCreate, sessionId]);
+  }, [autoCreate, sessionId, subject]);
 
   return { messages, isLoading, error, sessionId, send, clear, reload };
 }

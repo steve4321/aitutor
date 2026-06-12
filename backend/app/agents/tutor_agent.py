@@ -1,4 +1,5 @@
 """Tutor node: core teaching conversation with subject-specific strategies."""
+import json
 import logging
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
@@ -43,19 +44,22 @@ async def tutor_node(state: AgentState) -> dict:
     }
     prompt_key = mode_map.get((subject, session_mode), "math_socratic")
 
-    system_prompt = get_system_prompt(
-        prompt_key,
-        student_name=student.get("name", "同学"),
-        grade_level=student.get("grade_level", 5),
-        target_exam=student.get("target_exam", "AMC8"),
-        mastery_level=_get_mastery_summary(state),
-        mastered_kps=", ".join(student.get("mastered_kps", [])[:10]),
-        weak_areas=", ".join(student.get("weak_areas", [])[:5]),
-        problem_markdown=_get_problem_text(state),
-        correct_answer=_get_correct_answer(state),
-        reference_solutions=_get_solutions(state),
-        hint_level=state.get("hint_level", 0),
-    )
+    base_vars = {
+        "student_name": student.get("name", "同学"),
+        "grade_level": student.get("grade_level", 5),
+        "target_exam": student.get("target_exam", "AMC8"),
+        "mastery_level": _get_mastery_summary(state),
+        "mastered_kps": ", ".join(student.get("mastered_kps", [])[:10]),
+        "weak_areas": ", ".join(student.get("weak_areas", [])[:5]),
+        "problem_markdown": _get_problem_text(state),
+        "correct_answer": _get_correct_answer(state),
+        "reference_solutions": _get_solutions(state),
+        "hint_level": state.get("hint_level", 0),
+    }
+
+    base_vars.update(_get_subject_prompt_vars(prompt_key, state))
+
+    system_prompt = get_system_prompt(prompt_key, **base_vars)
 
     messages = [SystemMessage(content=system_prompt)]
     for msg in state.get("session_messages", [])[-10:]:
@@ -87,6 +91,66 @@ def _get_mastery_summary(state: AgentState) -> str:
         return "新学生，尚无掌握度数据"
     levels = [ks["mastery_level"] for ks in kstates[:5]]
     return f"最近知识点掌握度: {', '.join(levels)}"
+
+
+def _get_subject_prompt_vars(prompt_key: str, state: AgentState) -> dict:
+    """Extract template-specific variables from state for the given prompt."""
+    lesson_data = state.get("lesson_data") or {}
+    problem_data = state.get("problem_data") or {}
+    student = state.get("student") or {}
+    user_message = state.get("user_message", "")
+
+    if prompt_key == "math_course":
+        content = lesson_data.get("content", {})
+        return {
+            "knowledge_point_name": content.get("knowledge_point_name", lesson_data.get("title", "未知知识点")),
+            "lesson_content_json": json.dumps(content, ensure_ascii=False) if content else "无课程内容",
+            "current_step": lesson_data.get("current_step", "introduction"),
+        }
+
+    if prompt_key == "ket_writing":
+        return {
+            "task_description": problem_data.get("question_markdown", ""),
+            "required_points": ", ".join(problem_data.get("required_points", [])),
+            "student_essay": user_message,
+        }
+
+    if prompt_key == "chn_writing":
+        grade = student.get("grade_level", 5)
+        grade_chars = {4: (200, 400, 300), 5: (300, 500, 400), 6: (350, 550, 450)}
+        min_c, max_c, target_c = grade_chars.get(grade, (300, 500, 400))
+        return {
+            "task_description": problem_data.get("question_markdown", ""),
+            "writing_type": problem_data.get("writing_type", problem_data.get("format", "记叙文")),
+            "min_chars": problem_data.get("min_chars", min_c),
+            "max_chars": problem_data.get("max_chars", max_c),
+            "target_chars": problem_data.get("target_chars", target_c),
+            "chn_grade": problem_data.get("grade", grade),
+            "student_essay": user_message,
+        }
+
+    if prompt_key == "poetry_teaching":
+        content = lesson_data.get("content", {})
+        return {
+            "poem_title": content.get("title", content.get("poem_title", "未知")),
+            "poet": content.get("poet", "未知"),
+            "dynasty": content.get("dynasty", "未知"),
+            "full_text": content.get("full_text", content.get("text", "")),
+            "current_phase": lesson_data.get("current_step", lesson_data.get("current_phase", "read_poem")),
+            "chn_grade": student.get("grade_level", 5),
+            "learned_poems": ", ".join(student.get("learned_poems", [])),
+            "mastered_imagery": ", ".join(student.get("mastered_imagery", [])),
+        }
+
+    if prompt_key == "poetry_scoring":
+        return {
+            "question": problem_data.get("question_markdown", ""),
+            "reference_points": ", ".join(problem_data.get("reference_points", problem_data.get("key_points", []))),
+            "student_answer": user_message,
+            "max_score": problem_data.get("max_score", problem_data.get("points", 10)),
+        }
+
+    return {}
 
 
 def _get_problem_text(state: AgentState) -> str:

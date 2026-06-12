@@ -1,5 +1,9 @@
 """Prompt template registry."""
+import logging
+
 from app.agents.prompts.math_socratic import MATH_SOCRATIC_TEMPLATE
+
+logger = logging.getLogger(__name__)
 from app.agents.prompts.math_course import MATH_COURSE_TEMPLATE
 from app.agents.prompts.ket_writing import KET_WRITING_TEMPLATE
 from app.agents.prompts.error_diagnosis import ERROR_DIAGNOSIS_TEMPLATE
@@ -22,6 +26,7 @@ _PROMPTS = {
 
 class _SafeDict(dict):
     def __missing__(self, key):
+        logger.warning(f"Missing prompt variable: {key}")
         return f"{{{{{key}}}}}"
 
 

@@ -57,11 +57,13 @@ export interface PracticeProblem {
   question: string;
   options: string[];
   answer: string;
+  problem_id?: string;
 }
 
 export interface LessonSection {
   type: 'introduction' | 'concept' | 'example' | 'practice' | 'summary' | 'animation'
-    | 'text' | 'formula' | 'expandable' | 'interactive_table' | 'voice_input' | 'illustration';
+    | 'text' | 'formula' | 'expandable' | 'interactive_table' | 'voice_input' | 'illustration'
+    | 'audio' | 'image' | 'geogebra' | 'divider' | 'code';
   title?: string;
   content?: string;
   variant?: string;
@@ -83,6 +85,27 @@ export interface LessonSection {
   voicePrompt?: string;
   /** Phase label from step */
   phase?: string;
+  /** For audio blocks */
+  audioUrl?: string;
+  audioDuration?: number;
+  audioTranscript?: string;
+  audioLabel?: string;
+  audioAutoplay?: boolean;
+  /** For image blocks */
+  imageUrl?: string;
+  imageAlt?: string;
+  imageCaption?: string;
+  /** For geogebra blocks */
+  geogebraMaterialId?: string;
+  geogebraInstructions?: string;
+  geogebraWidth?: number;
+  geogebraHeight?: number;
+  /** For divider blocks */
+  dividerVariant?: 'line' | 'spacing' | 'dots' | 'label';
+  dividerLabel?: string;
+  /** For code blocks */
+  codeContent?: string;
+  codeLanguage?: string;
 }
 
 /** Enriched lesson detail returned by GET /lessons/:id */
