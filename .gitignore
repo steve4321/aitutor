@@ -43,6 +43,3 @@ frontend/.env.local
 # Cache directories
 backend/.pytest_cache/
 backend/.ruff_cache/
-
-# Generated animation assets
-backend/static/animations/

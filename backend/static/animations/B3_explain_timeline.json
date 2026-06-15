@@ -1,0 +1,472 @@
+{
+  "title": "面积法证明勾股定理",
+  "width": 1280,
+  "height": 720,
+  "fps": 30,
+  "background_color": "#1a1a2e",
+  "elements": [
+    {
+      "id": "title_text",
+      "type": "text_label",
+      "config": {
+        "text": "勾股定理的奥秘",
+        "font_size": 40,
+        "color": "#FFFFFF",
+        "position": [
+          0,
+          3.3,
+          0
+        ]
+      },
+      "layer": 0
+    },
+    {
+      "id": "subtitle_text",
+      "type": "text_label",
+      "config": {
+        "text": "面积法证明",
+        "font_size": 26,
+        "color": "#58C4DD",
+        "position": [
+          0,
+          2.7,
+          0
+        ]
+      },
+      "layer": 0
+    },
+    {
+      "id": "right_triangle",
+      "type": "geometric_shape",
+      "config": {
+        "shape_type": "triangle",
+        "vertices": [
+          [
+            -2,
+            -1
+          ],
+          [
+            1,
+            -1
+          ],
+          [
+            -2,
+            2
+          ]
+        ],
+        "stroke_color": "#58C4DD",
+        "stroke_width": 3.0,
+        "fill_color": "#58C4DD",
+        "fill_opacity": 0.3
+      },
+      "layer": 1
+    },
+    {
+      "id": "vertex_A",
+      "type": "point",
+      "config": {
+        "position": [
+          -2,
+          -1
+        ],
+        "radius": 0.06,
+        "color": "#58C4DD"
+      },
+      "layer": 2
+    },
+    {
+      "id": "vertex_B",
+      "type": "point",
+      "config": {
+        "position": [
+          1,
+          -1
+        ],
+        "radius": 0.06,
+        "color": "#58C4DD"
+      },
+      "layer": 2
+    },
+    {
+      "id": "vertex_C",
+      "type": "point",
+      "config": {
+        "position": [
+          -2,
+          2
+        ],
+        "radius": 0.06,
+        "color": "#58C4DD"
+      },
+      "layer": 2
+    },
+    {
+      "id": "right_angle_mark",
+      "type": "geometric_shape",
+      "config": {
+        "shape_type": "rectangle",
+        "width": 0.4,
+        "height": 0.4,
+        "center": [
+          -2,
+          -1,
+          0
+        ],
+        "stroke_color": "#FFFF00",
+        "stroke_width": 2.0,
+        "fill_opacity": 0.0
+      },
+      "layer": 2
+    },
+    {
+      "id": "side_a_label",
+      "type": "text_label",
+      "config": {
+        "text": "$a = 3$",
+        "font_size": 28,
+        "color": "#27AE60",
+        "position": [
+          -0.3,
+          -1.6,
+          0
+        ]
+      },
+      "layer": 2
+    },
+    {
+      "id": "side_b_label",
+      "type": "text_label",
+      "config": {
+        "text": "$b = 4$",
+        "font_size": 28,
+        "color": "#F39C12",
+        "position": [
+          -2.7,
+          0.5,
+          0
+        ]
+      },
+      "layer": 2
+    },
+    {
+      "id": "side_c_label",
+      "type": "text_label",
+      "config": {
+        "text": "$c = 5$",
+        "font_size": 28,
+        "color": "#E74C3C",
+        "position": [
+          0.2,
+          1.3,
+          0
+        ]
+      },
+      "layer": 2
+    },
+    {
+      "id": "square_a",
+      "type": "geometric_shape",
+      "config": {
+        "shape_type": "rectangle",
+        "width": 3.0,
+        "height": 3.0,
+        "center": [
+          -0.5,
+          -2.5,
+          0
+        ],
+        "stroke_color": "#27AE60",
+        "stroke_width": 3.0,
+        "fill_color": "#27AE60",
+        "fill_opacity": 0.25
+      },
+      "layer": 1
+    },
+    {
+      "id": "square_a_label",
+      "type": "text_label",
+      "config": {
+        "text": "$a^2 = 9$",
+        "font_size": 32,
+        "color": "#27AE60",
+        "position": [
+          -0.5,
+          -2.5,
+          0
+        ]
+      },
+      "layer": 2
+    },
+    {
+      "id": "square_b",
+      "type": "geometric_shape",
+      "config": {
+        "shape_type": "rectangle",
+        "width": 4.0,
+        "height": 4.0,
+        "center": [
+          -4.0,
+          0.5,
+          0
+        ],
+        "stroke_color": "#F39C12",
+        "stroke_width": 3.0,
+        "fill_color": "#F39C12",
+        "fill_opacity": 0.25
+      },
+      "layer": 1
+    },
+    {
+      "id": "square_b_label",
+      "type": "text_label",
+      "config": {
+        "text": "$b^2 = 16$",
+        "font_size": 32,
+        "color": "#F39C12",
+        "position": [
+          -4.0,
+          0.5,
+          0
+        ]
+      },
+      "layer": 2
+    },
+    {
+      "id": "square_c",
+      "type": "geometric_shape",
+      "config": {
+        "shape_type": "rectangle",
+        "width": 3.5,
+        "height": 3.5,
+        "center": [
+          3.5,
+          0.5,
+          0
+        ],
+        "stroke_color": "#E74C3C",
+        "stroke_width": 3.0,
+        "fill_color": "#E74C3C",
+        "fill_opacity": 0.25
+      },
+      "layer": 1
+    },
+    {
+      "id": "square_c_label",
+      "type": "text_label",
+      "config": {
+        "text": "$c^2 = 25$",
+        "font_size": 32,
+        "color": "#E74C3C",
+        "position": [
+          3.5,
+          0.5,
+          0
+        ]
+      },
+      "layer": 2
+    },
+    {
+      "id": "equation_steps",
+      "type": "equation_step",
+      "config": {
+        "expressions": [
+          "S_a + S_b = S_c",
+          "a^2 + b^2 = c^2",
+          "3^2 + 4^2 = 5^2",
+          "9 + 16 = 25",
+          "25 = 25 \\checkmark"
+        ],
+        "font_size": 28,
+        "color": "#FFFFFF",
+        "highlight_color": "#FFFF00",
+        "position": [
+          3.5,
+          -2.5,
+          0
+        ]
+      },
+      "layer": 3
+    },
+    {
+      "id": "conclusion_text",
+      "type": "text_label",
+      "config": {
+        "text": "$a^2 + b^2 = c^2$",
+        "font_size": 48,
+        "color": "#FFFF00",
+        "position": [
+          0,
+          3.0,
+          0
+        ]
+      },
+      "layer": 4
+    }
+  ],
+  "steps": [
+    {
+      "time_start": 0,
+      "duration": 2.0,
+      "action": "write",
+      "target_element_id": "title_text",
+      "params": {}
+    },
+    {
+      "time_start": 1.0,
+      "duration": 1.5,
+      "action": "write",
+      "target_element_id": "subtitle_text",
+      "params": {}
+    },
+    {
+      "time_start": 2.5,
+      "duration": 2.0,
+      "action": "create",
+      "target_element_id": "right_triangle",
+      "params": {}
+    },
+    {
+      "time_start": 3.0,
+      "duration": 0.8,
+      "action": "create",
+      "target_element_id": "vertex_A",
+      "params": {}
+    },
+    {
+      "time_start": 3.2,
+      "duration": 0.8,
+      "action": "create",
+      "target_element_id": "vertex_B",
+      "params": {}
+    },
+    {
+      "time_start": 3.4,
+      "duration": 0.8,
+      "action": "create",
+      "target_element_id": "vertex_C",
+      "params": {}
+    },
+    {
+      "time_start": 4.0,
+      "duration": 1.0,
+      "action": "create",
+      "target_element_id": "right_angle_mark",
+      "params": {}
+    },
+    {
+      "time_start": 5.0,
+      "duration": 1.0,
+      "action": "write",
+      "target_element_id": "side_a_label",
+      "params": {}
+    },
+    {
+      "time_start": 5.5,
+      "duration": 1.0,
+      "action": "write",
+      "target_element_id": "side_b_label",
+      "params": {}
+    },
+    {
+      "time_start": 6.0,
+      "duration": 1.0,
+      "action": "write",
+      "target_element_id": "side_c_label",
+      "params": {}
+    },
+    {
+      "time_start": 7.5,
+      "duration": 2.0,
+      "action": "create",
+      "target_element_id": "square_a",
+      "params": {}
+    },
+    {
+      "time_start": 8.0,
+      "duration": 1.5,
+      "action": "write",
+      "target_element_id": "square_a_label",
+      "params": {}
+    },
+    {
+      "time_start": 9.5,
+      "duration": 2.0,
+      "action": "create",
+      "target_element_id": "square_b",
+      "params": {}
+    },
+    {
+      "time_start": 10.0,
+      "duration": 1.5,
+      "action": "write",
+      "target_element_id": "square_b_label",
+      "params": {}
+    },
+    {
+      "time_start": 11.5,
+      "duration": 2.0,
+      "action": "create",
+      "target_element_id": "square_c",
+      "params": {}
+    },
+    {
+      "time_start": 12.0,
+      "duration": 1.5,
+      "action": "write",
+      "target_element_id": "square_c_label",
+      "params": {}
+    },
+    {
+      "time_start": 14.0,
+      "duration": 1.5,
+      "action": "indicate",
+      "target_element_id": "square_a",
+      "params": {
+        "indicate_type": "circumscribe"
+      }
+    },
+    {
+      "time_start": 15.5,
+      "duration": 1.5,
+      "action": "indicate",
+      "target_element_id": "square_b",
+      "params": {
+        "indicate_type": "circumscribe"
+      }
+    },
+    {
+      "time_start": 17.0,
+      "duration": 1.5,
+      "action": "indicate",
+      "target_element_id": "square_c",
+      "params": {
+        "indicate_type": "circumscribe"
+      }
+    },
+    {
+      "time_start": 19.0,
+      "duration": 6.0,
+      "action": "create",
+      "target_element_id": "equation_steps",
+      "params": {}
+    },
+    {
+      "time_start": 25.5,
+      "duration": 2.5,
+      "action": "write",
+      "target_element_id": "conclusion_text",
+      "params": {}
+    },
+    {
+      "time_start": 28.0,
+      "duration": 2.0,
+      "action": "highlight",
+      "target_element_id": "conclusion_text",
+      "params": {
+        "color": "#FFFF00"
+      }
+    }
+  ],
+  "narration": "同学们好！今天我们来探索勾股定理的奥秘。勾股定理说，在一个直角三角形中，两条直角边的平方和等于斜边的平方。我们来用面积法验证它！首先，画一个直角三角形，三条边分别是 a 等于 3，b 等于 4，c 等于 5。注意看这里有一个直角。接下来，在每条边上都构造一个正方形。在 a 边上的正方形面积是 a 的平方，等于 9；在 b 边上的正方形面积是 b 的平方，等于 16；在 c 边上的正方形面积是 c 的平方，等于 25。现在我们用面积来思考：两个小正方形的面积加起来，9 加 16 等于 25，正好等于大正方形的面积！这就是勾股定理：a 的平方加 b 的平方等于 c 的平方。这一定理在数学、建筑、工程中都有广泛的应用，是 AMC 8 数学竞赛中的常考点哦！",
+  "voice": "zh-CN-YunxiNeural"
+}
