@@ -169,5 +169,42 @@ export const api = {
   },
 };
 
+export async function fetchBinary(endpoint: string, options: RequestOptions = {}): Promise<Blob> {
+  const url = `${API_BASE_URL}${endpoint}`;
+  const token = getToken();
+  const { signal, ...restOptions } = options;
+  const headers: Record<string, string> = {
+    ...(restOptions.headers as Record<string, string>),
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  let response = await fetch(url, { ...restOptions, headers, signal });
+
+  if (response.status === 401 && !endpoint.endsWith('/auth/refresh')) {
+    const newToken = await refreshAccessToken();
+    if (newToken) {
+      headers['Authorization'] = `Bearer ${newToken}`;
+      response = await fetch(url, { ...restOptions, headers, signal });
+    } else {
+      clearTokens();
+      throw new AuthError('Authentication required');
+    }
+  }
+
+  if (!response.ok) {
+    let errorData: unknown;
+    try {
+      errorData = await response.json();
+    } catch {
+      errorData = await response.text();
+    }
+    throw new ApiError(`API Error: ${response.status}`, response.status, errorData);
+  }
+
+  return response.blob();
+}
+
 export { ApiError, AuthError };
 export default api;

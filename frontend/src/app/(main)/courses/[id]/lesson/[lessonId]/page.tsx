@@ -462,6 +462,8 @@ export default function LessonPage() {
         <LessonContent
           sections={sections}
           onAnswer={handleAnswer}
+          sessionId={sessionId}
+          subject={course?.subject ?? 'math'}
         />
 
         <div className="mt-2">
@@ -471,7 +473,12 @@ export default function LessonPage() {
             className="h-48 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-muted)]"
           />
           <div className="mt-2">
-            <ChatInput onSend={send} disabled={chatLoading} placeholder="输入问题，向AI老师提问..." />
+            <ChatInput
+              onSend={send}
+              disabled={chatLoading}
+              placeholder="输入问题，向AI老师提问..."
+              language={course?.subject === 'ket' ? 'en' : 'zh'}
+            />
           </div>
         </div>
       </div>

@@ -3,15 +3,24 @@
 import { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import { Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { VoiceRecorder } from '@/components/ui/voice-recorder';
 
 interface ChatInputProps {
   onSend: (message: string) => void;
   disabled?: boolean;
   placeholder?: string;
+  language?: string;
 }
 
-export function ChatInput({ onSend, disabled, placeholder }: ChatInputProps) {
+export function ChatInput({ onSend, disabled, placeholder, language = 'zh' }: ChatInputProps) {
   const [message, setMessage] = useState('');
+  const [voiceAvailable, setVoiceAvailable] = useState(false);
+
+  useEffect(() => {
+    if (typeof navigator !== 'undefined' && navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function') {
+      setVoiceAvailable(true);
+    }
+  }, []);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -55,18 +64,29 @@ export function ChatInput({ onSend, disabled, placeholder }: ChatInputProps) {
           )}
         />
       </div>
-      <button
-        onClick={handleSend}
-        disabled={!message.trim() || disabled}
-        className={cn(
-          'flex h-12 w-12 items-center justify-center rounded-xl transition-all',
-          message.trim() && !disabled
-            ? 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)]'
-            : 'bg-[var(--color-surface-muted)] text-[var(--color-muted-foreground)] cursor-not-allowed'
+      <div className="flex shrink-0 gap-2">
+        <button
+          onClick={handleSend}
+          disabled={!message.trim() || disabled}
+          aria-label="发送消息"
+          className={cn(
+            'flex h-12 w-12 items-center justify-center rounded-xl transition-all',
+            message.trim() && !disabled
+              ? 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)]'
+              : 'bg-[var(--color-surface-muted)] text-[var(--color-muted-foreground)] cursor-not-allowed'
+          )}
+        >
+          <Send className="h-5 w-5" />
+        </button>
+        {voiceAvailable && (
+          <VoiceRecorder
+            onTranscript={(text) => setMessage(text)}
+            language={language}
+            disabled={disabled}
+            size="sm"
+          />
         )}
-      >
-        <Send className="h-5 w-5" />
-      </button>
+      </div>
     </div>
   );
 }

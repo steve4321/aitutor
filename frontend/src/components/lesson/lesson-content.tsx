@@ -1,12 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, ChevronUp, Check, X, BookOpen, Lightbulb, Target, FileText, Sparkles, Play, Volume2, Image, Table, ChevronRight } from 'lucide-react';
+import { VoiceRecorder } from '@/components/ui/voice-recorder';
+import { ChevronDown, ChevronUp, Check, X, BookOpen, Lightbulb, Target, FileText, Sparkles, Play, Volume2, Image, Table, ChevronRight, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { renderWithLatex, renderMarkdownWithLatex } from '@/lib/render-content';
+import { renderWithLatex, renderMarkdownWithLatex, stripLatexForSpeech } from '@/lib/render-content';
+import { useChat } from '@/hooks/use-chat';
+import { useTTS } from '@/hooks/use-tts';
 import type { PracticeProblem, LessonSection } from '@/types/course';
 
 const KatexRenderer = dynamic(
@@ -32,9 +35,11 @@ const AnimationPlayer = dynamic(
 interface LessonContentProps {
   sections: LessonSection[];
   onAnswer?: (problemIndex: number, isCorrect: boolean, answer?: string, problemId?: string) => void;
+  sessionId?: string | null;
+  subject?: string;
 }
 
-export function LessonContent({ sections, onAnswer }: LessonContentProps) {
+export function LessonContent({ sections, onAnswer, sessionId, subject }: LessonContentProps) {
   return (
     <div className="space-y-4">
       {sections.map((section, idx) => {
@@ -69,7 +74,7 @@ export function LessonContent({ sections, onAnswer }: LessonContentProps) {
           case 'interactive_table':
             return <TableCard key={idx} title={section.title} headers={section.tableHeaders || []} rows={section.tableRows || []} />;
           case 'voice_input':
-            return <VoiceInputCard key={idx} prompt={section.voicePrompt || ''} />;
+            return <VoiceInputCard key={idx} prompt={section.voicePrompt || ''} sessionId={sessionId} subject={subject} />;
           case 'illustration':
             return <IllustrationCard key={idx} title={section.title} description={section.content || ''} />;
           case 'audio':
@@ -385,7 +390,63 @@ function TableCard({ title, headers, rows }: { title?: string; headers: string[]
   );
 }
 
-function VoiceInputCard({ prompt }: { prompt: string }) {
+function VoiceInputCard({ prompt, sessionId, subject }: { prompt: string; sessionId?: string | null; subject?: string }) {
+  const [rounds, setRounds] = useState<Array<{ user: string; ai: string | null; speaking?: boolean }>>([]);
+  const [currentError, setCurrentError] = useState<string | null>(null);
+  const [isLoadingAi, setIsLoadingAi] = useState(false);
+
+  const { speak, isSpeaking, loading: ttsLoading, stop: stopSpeaking } = useTTS();
+  const { messages, send } = useChat({
+    sessionId: sessionId ?? undefined,
+    autoCreate: false,
+    subject: subject ?? 'math',
+  });
+
+  const handlePromptRead = useCallback(() => {
+    if (isSpeaking) {
+      stopSpeaking();
+    } else if (!ttsLoading) {
+      speak(stripLatexForSpeech(prompt));
+    }
+  }, [prompt, isSpeaking, ttsLoading, stopSpeaking, speak]);
+
+  const handleTranscript = useCallback(
+    async (text: string) => {
+      setCurrentError(null);
+      setRounds((prev) => [...prev, { user: text, ai: null }]);
+      setIsLoadingAi(true);
+      try {
+        await send(text);
+      } catch (err) {
+        setCurrentError(err instanceof Error ? err.message : '发送失败，请重试');
+      } finally {
+        setIsLoadingAi(false);
+      }
+    },
+    [send]
+  );
+
+  const handlePlayAiResponse = useCallback(
+    (text: string) => {
+      speak(stripLatexForSpeech(text));
+    },
+    [speak]
+  );
+
+  const lastAiMessage = messages.length > 0 ? messages[messages.length - 1] : null;
+  useEffect(() => {
+    if (lastAiMessage && lastAiMessage.role === 'assistant') {
+      setRounds((prev) => {
+        if (prev.length === 0) return prev;
+        const lastRound = prev[prev.length - 1];
+        if (lastRound.ai !== null) return prev;
+        const updated = [...prev];
+        updated[updated.length - 1] = { ...lastRound, ai: lastAiMessage.content };
+        return updated;
+      });
+    }
+  }, [lastAiMessage]);
+
   return (
     <Card className="p-4 border-2 border-green-200 dark:border-green-800/50 bg-green-50/50 dark:bg-green-950/20">
       <div className="flex items-start gap-3">
@@ -393,10 +454,66 @@ function VoiceInputCard({ prompt }: { prompt: string }) {
           <Volume2 className="w-5 h-5 text-white" />
         </div>
         <div className="flex-1">
-          <h3 className="text-sm font-semibold text-green-700 dark:text-green-400 mb-1">语音互动</h3>
+          <div className="flex items-center gap-2 mb-1">
+            <h3 className="text-sm font-semibold text-green-700 dark:text-green-400">语音互动</h3>
+            <button
+              onClick={handlePromptRead}
+              disabled={ttsLoading}
+              className={cn(
+                'flex items-center gap-1 text-xs px-2 py-0.5 rounded-full transition-all',
+                ttsLoading && 'opacity-50 cursor-wait',
+                isSpeaking
+                  ? 'bg-green-200 dark:bg-green-800 text-green-700 dark:text-green-300'
+                  : 'bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-800'
+              )}
+            >
+              <Volume2 className="w-3 h-3" />
+              {ttsLoading ? '加载中...' : isSpeaking ? '停止' : '朗读'}
+            </button>
+          </div>
           <p className="text-base text-[var(--color-foreground)] leading-relaxed">{renderWithLatex(prompt)}</p>
-          <p className="mt-2 text-xs text-[var(--color-muted-foreground)]">（语音输入功能开发中）</p>
         </div>
+      </div>
+
+      <div className="mt-4 flex flex-col items-center gap-3">
+        <VoiceRecorder
+          onTranscript={handleTranscript}
+          size="lg"
+          showTranscript
+        />
+
+        {isLoadingAi && (
+          <div className="flex items-center gap-2 text-sm text-[var(--color-muted-foreground)]">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            AI 思考中...
+          </div>
+        )}
+
+        {currentError && (
+          <div className="text-sm text-[var(--color-danger)]">{currentError}</div>
+        )}
+
+        {rounds.map((round, idx) => (
+          <div key={idx} className="w-full space-y-2">
+            <div className="max-w-[85%] ml-auto rounded-2xl rounded-tr-sm px-4 py-2.5 text-sm bg-[var(--color-primary)] text-white">
+              {round.user}
+            </div>
+            {round.ai && (
+              <div className="max-w-[85%] mr-auto rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm bg-[var(--color-surface-muted)] text-[var(--color-foreground)]">
+                <div className="flex items-start gap-2">
+                  <span className="flex-1">{round.ai}</span>
+                  <button
+                    onClick={() => handlePlayAiResponse(round.ai!)}
+                    className="shrink-0 p-1 rounded-full hover:bg-green-100 dark:hover:bg-green-900 transition-colors"
+                    aria-label="播放AI回复"
+                  >
+                    <Volume2 className="w-4 h-4 text-green-600 dark:text-green-400" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
       </div>
     </Card>
   );
