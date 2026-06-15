@@ -423,7 +423,6 @@ def _build_learning_trends(knowledge_states: list[dict]) -> str:
 
 def _compute_daily_goal_progress(knowledge_states: list[dict]) -> str:
     """Estimate daily goal progress from today's activity."""
-    today = datetime.now(timezone.utc).date()
     reviewed_today = 0
     for ks in knowledge_states:
         last_review = ks.get("next_review")

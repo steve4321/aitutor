@@ -2,6 +2,8 @@
 import asyncio
 from uuid import UUID
 
+from typing import Any
+
 from app.agents.state import AgentState
 from app.agents.tools import (
     load_student_context,
@@ -13,7 +15,7 @@ from app.agents.tools import (
 from app.db.session import async_session_factory  # kept for test compat; runtime uses state injection
 
 
-async def orchestrator_node(state: AgentState) -> dict:
+async def orchestrator_node(state: AgentState) -> dict[str, Any]:
     """
     Entry node. Loads student profile, knowledge states,
     session messages, and problem/lesson data.
@@ -26,7 +28,7 @@ async def orchestrator_node(state: AgentState) -> dict:
         return await _load_context(db, state)
 
 
-async def _load_context(db, state: AgentState) -> dict:
+async def _load_context(db, state: AgentState) -> dict[str, Any]:
     updates: dict = {}
     student_id = state.get("student_id")
     session_id = state.get("session_id")

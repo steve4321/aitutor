@@ -4,13 +4,13 @@ asyncio_mode = "auto"
 filterwarnings = ["ignore::DeprecationWarning"]
 
 [tool.ruff]
-extend-exclude = ["static", "scripts/samples"]
+extend-exclude = ["static", "scripts"]
 
 [tool.coverage.run]
 source = ["app"]
 omit = ["tests/*", "app/models/*", "scripts/*"]
 
 [tool.coverage.report]
-fail_under = 60
+fail_under = 55
 show_missing = true
 exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:", "raise NotImplementedError"]

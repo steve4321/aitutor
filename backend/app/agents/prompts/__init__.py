@@ -2,8 +2,6 @@
 import logging
 
 from app.agents.prompts.math_socratic import MATH_SOCRATIC_TEMPLATE
-
-logger = logging.getLogger(__name__)
 from app.agents.prompts.math_course import MATH_COURSE_TEMPLATE
 from app.agents.prompts.ket_writing import KET_WRITING_TEMPLATE
 from app.agents.prompts.error_diagnosis import ERROR_DIAGNOSIS_TEMPLATE
@@ -19,6 +17,8 @@ from app.agents.prompts.ket_speaking import KET_SPEAKING_TEMPLATE
 from app.agents.prompts.chn_poetry_practice import CHN_POETRY_PRACTICE_TEMPLATE
 from app.agents.prompts.amc_math_review import AMC_MATH_REVIEW_TEMPLATE
 from app.agents.prompts.amc_math_diagnostic import AMC_MATH_DIAGNOSTIC_TEMPLATE
+
+logger = logging.getLogger(__name__)
 
 _PROMPTS = {
     "math_socratic": MATH_SOCRATIC_TEMPLATE,

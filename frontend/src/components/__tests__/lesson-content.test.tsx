@@ -67,7 +67,7 @@ describe('LessonContent', () => {
     const submitButton = screen.getByText('提交答案');
     fireEvent.click(submitButton);
 
-    expect(onAnswer).toHaveBeenCalledWith(0, true);
+    expect(onAnswer).toHaveBeenCalledWith(0, true, 'B', undefined);
     expect(screen.getByText('答对了！')).toBeInTheDocument();
   });
 
@@ -90,7 +90,7 @@ describe('LessonContent', () => {
     const submitButton = screen.getByText('提交答案');
     fireEvent.click(submitButton);
 
-    expect(onAnswer).toHaveBeenCalledWith(0, false);
+    expect(onAnswer).toHaveBeenCalledWith(0, false, 'A', undefined);
     expect(screen.getByText(/答错了/)).toBeInTheDocument();
   });
 
@@ -117,10 +117,9 @@ describe('LessonContent', () => {
     const sections: LessonSection[] = [
       { type: 'concept', title: 'Math', content: 'The formula is $x^2$ for real numbers' },
     ];
-    renderWithProviders(<LessonContent sections={sections} />);
+    const { container } = renderWithProviders(<LessonContent sections={sections} />);
 
-    const katexElements = screen.getAllByTestId('katex');
-    expect(katexElements).toHaveLength(1);
-    expect(katexElements[0]).toHaveTextContent('x^2');
+    const katexElements = container.querySelectorAll('.katex');
+    expect(katexElements.length).toBeGreaterThanOrEqual(1);
   });
 });

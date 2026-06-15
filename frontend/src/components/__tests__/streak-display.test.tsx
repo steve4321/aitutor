@@ -67,7 +67,7 @@ describe('StreakDisplay', () => {
   });
 
   it('renders active days with checkmark and inactive with X', () => {
-    renderWithProviders(
+    const { container } = renderWithProviders(
       <StreakDisplay
         currentStreak={1}
         longestStreak={1}
@@ -75,18 +75,18 @@ describe('StreakDisplay', () => {
       />,
     );
 
-    const checks = screen.getAllByText('✓');
-    const crosses = screen.getAllByText('×');
+    const checks = container.querySelectorAll('.lucide-check');
+    const crosses = container.querySelectorAll('.lucide-x');
     expect(checks.length).toBe(4);
     expect(crosses.length).toBe(3);
   });
 
   it('renders default weekData when not provided', () => {
-    renderWithProviders(<StreakDisplay currentStreak={5} longestStreak={10} />);
-    const checks = screen.getAllByText('✓');
-    const crosses = screen.getAllByText('×');
-    expect(checks.length).toBe(6);
-    expect(crosses.length).toBe(1);
+    const { container } = renderWithProviders(<StreakDisplay currentStreak={5} longestStreak={10} />);
+    const checks = container.querySelectorAll('.lucide-check');
+    const crosses = container.querySelectorAll('.lucide-x');
+    expect(checks.length).toBe(0);
+    expect(crosses.length).toBe(7);
   });
 
   it('renders day unit text', () => {

@@ -32,7 +32,7 @@ def check_manim_available() -> bool:
 
     结果会被缓存,不会重复调用 shutil.which。
     """
-    global _MANIM_AVAILABLE
+    global _MANIM_AVAILABLE, _MANIM_WARNING_LOGGED
     if _MANIM_AVAILABLE is None:
         _MANIM_AVAILABLE = shutil.which("manim") is not None
         if not _MANIM_AVAILABLE and not _MANIM_WARNING_LOGGED:
@@ -184,15 +184,13 @@ def _build_text_label(elem_id: str, cfg: dict[str, Any], has_axes: bool = False)
 
     has_latex = "$" in text
     has_cjk = any("\u4e00" <= c <= "\u9fff" for c in text)
+    cleaned = text.replace("$", "").replace("\n", "\\n")
     if has_cjk:
         manim_cls = "Text"
-        cleaned = text.replace("$", "")
     elif has_latex:
         manim_cls = "MathTex"
-        cleaned = text.replace("$", "")
     else:
         manim_cls = "Tex"
-        cleaned = text.replace("$", "")
 
     parts = [
         f"        {elem_id} = {manim_cls}(r'{cleaned}', font_size={fs}, color={color})"
@@ -207,36 +205,52 @@ def _build_text_label(elem_id: str, cfg: dict[str, Any], has_axes: bool = False)
     return "\n".join(parts)
 
 
-def _build_point(elem_id: str, cfg: dict[str, Any]) -> str:
+def _build_point(elem_id: str, cfg: dict[str, Any], has_axes: bool = False) -> str:
     pos = cfg.get("position", [0, 0, 0])
     r = cfg.get("radius", 0.08)
     color = _python_color(cfg.get("color", "#FFFF00"))
-    return f"        {elem_id} = Dot(point=axes.c2p({pos[0]}, {pos[1]}), radius={r}, color={color})"
+    if has_axes:
+        return f"        {elem_id} = Dot(point=axes.c2p({pos[0]}, {pos[1]}), radius={r}, color={color})"
+    return f"        {elem_id} = Dot(point={_vec3(pos)}, radius={r}, color={color})"
 
 
-def _build_line_segment(elem_id: str, cfg: dict[str, Any]) -> str:
+def _build_line_segment(elem_id: str, cfg: dict[str, Any], has_axes: bool = False) -> str:
     start = cfg.get("start", [0, 0, 0])
     end = cfg.get("end", [1, 0, 0])
     color = _python_color(cfg.get("color", "#FFFFFF"))
     sw = cfg.get("stroke_width", 2.0)
+    if has_axes:
+        return (
+            f"        {elem_id} = Line("
+            f"start=axes.c2p({start[0]}, {start[1]}), "
+            f"end=axes.c2p({end[0]}, {end[1]}), "
+            f"color={color}, stroke_width={sw})"
+        )
     return (
         f"        {elem_id} = Line("
-        f"start=axes.c2p({start[0]}, {start[1]}), "
-        f"end=axes.c2p({end[0]}, {end[1]}), "
+        f"start={_vec3(start)}, "
+        f"end={_vec3(end)}, "
         f"color={color}, stroke_width={sw})"
     )
 
 
-def _build_arrow(elem_id: str, cfg: dict[str, Any]) -> str:
+def _build_arrow(elem_id: str, cfg: dict[str, Any], has_axes: bool = False) -> str:
     start = cfg.get("start", [0, 0, 0])
     end = cfg.get("end", [1, 0, 0])
     color = _python_color(cfg.get("color", "#FFFF00"))
     sw = cfg.get("stroke_width", 3.0)
     buff = cfg.get("buff", 0.25)
+    if has_axes:
+        return (
+            f"        {elem_id} = Arrow("
+            f"start=axes.c2p({start[0]}, {start[1]}), "
+            f"end=axes.c2p({end[0]}, {end[1]}), "
+            f"color={color}, stroke_width={sw}, buff={buff})"
+        )
     return (
         f"        {elem_id} = Arrow("
-        f"start=axes.c2p({start[0]}, {start[1]}), "
-        f"end=axes.c2p({end[0]}, {end[1]}), "
+        f"start={_vec3(start)}, "
+        f"end={_vec3(end)}, "
         f"color={color}, stroke_width={sw}, buff={buff})"
     )
 
@@ -314,7 +328,7 @@ def generate_manim_script(description: AnimationTimeline) -> tuple[str, str]:
             logger.warning("未知的元素类型: %s, 跳过", elem.type)
             continue
 
-        if elem.type in ("text_label", "equation_step"):
+        if elem.type in ("text_label", "equation_step", "point", "line_segment", "arrow"):
             code = builder(vid, elem.config, has_axes=has_axes)
         else:
             code = builder(vid, elem.config)

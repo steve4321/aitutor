@@ -25,3 +25,24 @@ htmlcov/
 .sisyphus/
 playwright-report/
 test-results/
+
+# Logs
+*.log
+
+# Debug screenshots
+current-page.png
+fixed-page.png
+frame_t3s.png
+
+# Playwright MCP
+.playwright-mcp/
+
+# Frontend local env
+frontend/.env.local
+
+# Cache directories
+backend/.pytest_cache/
+backend/.ruff_cache/
+
+# Generated animation assets
+backend/static/animations/

@@ -1,5 +1,6 @@
 """LangGraph StateGraph construction."""
 import logging
+from typing import Any
 from uuid import UUID
 
 from langgraph.graph import END, StateGraph
@@ -28,7 +29,7 @@ def _route_after_router(state: AgentState) -> str:
     return mapping.get(target, "tutor")
 
 
-async def _response_node(state: AgentState) -> dict:
+async def _response_node(state: AgentState) -> dict[str, Any]:
     """Final node: persist messages, attempts, and knowledge updates to DB."""
     session_id = state.get("session_id")
     agent_response = state.get("agent_response", "")
@@ -46,7 +47,7 @@ async def _response_node(state: AgentState) -> dict:
             return {"error": str(e)}
 
 
-async def _persist_response(db, state, session_id, agent_response) -> dict:
+async def _persist_response(db, state, session_id, agent_response) -> dict[str, Any]:
     """Shared persistence logic."""
     # 1. Persist assistant message
     if agent_response and session_id:

@@ -37,14 +37,16 @@ async def test_session_init_with_due_reviews():
     ks = [
         {"knowledge_point_id": str(uuid4()), "mastery": 0.6, "mastery_level": "learning", "next_review": _past_dt()},
     ]
-    result = await curriculum_node(_make_state(knowledge_states=ks))
+    with patch("app.agents.curriculum_agent.is_llm_available", return_value=False):
+        result = await curriculum_node(_make_state(knowledge_states=ks))
 
     assert "1 knowledge points due for review" in result["agent_response"]
 
 
 @pytest.mark.asyncio
 async def test_session_init_no_due():
-    result = await curriculum_node(_make_state(knowledge_states=[]))
+    with patch("app.agents.curriculum_agent.is_llm_available", return_value=False):
+        result = await curriculum_node(_make_state(knowledge_states=[]))
 
     assert "Welcome" in result["agent_response"]
 
@@ -71,7 +73,8 @@ async def test_session_init_weak_areas():
     ks = [
         {"knowledge_point_id": str(uuid4()), "mastery": 0.2, "mastery_level": "novice", "next_review": None},
     ]
-    result = await curriculum_node(_make_state(knowledge_states=ks))
+    with patch("app.agents.curriculum_agent.is_llm_available", return_value=False):
+        result = await curriculum_node(_make_state(knowledge_states=ks))
 
     assert "weakest areas" in result["agent_response"].lower() or "weak" in result["agent_response"].lower()
 

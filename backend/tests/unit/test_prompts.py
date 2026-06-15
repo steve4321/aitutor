@@ -12,6 +12,12 @@ EXPECTED_PROMPTS = [
     "poetry_teaching",
     "poetry_dictation",
     "poetry_scoring",
+    "curriculum_session_init",
+    "curriculum_progress",
+    "ket_speaking",
+    "chn_poetry_practice",
+    "amc_math_review",
+    "amc_math_diagnostic",
 ]
 
 
@@ -24,7 +30,7 @@ class TestPromptRegistry:
 
     def test_list_prompts_returns_all(self):
         keys = list_prompts()
-        assert len(keys) == 8
+        assert len(keys) == len(EXPECTED_PROMPTS)
         for key in EXPECTED_PROMPTS:
             assert key in keys
 
