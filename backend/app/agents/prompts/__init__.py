@@ -17,6 +17,7 @@ from app.agents.prompts.ket_speaking import KET_SPEAKING_TEMPLATE
 from app.agents.prompts.chn_poetry_practice import CHN_POETRY_PRACTICE_TEMPLATE
 from app.agents.prompts.amc_math_review import AMC_MATH_REVIEW_TEMPLATE
 from app.agents.prompts.amc_math_diagnostic import AMC_MATH_DIAGNOSTIC_TEMPLATE
+from app.agents.prompts.session_summary import SESSION_SUMMARY_TEMPLATE
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +36,7 @@ _PROMPTS = {
     "chn_poetry_practice": CHN_POETRY_PRACTICE_TEMPLATE,
     "amc_math_review": AMC_MATH_REVIEW_TEMPLATE,
     "amc_math_diagnostic": AMC_MATH_DIAGNOSTIC_TEMPLATE,
+    "session_summary": SESSION_SUMMARY_TEMPLATE,
 }
 
 

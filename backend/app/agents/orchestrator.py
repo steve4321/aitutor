@@ -12,13 +12,14 @@ from app.agents.tools import (
     load_problem,
     load_lesson,
 )
+from app.agents.services.memory import load_recent_summaries, summary_to_dict
 from app.db.session import async_session_factory  # kept for test compat; runtime uses state injection
 
 
 async def orchestrator_node(state: AgentState) -> dict[str, Any]:
     """
     Entry node. Loads student profile, knowledge states,
-    session messages, and problem/lesson data.
+    session messages, recent cross-session summaries, and problem/lesson data.
     """
     db = state.get("db_session")
     if db is None:
@@ -44,6 +45,8 @@ async def _load_context(db, state: AgentState) -> dict[str, Any]:
         keys.append("student")
         coroutines.append(load_knowledge_states(db, sid))
         keys.append("knowledge_states")
+        coroutines.append(load_recent_summaries(db, sid, limit=3))
+        keys.append("recent_summaries")
 
     if session_id:
         coroutines.append(load_session_messages(db, UUID(str(session_id))))
@@ -60,6 +63,9 @@ async def _load_context(db, state: AgentState) -> dict[str, Any]:
     if coroutines:
         results = await asyncio.gather(*coroutines)
         for key, result in zip(keys, results):
-            updates[key] = result
+            if key == "recent_summaries":
+                updates[key] = [summary_to_dict(s) for s in result]
+            else:
+                updates[key] = result
 
     return updates

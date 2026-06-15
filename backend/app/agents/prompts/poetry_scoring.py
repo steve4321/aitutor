@@ -23,4 +23,7 @@ POETRY_SCORING_TEMPLATE = """\
   "missed_points": ["未覆盖的参考要点"],
   "unique_insights": ["学生独特的见解"],
   "feedback": "具体反馈"
-}}"""
+}}
+
+## 学生长期记忆（参考）
+{student_memory_context}"""

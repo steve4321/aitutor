@@ -25,6 +25,9 @@ Your job is to generate a warm, motivating session-start recommendation for the 
 - Current time: {time_of_day}
 - Daily goal progress: {daily_goal_progress}
 
+## 学生长期记忆
+{student_memory_context}
+
 ## Instructions
 Generate a JSON response with the following structure:
 {{
@@ -43,6 +46,10 @@ Rules:
 - Be specific with topic names, not generic labels
 - Keep motivational_note under 20 words
 - estimated_duration_minutes should be 15-45 based on workload
+- Use long-term memory to:
+  * Reference previous topics if relevant
+  * Adapt tone to the student's last known sentiment
+  * Address any pending_items from past sessions
 - Respond ONLY with valid JSON, no markdown fences"""
 
 CURRICULUM_PROGRESS_TEMPLATE = """\

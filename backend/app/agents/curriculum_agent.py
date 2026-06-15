@@ -8,6 +8,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 
 from app.agents.llm import get_llm, is_llm_available
 from app.agents.prompts import get_system_prompt
+from app.agents.services.memory import build_student_memory_context
 from app.agents.state import AgentState
 from app.agents.services.problem_selector import select_next_problem
 
@@ -64,6 +65,26 @@ async def curriculum_node(state: AgentState) -> dict:
 # Session initialisation
 # ---------------------------------------------------------------------------
 
+async def _build_memory_context_text(state: AgentState) -> str:
+    """Resolve the student's cross-session memory context from AgentState."""
+    if not state.get("recent_summaries"):
+        return "（暂无长期学习数据）"
+    db = state.get("db_session")
+    student_id = state.get("student_id")
+    if db is None or student_id is None:
+        return "（暂无长期学习数据）"
+    try:
+        return await build_student_memory_context(
+            db=db,
+            student_id=UUID(str(student_id)),
+            subject=state.get("subject", "amc_math"),
+            summary_limit=3,
+        )
+    except Exception as e:
+        logger.warning("Failed to build memory context in curriculum agent: %s", e)
+        return "（暂无长期学习数据）"
+
+
 async def _handle_session_init(state, knowledge_states, student) -> dict:
     """Recommend starting point for new session — LLM-enhanced with rule-based fallback."""
     now = datetime.now(timezone.utc)
@@ -107,6 +128,8 @@ async def _llm_session_init(state, knowledge_states, student, due_reviews, weak,
     time_of_day = now.strftime("%Y-%m-%d %H:%M UTC")
     daily_goal_progress = _compute_daily_goal_progress(knowledge_states)
 
+    student_memory_context = await _build_memory_context_text(state)
+
     system_prompt = get_system_prompt(
         "curriculum_session_init",
         student_name=student_name,
@@ -120,6 +143,7 @@ async def _llm_session_init(state, knowledge_states, student, due_reviews, weak,
         learning_trends=learning_trends,
         time_of_day=time_of_day,
         daily_goal_progress=daily_goal_progress,
+        student_memory_context=student_memory_context,
     )
 
     messages = [

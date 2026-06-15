@@ -18,6 +18,7 @@ EXPECTED_PROMPTS = [
     "chn_poetry_practice",
     "amc_math_review",
     "amc_math_diagnostic",
+    "session_summary",
 ]
 
 

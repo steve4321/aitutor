@@ -2,11 +2,16 @@
 import json
 import logging
 from collections.abc import Callable
+from uuid import UUID
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
 from app.agents.llm import get_llm, get_fallback_response, is_llm_available
 from app.agents.prompts import get_system_prompt
+from app.agents.services.memory import (
+    build_prerequisite_context,
+    build_student_memory_context,
+)
 from app.agents.state import AgentState
 
 logger = logging.getLogger(__name__)
@@ -46,6 +51,9 @@ async def tutor_node(state: AgentState) -> dict:
     }
     prompt_key = mode_map.get((subject, session_mode), "math_socratic")
 
+    student_memory_context = await _load_student_memory_context(state, subject)
+    prerequisite_context = await _load_prerequisite_context(state)
+
     base_vars = {
         "student_name": student.get("name", "同学"),
         "grade_level": student.get("grade_level", 5),
@@ -57,6 +65,8 @@ async def tutor_node(state: AgentState) -> dict:
         "correct_answer": _get_correct_answer(state),
         "reference_solutions": _get_solutions(state),
         "hint_level": state.get("hint_level", 0),
+        "student_memory_context": student_memory_context,
+        "prerequisite_context": prerequisite_context,
     }
 
     base_vars.update(_get_subject_prompt_vars(prompt_key, state))
@@ -93,6 +103,53 @@ def _get_mastery_summary(state: AgentState) -> str:
         return "新学生，尚无掌握度数据"
     levels = [ks["mastery_level"] for ks in kstates[:5]]
     return f"最近知识点掌握度: {', '.join(levels)}"
+
+
+async def _load_student_memory_context(state: AgentState, subject: str) -> str:
+    """Load cross-session student memory context, if any recent summaries exist."""
+    if not state.get("recent_summaries"):
+        return "（暂无长期学习数据）"
+    db = state.get("db_session")
+    student_id = state.get("student_id")
+    if db is None or student_id is None:
+        return "（暂无长期学习数据）"
+    try:
+        return await build_student_memory_context(
+            db=db,
+            student_id=UUID(str(student_id)),
+            subject=subject,
+            summary_limit=3,
+        )
+    except Exception as e:
+        logger.warning("Failed to build student memory context: %s", e)
+        return "（暂无长期学习数据）"
+
+
+async def _load_prerequisite_context(state: AgentState) -> str:
+    """Build prerequisite chain context for the current lesson/problem."""
+    db = state.get("db_session")
+    student_id = state.get("student_id")
+    if db is None or student_id is None:
+        return ""
+
+    lesson_data = state.get("lesson_data") or {}
+    problem_data = state.get("problem_data") or {}
+    kp_id = lesson_data.get("knowledge_point_id")
+    if not kp_id:
+        kp_ids = problem_data.get("knowledge_point_ids") or []
+        kp_id = kp_ids[0] if kp_ids else None
+    if not kp_id:
+        return ""
+
+    try:
+        return await build_prerequisite_context(
+            db=db,
+            student_id=UUID(str(student_id)),
+            current_kp_id=UUID(str(kp_id)),
+        )
+    except Exception as e:
+        logger.warning("Failed to build prerequisite context: %s", e)
+        return ""
 
 
 def _vars_math_course(state: AgentState) -> dict:

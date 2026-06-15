@@ -52,6 +52,7 @@ class AgentState(TypedDict, total=False):
     student: StudentContext
     knowledge_states: list[dict]
     session_messages: list[dict]
+    recent_summaries: list[dict]
 
     # Router output
     intent: str  # "learn" | "practice" | "assess" | "ask" | "manage"

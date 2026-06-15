@@ -1,14 +1,21 @@
 from datetime import datetime, timezone
 from uuid import UUID
 
+import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 
 from app.api.deps import DbSession, get_current_user
+from app.agents.services.memory import (
+    generate_session_summary,
+    save_session_summary,
+)
+from app.agents.services.profile_service import update_student_profile_from_summary
 from app.models.learning import LearningSession
 from app.models.user import User
 from app.schemas.session import SessionCreate, SessionResponse
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/sessions", tags=["sessions"])
 
 
@@ -55,6 +62,32 @@ async def close_session(
         session.duration_sec = int(
             (now - session.started_at.replace(tzinfo=timezone.utc)).total_seconds()
         )
+
+        try:
+            summary_data = await generate_session_summary(
+                db=db,
+                session_id=session.id,
+                student_id=current_user.id,
+                subject=session.subject,
+                session_type=session.session_type,
+            )
+            if summary_data:
+                saved = await save_session_summary(
+                    db=db,
+                    session_id=session.id,
+                    student_id=current_user.id,
+                    summary_data=summary_data,
+                    duration_min=(session.duration_sec or 0) // 60,
+                )
+                try:
+                    await update_student_profile_from_summary(
+                        db=db, student_id=current_user.id, summary=saved
+                    )
+                except Exception as e:
+                    logger.warning("Profile update failed (non-blocking): %s", e)
+        except Exception as e:
+            logger.warning("Session summary generation failed (non-blocking): %s", e)
+
         await db.flush()
         await db.refresh(session)
 
