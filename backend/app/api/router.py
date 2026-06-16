@@ -1,14 +1,17 @@
 from fastapi import APIRouter
 
 from app.api.v1 import auth, chat, courses, dashboard, lessons, parent, problems, reports, sessions, users
+from app.api.v1 import achievements
 from app.api.v1 import ket
 from app.api.v1 import voice
 from app.api.v1 import animations
+from app.api.v1 import chinese
 
 api_router = APIRouter(prefix="/api/v1")
 
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 api_router.include_router(users.router)
+api_router.include_router(achievements.router)
 api_router.include_router(courses.router)
 api_router.include_router(lessons.router)
 api_router.include_router(problems.router)
@@ -20,3 +23,4 @@ api_router.include_router(ket.router)
 api_router.include_router(dashboard.router)
 api_router.include_router(voice.router)
 api_router.include_router(animations.router)
+api_router.include_router(chinese.router)
