@@ -92,6 +92,7 @@ jobs:
         env:
           ENVIRONMENT: development
           NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+          E2E_API_URL: http://localhost:8000/api/v1
         run: npx playwright test
 
       - name: Upload Playwright report
