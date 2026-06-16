@@ -4,7 +4,7 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
-SessionType = Literal["practice", "lesson", "review"]
+SessionType = Literal["practice", "lesson", "review", "diagnostic"]
 SessionSubject = Literal["math", "english", "chinese"]
 
 

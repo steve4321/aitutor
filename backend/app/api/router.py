@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from app.api.v1 import auth, chat, courses, dashboard, lessons, parent, problems, reports, sessions, users
 from app.api.v1 import ket
 from app.api.v1 import voice
+from app.api.v1 import animations
 
 api_router = APIRouter(prefix="/api/v1")
 
@@ -18,3 +19,4 @@ api_router.include_router(parent.router)
 api_router.include_router(ket.router)
 api_router.include_router(dashboard.router)
 api_router.include_router(voice.router)
+api_router.include_router(animations.router)

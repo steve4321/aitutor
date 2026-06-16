@@ -37,6 +37,23 @@ async def create_session(
     return session
 
 
+@router.post("/diagnostic", response_model=SessionResponse)
+async def create_diagnostic_session(
+    db: DbSession,
+    current_user: User = Depends(get_current_user),
+):
+    logger.info("Diagnostic session started: user=%s", current_user.id)
+    session = LearningSession(
+        student_id=current_user.id,
+        session_type="diagnostic",
+        subject="math",
+        started_at=datetime.now(timezone.utc),
+    )
+    db.add(session)
+    await db.flush()
+    return session
+
+
 @router.post("/{session_id}/close", response_model=SessionResponse)
 async def close_session(
     session_id: UUID,
