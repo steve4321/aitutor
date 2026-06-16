@@ -1,9 +1,11 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { FileText, Feather, TrendingUp, Clock, ChevronRight, Loader2, BookOpen } from 'lucide-react';
+import { FileText, Feather, TrendingUp, Clock, ChevronRight, Loader2, BookOpen, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { api } from '@/lib/api';
+import type { DashboardSummaryResponse } from '@/types/dashboard';
+import type { SessionResponse } from '@/types/session';
 
 const MODULE_INFO = {
   composition: {
@@ -64,6 +66,19 @@ export default function ChinesePage() {
     queryFn: () => api.get<PoetryListResponse>('/chinese/poetry', { limit: '1' }),
   });
 
+  const { data: dashboardData, isLoading: dashboardLoading } = useQuery<DashboardSummaryResponse>({
+    queryKey: ['dashboard-summary'],
+    queryFn: () => api.get<DashboardSummaryResponse>('/dashboard/summary'),
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: sessionsData, isLoading: sessionsLoading } = useQuery<SessionResponse[]>({
+    queryKey: ['sessions', 'chinese'],
+    queryFn: () => api.get<SessionResponse[]>('/sessions', { subject: 'chinese' }),
+    staleTime: 30_000,
+  });
+
   const compositionCount = compositionTasks?.length ?? 0;
   const poetryCount = poetryData?.total ?? 0;
 
@@ -72,7 +87,7 @@ export default function ChinesePage() {
     poetry: poetryCount,
   };
 
-  const isLoading = compositionLoading || poetryLoading;
+  const isLoading = compositionLoading || poetryLoading || dashboardLoading || sessionsLoading;
 
   return (
     <div className="space-y-6">
@@ -142,6 +157,32 @@ export default function ChinesePage() {
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
             </div>
+          ) : dashboardData?.mastery_summary?.subjects && dashboardData.mastery_summary.subjects.length > 0 ? (
+            <div className="space-y-4">
+              {dashboardData.mastery_summary.subjects
+                .filter((s) => s.name.toLowerCase() === 'chinese' || s.name.toLowerCase() === '语文')
+                .map((subject) => (
+                  <div key={subject.name} className="flex items-center gap-4">
+                    <div className="w-20 text-sm text-slate-600 dark:text-slate-400">{subject.name}</div>
+                    <div className="flex-1">
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+                        <div
+                          className="h-full rounded-full bg-emerald-500 transition-all"
+                          style={{ width: `${subject.mastery * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                    <div className="w-12 text-right text-sm font-medium text-slate-600 dark:text-slate-400">
+                      {Math.round(subject.mastery * 100)}%
+                    </div>
+                  </div>
+                ))}
+              {dashboardData.mastery_summary.subjects.filter((s) => s.name.toLowerCase() === 'chinese' || s.name.toLowerCase() === '语文').length === 0 && (
+                <div className="flex items-center justify-center py-4">
+                  <p className="text-center text-slate-500 dark:text-slate-400">完成练习后，这里会显示你的进度</p>
+                </div>
+              )}
+            </div>
           ) : (
             <div className="flex items-center justify-center py-8">
               <p className="text-center text-slate-500 dark:text-slate-400">完成练习后，这里会显示你的进度</p>
@@ -156,9 +197,46 @@ export default function ChinesePage() {
               最近练习记录
             </h2>
           </div>
-          <div className="flex items-center justify-center py-12">
-            <p className="text-center text-slate-500 dark:text-slate-400">完成练习后，这里会显示最近记录</p>
-          </div>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+            </div>
+          ) : sessionsData && sessionsData.length > 0 ? (
+            <div className="divide-y divide-slate-100 dark:divide-slate-700">
+              {sessionsData.slice(0, 5).map((session) => (
+                <div key={session.id} className="flex items-center justify-between px-6 py-4">
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/30">
+                      <FileText className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-slate-900 dark:text-white">{session.session_type}</p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">
+                        {new Date(session.started_at).toLocaleDateString('zh-CN')}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    {session.score_pct !== null && (
+                      <div className="text-right">
+                        <p className="text-lg font-semibold text-emerald-600 dark:text-emerald-400">
+                          {Math.round(session.score_pct)}%
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          {session.problems_correct}/{session.problems_total}
+                        </p>
+                      </div>
+                    )}
+                    <CheckCircle className="h-5 w-5 text-emerald-500" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex items-center justify-center py-12">
+              <p className="text-center text-slate-500 dark:text-slate-400">暂无练习记录</p>
+            </div>
+          )}
         </section>
       </div>
     </div>

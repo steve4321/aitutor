@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { BookOpen, ChevronLeft, CheckCircle, XCircle, ArrowRight, Loader2 } from 'lucide-react';
 import { renderWithLatex } from '@/lib/render-content';
@@ -9,6 +10,7 @@ import { api } from '@/lib/api';
 import type { KETQuestionListResponse, QuizState } from '@/types/ket';
 
 export default function ReadingPage() {
+  const router = useRouter();
   const [quizState, setQuizState] = useState<QuizState>({
     currentIndex: 0,
     answers: {},
@@ -396,7 +398,7 @@ export default function ReadingPage() {
             </button>
           ) : (
             <button
-              onClick={() => {}}
+              onClick={() => router.push('/ket')}
               className="flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-2 font-medium text-white transition-all hover:bg-emerald-700"
             >
               查看结果

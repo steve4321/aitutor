@@ -1,10 +1,12 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { BookOpen, Pen, Headphones, Mic, TrendingUp, Clock, Award, ChevronRight, Loader2 } from 'lucide-react';
+import { BookOpen, Pen, Headphones, Mic, TrendingUp, Clock, Award, ChevronRight, Loader2, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { api } from '@/lib/api';
 import type { KETQuestionListResponse, KETWritingTask, KETSpeakingTask } from '@/types/ket';
+import type { DashboardSummaryResponse } from '@/types/dashboard';
+import type { SessionResponse } from '@/types/session';
 
 const SKILL_INFO = {
   reading: {
@@ -87,6 +89,19 @@ export default function KETPage() {
     queryFn: () => api.get<KETSpeakingTask[]>('/ket/speaking/tasks', { limit: '1' }),
   });
 
+  const { data: dashboardData, isLoading: dashboardLoading } = useQuery<DashboardSummaryResponse>({
+    queryKey: ['dashboard-summary'],
+    queryFn: () => api.get<DashboardSummaryResponse>('/dashboard/summary'),
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: sessionsData, isLoading: sessionsLoading } = useQuery<SessionResponse[]>({
+    queryKey: ['sessions', 'ket'],
+    queryFn: () => api.get<SessionResponse[]>('/sessions', { subject: 'ket' }),
+    staleTime: 30_000,
+  });
+
   const readingCount = readingData?.total ?? 0;
   const listeningCount = listeningData?.total ?? 0;
   const writingCount = writingTasks?.length ?? 0;
@@ -99,7 +114,7 @@ export default function KETPage() {
     speaking: speakingCount,
   };
 
-  const isLoading = readingLoading || listeningLoading || writingLoading || speakingLoading;
+  const isLoading = readingLoading || listeningLoading || writingLoading || speakingLoading || dashboardLoading || sessionsLoading;
 
   return (
     <div className="space-y-6">
@@ -168,6 +183,29 @@ export default function KETPage() {
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
             </div>
+          ) : dashboardData?.mastery_summary?.subjects && dashboardData.mastery_summary.subjects.length > 0 ? (
+            <div className="space-y-4">
+              {dashboardData.mastery_summary.subjects.map((subject) => {
+                const skillInfo = SKILL_INFO[subject.name.toLowerCase() as keyof typeof SKILL_INFO];
+                const colors = skillInfo ? COLOR_CLASSES[skillInfo.color as keyof typeof COLOR_CLASSES] : COLOR_CLASSES.blue;
+                return (
+                  <div key={subject.name} className="flex items-center gap-4">
+                    <div className="w-20 text-sm text-slate-600 dark:text-slate-400">{subject.name}</div>
+                    <div className="flex-1">
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+                        <div
+                          className={cn('h-full rounded-full transition-all', colors.progress)}
+                          style={{ width: `${subject.mastery * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                    <div className="w-12 text-right text-sm font-medium text-slate-600 dark:text-slate-400">
+                      {Math.round(subject.mastery * 100)}%
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           ) : (
             <div className="flex items-center justify-center py-8">
               <p className="text-center text-slate-500 dark:text-slate-400">完成练习后，这里会显示你的进度</p>
@@ -182,9 +220,46 @@ export default function KETPage() {
               最近练习记录
             </h2>
           </div>
-          <div className="flex items-center justify-center py-12">
-            <p className="text-center text-slate-500 dark:text-slate-400">完成练习后，这里会显示最近记录</p>
-          </div>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+            </div>
+          ) : sessionsData && sessionsData.length > 0 ? (
+            <div className="divide-y divide-slate-100 dark:divide-slate-700">
+              {sessionsData.slice(0, 5).map((session) => (
+                <div key={session.id} className="flex items-center justify-between px-6 py-4">
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/30">
+                      <BookOpen className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-slate-900 dark:text-white">{session.session_type}</p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">
+                        {new Date(session.started_at).toLocaleDateString('zh-CN')}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    {session.score_pct !== null && (
+                      <div className="text-right">
+                        <p className="text-lg font-semibold text-emerald-600 dark:text-emerald-400">
+                          {Math.round(session.score_pct)}%
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          {session.problems_correct}/{session.problems_total}
+                        </p>
+                      </div>
+                    )}
+                    <CheckCircle className="h-5 w-5 text-emerald-500" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex items-center justify-center py-12">
+              <p className="text-center text-slate-500 dark:text-slate-400">暂无练习记录</p>
+            </div>
+          )}
         </section>
       </div>
     </div>
