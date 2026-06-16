@@ -1,14 +1,17 @@
 'use client';
 
-import { useRef, useLayoutEffect } from 'react';
-import katex from 'katex';
-import 'katex/dist/katex.min.css';
+import { useRef, useLayoutEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
+import 'katex/dist/katex.min.css';
 
 interface KatexRendererProps {
   latex: string;
   displayMode?: boolean;
   className?: string;
+}
+
+interface KatexApi {
+  render: (tex: string, element: HTMLElement, options?: object) => void;
 }
 
 export function KatexRenderer({
@@ -17,13 +20,21 @@ export function KatexRenderer({
   className,
 }: KatexRendererProps) {
   const containerRef = useRef<HTMLSpanElement>(null);
+  const [katexLib, setKatexLib] = useState<KatexApi | null>(null);
 
   useLayoutEffect(() => {
-    if (!containerRef.current) return;
+    import('katex').then((mod) => {
+      const api = (mod.default ?? mod) as KatexApi;
+      setKatexLib(api);
+    });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!containerRef.current || !katexLib) return;
     const el = containerRef.current;
     el.innerHTML = '';
     try {
-      katex.render(latex, el, {
+      katexLib.render(latex, el, {
         displayMode,
         throwOnError: false,
         trust: true,
@@ -31,7 +42,7 @@ export function KatexRenderer({
     } catch {
       el.textContent = latex;
     }
-  }, [latex, displayMode]);
+  }, [latex, displayMode, katexLib]);
 
   return (
     <span

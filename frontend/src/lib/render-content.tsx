@@ -1,38 +1,20 @@
 'use client';
 
 import React from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
-import rehypeHighlight from 'rehype-highlight';
+import dynamic from 'next/dynamic';
 import { KatexRenderer } from '@/components/math/katex-renderer';
-import 'katex/dist/katex.min.css';
-import 'highlight.js/styles/github.css';
 
-function MarkdownContent({ text }: { text: string }) {
-  return (
-    <ReactMarkdown
-      remarkPlugins={[remarkMath]}
-      rehypePlugins={[rehypeHighlight, rehypeKatex]}
-      components={{
-        p: ({ children }) => <>{children}</>,
-      }}
-    >
-      {text}
-    </ReactMarkdown>
-  );
-}
+const MarkdownContentComponent = dynamic(
+  () => import('./markdown-renderer').then((m) => m.MarkdownContentComponent),
+  { ssr: false, loading: () => <span className="text-slate-400">加载中...</span> }
+);
 
-function FullMarkdown({ text }: { text: string }) {
-  return (
-    <ReactMarkdown
-      remarkPlugins={[remarkMath]}
-      rehypePlugins={[rehypeHighlight, rehypeKatex]}
-    >
-      {text}
-    </ReactMarkdown>
-  );
-}
+const FullMarkdownComponent = dynamic(
+  () => import('./markdown-renderer').then((m) => m.FullMarkdownComponent),
+  { ssr: false, loading: () => <span className="text-slate-400">加载中...</span> }
+);
+
+
 
 export function stripLatexForSpeech(text: string): string {
   if (!text) return '';
@@ -117,12 +99,12 @@ export function stripLatexForSpeech(text: string): string {
 
 export function renderWithLatex(text: string): React.ReactNode {
   if (!text) return null;
-  return <MarkdownContent text={text} />;
+  return <MarkdownContentComponent text={text} />;
 }
 
 export function renderMarkdownWithLatex(text: string): React.ReactNode {
   if (!text) return null;
-  return <FullMarkdown text={text} />;
+  return <FullMarkdownComponent text={text} />;
 }
 
 export { KatexRenderer };
