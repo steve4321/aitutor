@@ -73,8 +73,19 @@ async def tutor_node(state: AgentState) -> dict:
 
     system_prompt = get_system_prompt(prompt_key, **base_vars)
 
+    session_messages = state.get("session_messages", [])
+    if len(session_messages) > 20:
+        conversation_summary = await _summarize_older_messages(
+            session_messages[:-10]
+        )
+        if conversation_summary:
+            system_prompt = (
+                f"[Previous conversation summary]\n{conversation_summary}\n\n"
+                + system_prompt
+            )
+
     messages = [SystemMessage(content=system_prompt)]
-    for msg in state.get("session_messages", [])[-10:]:
+    for msg in session_messages[-10:]:
         if msg["role"] == "user":
             messages.append(HumanMessage(content=msg["content"]))
         elif msg["role"] == "assistant":
@@ -104,6 +115,35 @@ async def tutor_node(state: AgentState) -> dict:
         "model_used": "strong",
         "hint_level": state.get("hint_level", 0),
     }
+
+
+async def _summarize_older_messages(messages: list[dict]) -> str | None:
+    llm = get_llm("fast")
+    if llm is None:
+        return None
+
+    msgs_text = "\n".join(
+        f"[{m['role']}]: {m['content'][:300]}" for m in messages[-20:]
+    )
+    if not msgs_text.strip():
+        return None
+
+    try:
+        summary_messages = [
+            SystemMessage(
+                content=(
+                    "Summarize the key points of this tutoring conversation "
+                    "in 2-3 sentences, focusing on topics discussed, student "
+                    "progress, and any areas needing attention."
+                )
+            ),
+            HumanMessage(content=msgs_text),
+        ]
+        response = await llm.ainvoke(summary_messages)
+        return response.content
+    except Exception:
+        logger.warning("Failed to summarize conversation history", exc_info=True)
+        return None
 
 
 def _get_mastery_summary(state: AgentState) -> str:
