@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { getToken } from '@/lib/auth';
 import { fetchBinary } from '@/lib/api';
-import { API_BASE_URL } from '@/lib/constants';
+
 
 export interface UseTTSReturn {
   speak: (text: string, voice?: string) => Promise<void>;
@@ -21,6 +21,8 @@ function detectLanguage(text: string): 'zh' | 'en' {
 function getDefaultVoice(lang: 'zh' | 'en'): string {
   return lang === 'zh' ? 'zh-CN-XiaoxiaoNeural' : 'en-US-JennyNeural';
 }
+
+const TTS_CACHE_MAX_SIZE = 20;
 
 export function useTTS(): UseTTSReturn {
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -71,6 +73,16 @@ export function useTTS(): UseTTSReturn {
           });
           audioUrl = URL.createObjectURL(audioBlob);
           cacheRef.current.set(cacheKey, audioUrl);
+
+          while (cacheRef.current.size > TTS_CACHE_MAX_SIZE) {
+            const oldestKey = cacheRef.current.keys().next().value;
+            if (oldestKey === undefined) break;
+            const evictedUrl = cacheRef.current.get(oldestKey);
+            if (evictedUrl) {
+              URL.revokeObjectURL(evictedUrl);
+            }
+            cacheRef.current.delete(oldestKey);
+          }
         }
 
         const audio = new Audio(audioUrl);
@@ -98,13 +110,15 @@ export function useTTS(): UseTTSReturn {
   );
 
   useEffect(() => {
+    const cache = cacheRef.current;
+    const audio = audioRef.current;
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
+      if (audio) {
+        audio.pause();
         audioRef.current = null;
       }
-      cacheRef.current.forEach((url) => URL.revokeObjectURL(url));
-      cacheRef.current.clear();
+      cache.forEach((url) => URL.revokeObjectURL(url));
+      cache.clear();
     };
   }, []);
 

@@ -5,27 +5,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { Mic, ChevronLeft, Loader2, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { api } from '@/lib/api';
-
-interface KETSpeakingTask {
-  id: string;
-  topic: string;
-  question: string;
-  difficulty: string;
-  expected_duration_sec: number;
-}
-
-interface KETSpeakingScoreResponse {
-  score: number;
-  band: number;
-  feedback: string;
-}
-
-declare global {
-  interface Window {
-    SpeechRecognition: unknown;
-    webkitSpeechRecognition: unknown;
-  }
-}
+import type { KETSpeakingTask, KETSpeakingScoreResponse } from '@/types/ket';
 
 export default function SpeakingPage() {
   const [selectedTask, setSelectedTask] = useState<KETSpeakingTask | null>(null);
@@ -41,7 +21,7 @@ export default function SpeakingPage() {
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const recognitionRef = useRef<unknown>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   const { data: tasks, isLoading: tasksLoading } = useQuery({
     queryKey: ['ket', 'speaking', 'tasks'],
@@ -75,7 +55,7 @@ export default function SpeakingPage() {
     setIsRecording(false);
 
     if (recognitionRef.current) {
-      (recognitionRef.current as { stop: () => void }).stop();
+      recognitionRef.current.stop();
     }
   }, [clearTimer]);
 
@@ -120,60 +100,52 @@ export default function SpeakingPage() {
         });
       }, 1000);
 
-      if (!useTextFallback && 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-        const recognition = new (SR as new () => unknown)();
-        const rec = recognition as {
-          continuous: boolean;
-          interimResults: boolean;
-          lang: string;
-          onresult: (event: { resultIndex: number; results: Array<Array<{ transcript: string; isFinal: boolean }>> }) => void;
-          onerror: (event: { error: string }) => void;
-          onend: () => void;
-          start: () => void;
-          stop: () => void;
-        };
-        rec.continuous = true;
-        rec.interimResults = true;
-        rec.lang = 'en-US';
+      if (!useTextFallback) {
+        const SR = window.SpeechRecognition ?? window.webkitSpeechRecognition;
+        if (SR) {
+          const recognition = new SR();
+          recognition.continuous = true;
+          recognition.interimResults = true;
+          recognition.lang = 'en-US';
 
-        rec.onresult = (event) => {
-          let finalTranscript = '';
-          let interimTranscript = '';
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            const transcriptPiece = event.results[i][0].transcript;
-            if (event.results[i][0].isFinal) {
-              finalTranscript += transcriptPiece;
-            } else {
-              interimTranscript += transcriptPiece;
+          recognition.onresult = (event) => {
+            let finalTranscript = '';
+            let interimTranscript = '';
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+              const transcriptPiece = event.results[i][0].transcript;
+              if (event.results[i].isFinal) {
+                finalTranscript += transcriptPiece;
+              } else {
+                interimTranscript += transcriptPiece;
+              }
             }
-          }
-          setTranscript((prev) => {
-            const base = prev.replace(/\[.*?\]$/, '').trim();
-            return finalTranscript
-              ? (base ? base + ' ' : '') + finalTranscript + (interimTranscript ? ` [${interimTranscript}]` : '')
-              : prev;
-          });
-        };
+            setTranscript((prev) => {
+              const base = prev.replace(/\[.*?\]$/, '').trim();
+              return finalTranscript
+                ? (base ? base + ' ' : '') + finalTranscript + (interimTranscript ? ` [${interimTranscript}]` : '')
+                : prev;
+            });
+          };
 
-        rec.onerror = (event) => {
-          if (event.error !== 'no-speech') {
-            console.warn('Speech recognition error:', event.error);
-          }
-        };
-
-        rec.onend = () => {
-          if (isRecording) {
-            try {
-              rec.start();
-            } catch {
-              // Recognition might already be stopped
+          recognition.onerror = (event) => {
+            if (event.error !== 'no-speech') {
+              console.warn('Speech recognition error:', event.error);
             }
-          }
-        };
+          };
 
-        rec.start();
-        recognitionRef.current = recognition;
+          recognition.onend = () => {
+            if (isRecording) {
+              try {
+                recognition.start();
+              } catch {
+                // Recognition might already be stopped
+              }
+            }
+          };
+
+          recognition.start();
+          recognitionRef.current = recognition;
+        }
       }
     } catch (err) {
       cleanupStream();
@@ -217,7 +189,7 @@ export default function SpeakingPage() {
       clearTimer();
       cleanupStream();
       if (recognitionRef.current) {
-        (recognitionRef.current as { stop: () => void }).stop();
+        recognitionRef.current.stop();
       }
     };
   }, [clearTimer, cleanupStream]);
