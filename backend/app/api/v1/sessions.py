@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from uuid import UUID
 
 import logging
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import select
 
 from app.api.deps import DbSession, get_current_user
@@ -11,6 +11,7 @@ from app.agents.services.memory import (
     save_session_summary,
 )
 from app.agents.services.profile_service import update_student_profile_from_summary
+from app.core.rate_limit import limiter, RATE_LIMITS
 from app.models.learning import LearningSession
 from app.models.user import User
 from app.schemas.session import SessionCreate, SessionResponse
@@ -20,7 +21,9 @@ router = APIRouter(prefix="/sessions", tags=["sessions"])
 
 
 @router.post("", response_model=SessionResponse)
+@limiter.limit(RATE_LIMITS["api_write"])
 async def create_session(
+    request: Request,
     body: SessionCreate,
     db: DbSession,
     current_user: User = Depends(get_current_user),
@@ -38,7 +41,9 @@ async def create_session(
 
 
 @router.post("/diagnostic", response_model=SessionResponse)
+@limiter.limit(RATE_LIMITS["api_write"])
 async def create_diagnostic_session(
+    request: Request,
     db: DbSession,
     current_user: User = Depends(get_current_user),
 ):
@@ -55,7 +60,9 @@ async def create_diagnostic_session(
 
 
 @router.post("/{session_id}/close", response_model=SessionResponse)
+@limiter.limit(RATE_LIMITS["api_write"])
 async def close_session(
+    request: Request,
     session_id: UUID,
     db: DbSession,
     current_user: User = Depends(get_current_user),
@@ -112,7 +119,9 @@ async def close_session(
 
 
 @router.get("/{session_id}", response_model=SessionResponse)
+@limiter.limit(RATE_LIMITS["api_read"])
 async def get_session(
+    request: Request,
     session_id: UUID,
     db: DbSession,
     current_user: User = Depends(get_current_user),

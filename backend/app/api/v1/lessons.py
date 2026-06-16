@@ -1,11 +1,12 @@
 from datetime import datetime, timezone
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel
 from sqlalchemy import func, select
 
 from app.api.deps import DbSession, get_current_user
+from app.core.rate_limit import limiter, RATE_LIMITS
 from app.models.course import Lesson, Unit
 from app.models.enrollment import Enrollment
 from app.models.learning import LearningSession
@@ -40,7 +41,9 @@ class LessonProgressResponse(BaseModel):
 
 
 @router.post("/{lesson_id}/progress", response_model=LessonProgressResponse)
+@limiter.limit(RATE_LIMITS["api_write"])
 async def update_lesson_progress(
+    request: Request,
     lesson_id: UUID,
     body: LessonProgressRequest,
     db: DbSession,

@@ -1,10 +1,11 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel
 from sqlalchemy import select
 
 from app.api.deps import DbSession, get_current_user
+from app.core.rate_limit import limiter, RATE_LIMITS
 from app.models.course import Course
 from app.models.enrollment import Enrollment
 from app.models.user import User
@@ -46,7 +47,9 @@ class EnrollResponse(BaseModel):
 
 
 @router.post("/{course_id}/enroll", response_model=EnrollResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit(RATE_LIMITS["api_write"])
 async def enroll_in_course(
+    request: Request,
     course_id: UUID,
     db: DbSession,
     current_user: User = Depends(get_current_user),
