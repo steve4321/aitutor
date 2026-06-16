@@ -5,25 +5,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { Pen, ChevronLeft, Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { api } from '@/lib/api';
-
-interface KETWritingTask {
-  id: string;
-  task_type: string;
-  prompt: string;
-  image_url: string | null;
-  word_limit_min: number;
-  word_limit_max: number;
-  sample_response: string | null;
-}
-
-interface KETWritingScoreResponse {
-  score: number;
-  content_score: number;
-  organization_score: number;
-  language_score: number;
-  feedback: string;
-  band: number;
-}
+import type { KETWritingTask, KETWritingScoreResponse } from '@/types/ket';
 
 export default function WritingPage() {
   const [selectedTask, setSelectedTask] = useState<KETWritingTask | null>(null);

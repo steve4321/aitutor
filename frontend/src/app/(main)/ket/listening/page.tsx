@@ -7,35 +7,7 @@ import { renderWithLatex } from '@/lib/render-content';
 import { cn } from '@/lib/utils';
 import { api } from '@/lib/api';
 import { ListeningPlayer } from '@/components/ket/listening-player';
-
-interface KETQuestion {
-  id: string;
-  skill: string;
-  level: string;
-  question_type: string;
-  prompt: string;
-  audio_url: string | null;
-  image_url: string | null;
-  options: Record<string, string> | null;
-  correct_answer: string;
-  explanation: string | null;
-  points: number;
-}
-
-interface KETQuestionListResponse {
-  items: KETQuestion[];
-  total: number;
-  limit: number;
-  offset: number;
-}
-
-interface QuizState {
-  currentIndex: number;
-  answers: Record<string, string>;
-  submitted: Record<string, boolean>;
-  showExplanation: Record<string, boolean>;
-  audioPlayed: Record<string, boolean>;
-}
+import type { KETQuestionListResponse, QuizState } from '@/types/ket';
 
 export default function ListeningPage() {
   const [quizState, setQuizState] = useState<QuizState>({

@@ -6,34 +6,7 @@ import { BookOpen, ChevronLeft, CheckCircle, XCircle, ArrowRight, Loader2 } from
 import { renderWithLatex } from '@/lib/render-content';
 import { cn } from '@/lib/utils';
 import { api } from '@/lib/api';
-
-interface KETQuestion {
-  id: string;
-  skill: string;
-  level: string;
-  question_type: string;
-  prompt: string;
-  audio_url: string | null;
-  image_url: string | null;
-  options: Record<string, string> | null;
-  correct_answer: string;
-  explanation: string | null;
-  points: number;
-}
-
-interface KETQuestionListResponse {
-  items: KETQuestion[];
-  total: number;
-  limit: number;
-  offset: number;
-}
-
-interface QuizState {
-  currentIndex: number;
-  answers: Record<string, string>;
-  submitted: Record<string, boolean>;
-  showExplanation: Record<string, boolean>;
-}
+import type { KETQuestionListResponse, QuizState } from '@/types/ket';
 
 export default function ReadingPage() {
   const [quizState, setQuizState] = useState<QuizState>({
