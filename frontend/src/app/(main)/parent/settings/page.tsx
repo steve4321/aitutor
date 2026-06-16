@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import {
@@ -46,7 +46,7 @@ export default function ParentSettingsPage() {
     queryFn: () => api.get<NotificationPreferences>('/parent/notification-preferences'),
   });
 
-  useState(() => {
+  useEffect(() => {
     if (prefs) {
       setNotifications({
         milestone_notifications: prefs.milestone_notifications,
@@ -60,7 +60,7 @@ export default function ParentSettingsPage() {
         setStudyTimeLimit(String(prefs.study_time_limit_minutes));
       }
     }
-  });
+  }, [prefs]);
 
   const savePrefsMutation = useMutation({
     mutationFn: (updates: Partial<NotificationPreferences>) =>
