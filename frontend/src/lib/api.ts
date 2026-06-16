@@ -55,52 +55,55 @@ interface RequestOptions extends Omit<RequestInit, 'signal'> {
   signal?: AbortSignal;
 }
 
+function buildAuthHeaders(custom?: HeadersInit): Record<string, string> {
+  const headers: Record<string, string> = { ...(custom as Record<string, string>) };
+  const token = getToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+}
+
+async function fetchWithAuthRetry(
+  url: string,
+  options: RequestOptions,
+  headers: Record<string, string>,
+): Promise<Response> {
+  const { signal, ...restOptions } = options;
+  let response = await fetch(url, { ...restOptions, headers, signal });
+
+  if (response.status === 401 && !url.includes('/auth/refresh')) {
+    const newToken = await refreshAccessToken();
+    if (newToken) {
+      headers['Authorization'] = `Bearer ${newToken}`;
+      response = await fetch(url, { ...restOptions, headers, signal });
+    } else {
+      clearTokens();
+    }
+  }
+
+  return response;
+}
+
 async function request<T>(
   endpoint: string,
   options: RequestOptions = {}
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
-  const token = getToken();
-  const { signal, ...restOptions } = options;
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...(restOptions.headers as Record<string, string>),
+    ...(options.headers as Record<string, string>),
   };
 
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+  if (getToken()) {
+    headers['Authorization'] = `Bearer ${getToken()}`;
   }
 
-  const response = await fetch(url, {
-    ...restOptions,
-    headers,
-    signal,
-  });
+  const response = await fetchWithAuthRetry(url, options, headers);
 
   if (!response.ok) {
-    if (response.status === 401 && !endpoint.endsWith('/auth/refresh')) {
-      const newToken = await refreshAccessToken();
-      if (newToken) {
-        headers['Authorization'] = `Bearer ${newToken}`;
-        const retryResponse = await fetch(url, { ...restOptions, headers, signal });
-        if (!retryResponse.ok) {
-          if (retryResponse.status === 401) {
-            clearTokens();
-          }
-          let errorData: unknown;
-          try {
-            errorData = await retryResponse.json();
-          } catch {
-            errorData = await retryResponse.text();
-          }
-          throw new ApiError(`API Error: ${retryResponse.status}`, retryResponse.status, errorData);
-        }
-        if (retryResponse.status === 204) {
-          return undefined as T;
-        }
-        return retryResponse.json();
-      }
+    if (response.status === 401) {
       clearTokens();
     }
 
@@ -171,27 +174,9 @@ export const api = {
 
 export async function fetchBinary(endpoint: string, options: RequestOptions = {}): Promise<Blob> {
   const url = `${API_BASE_URL}${endpoint}`;
-  const token = getToken();
-  const { signal, ...restOptions } = options;
-  const headers: Record<string, string> = {
-    ...(restOptions.headers as Record<string, string>),
-  };
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
+  const headers = buildAuthHeaders(options.headers as HeadersInit);
 
-  let response = await fetch(url, { ...restOptions, headers, signal });
-
-  if (response.status === 401 && !endpoint.endsWith('/auth/refresh')) {
-    const newToken = await refreshAccessToken();
-    if (newToken) {
-      headers['Authorization'] = `Bearer ${newToken}`;
-      response = await fetch(url, { ...restOptions, headers, signal });
-    } else {
-      clearTokens();
-      throw new AuthError('Authentication required');
-    }
-  }
+  const response = await fetchWithAuthRetry(url, options, headers);
 
   if (!response.ok) {
     let errorData: unknown;
@@ -200,6 +185,11 @@ export async function fetchBinary(endpoint: string, options: RequestOptions = {}
     } catch {
       errorData = await response.text();
     }
+
+    if (response.status === 401) {
+      throw new AuthError('Authentication required', errorData);
+    }
+
     throw new ApiError(`API Error: ${response.status}`, response.status, errorData);
   }
 

@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import { useAuthStore } from '@/stores/auth-store';
 import { api } from "@/lib/api";
 import type { StudentProfile } from "@/types/user";
-import { useAuthStore } from '@/stores/auth-store';
 
 interface XPData {
   xp: number;
@@ -27,36 +27,35 @@ function calculateDailyGoalProgress(
   return Math.min((minutesToday / dailyGoalMinutes) * 100, 100);
 }
 
+function deriveXPData(profile: StudentProfile): XPData {
+  return {
+    xp: profile.xp_total,
+    level: calculateLevel(profile.xp_total),
+    streak: profile.streak_days,
+    dailyGoalProgress: calculateDailyGoalProgress(profile.minutes_today, profile.daily_goal_minutes),
+    dailyGoalMinutes: profile.daily_goal_minutes,
+  };
+}
+
 export function useXP() {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, profile } = useAuthStore();
   const [xpData, setXpData] = useState<XPData>({
-    xp: 0,
-    level: 1,
-    streak: 0,
-    dailyGoalProgress: 0,
-    dailyGoalMinutes: 30,
+    xp: profile?.xp_total ?? 0,
+    level: profile ? calculateLevel(profile.xp_total) : 1,
+    streak: profile?.streak_days ?? 0,
+    dailyGoalProgress: profile ? calculateDailyGoalProgress(profile.minutes_today, profile.daily_goal_minutes) : 0,
+    dailyGoalMinutes: profile?.daily_goal_minutes ?? 30,
   });
   const [loading, setLoading] = useState(false);
 
-  const fetchXPData = useCallback(async () => {
+  const refetch = useCallback(async () => {
     if (!isAuthenticated) return;
 
     setLoading(true);
     try {
-      const profile = await api.get<StudentProfile>("/users/me/profile");
-      const level = calculateLevel(profile.xp_total);
-      const dailyGoalProgress = calculateDailyGoalProgress(
-        profile.minutes_today,
-        profile.daily_goal_minutes
-      );
-
-      setXpData({
-        xp: profile.xp_total,
-        level,
-        streak: profile.streak_days,
-        dailyGoalProgress,
-        dailyGoalMinutes: profile.daily_goal_minutes,
-      });
+      const freshProfile = await api.get<StudentProfile>("/users/me/profile");
+      useAuthStore.getState().setProfile(freshProfile);
+      setXpData(deriveXPData(freshProfile));
     } catch (err) {
       console.warn('[useXP] Failed to fetch XP data:', err);
     } finally {
@@ -64,28 +63,9 @@ export function useXP() {
     }
   }, [isAuthenticated]);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      setLoading(true);
-      api.get<StudentProfile>("/users/me/profile").then((profile) => {
-        setXpData({
-          xp: profile.xp_total,
-          level: calculateLevel(profile.xp_total),
-          streak: profile.streak_days,
-          dailyGoalProgress: calculateDailyGoalProgress(profile.minutes_today, profile.daily_goal_minutes),
-          dailyGoalMinutes: profile.daily_goal_minutes,
-        });
-      }).catch((err) => {
-        console.warn('[useXP] Failed to fetch profile:', err);
-      }).finally(() => {
-        setLoading(false);
-      });
-    }
-  }, [isAuthenticated]);
-
   return {
     ...xpData,
     loading,
-    refetch: fetchXPData,
+    refetch,
   };
 }
