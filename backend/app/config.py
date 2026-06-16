@@ -79,6 +79,10 @@ class Settings(BaseSettings):
     LLM_TEMPERATURE_STRONG: float = 0.7
     LLM_TEMPERATURE_FAST: float = 0.1
 
+    # LLM circuit breaker
+    LLM_CIRCUIT_FAILURE_THRESHOLD: int = 5
+    LLM_CIRCUIT_COOLDOWN_SECONDS: float = 60.0
+
     model_config = {
         "env_file": ".env",
         "env_file_encoding": "utf-8",
