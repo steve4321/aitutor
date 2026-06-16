@@ -11,16 +11,51 @@ interface DialogProps {
 }
 
 function Dialog({ open, onClose, children }: DialogProps) {
+  const dialogRef = React.useRef<HTMLDivElement>(null);
+  const previousActiveElement = React.useRef<HTMLElement | null>(null);
+  const titleId = React.useId();
+
   React.useEffect(() => {
     if (open) {
+      previousActiveElement.current = document.activeElement as HTMLElement;
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
+      previousActiveElement.current?.focus();
     }
     return () => {
       document.body.style.overflow = '';
     };
   }, [open]);
+
+  React.useEffect(() => {
+    if (!open) return;
+
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (e.key !== 'Tab' || !dialogRef.current) return;
+
+      const focusableElements = dialogRef.current.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+
+      if (e.shiftKey && document.activeElement === firstElement) {
+        e.preventDefault();
+        lastElement?.focus();
+      } else if (!e.shiftKey && document.activeElement === lastElement) {
+        e.preventDefault();
+        firstElement?.focus();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [open, onClose]);
 
   if (!open) return null;
 
@@ -29,12 +64,20 @@ function Dialog({ open, onClose, children }: DialogProps) {
       <div
         className="fixed inset-0 bg-black/50 transition-opacity"
         onClick={onClose}
+        aria-hidden="true"
       />
-      <div className="relative z-50 w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className="relative z-50 w-full max-w-lg rounded-xl bg-white p-6 shadow-xl"
+      >
         {children}
         <button
           onClick={onClose}
           className="absolute right-4 top-4 rounded-sm opacity-70 hover:opacity-100"
+          aria-label="关闭"
         >
           <X className="h-4 w-4" />
         </button>

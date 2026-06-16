@@ -55,8 +55,18 @@ interface RequestOptions extends Omit<RequestInit, 'signal'> {
   signal?: AbortSignal;
 }
 
+function normalizeHeaders(headers: HeadersInit | undefined): Record<string, string> {
+  const result: Record<string, string> = {};
+  if (!headers) return result;
+  const headerObj = new Headers(headers);
+  headerObj.forEach((value, key) => {
+    result[key] = value;
+  });
+  return result;
+}
+
 function buildAuthHeaders(custom?: HeadersInit): Record<string, string> {
-  const headers: Record<string, string> = { ...(custom as Record<string, string>) };
+  const headers: Record<string, string> = custom ? normalizeHeaders(custom) : {};
   const token = getToken();
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
@@ -93,7 +103,7 @@ async function request<T>(
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...(options.headers as Record<string, string>),
+    ...normalizeHeaders(options.headers),
   };
 
   if (getToken()) {
@@ -129,7 +139,7 @@ async function request<T>(
   }
 
   if (response.status === 204) {
-    return undefined as T;
+    return null as T;
   }
 
   return response.json();
@@ -174,7 +184,7 @@ export const api = {
 
 export async function fetchBinary(endpoint: string, options: RequestOptions = {}): Promise<Blob> {
   const url = `${API_BASE_URL}${endpoint}`;
-  const headers = buildAuthHeaders(options.headers as HeadersInit);
+  const headers = buildAuthHeaders(options.headers);
 
   const response = await fetchWithAuthRetry(url, options, headers);
 
