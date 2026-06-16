@@ -6,7 +6,7 @@ from uuid import UUID
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
-from app.agents.llm import get_llm, get_fallback_response, is_llm_available
+from app.agents.llm import get_llm, get_fallback_response, is_llm_available, llm_circuit_breaker
 from app.agents.prompts import get_system_prompt
 from app.agents.services.memory import (
     build_prerequisite_context,
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 async def tutor_node(state: AgentState) -> dict:
     """Execute teaching conversation based on subject and mode."""
 
-    if not is_llm_available():
+    if not is_llm_available() or not llm_circuit_breaker.allow_call():
         return {
             "agent_response": get_fallback_response(state.get("intent", "learn")),
             "model_used": "none",
@@ -88,7 +88,16 @@ async def tutor_node(state: AgentState) -> dict:
             "agent_response": get_fallback_response(state.get("intent", "learn")),
             "model_used": "none",
         }
-    response = await llm.ainvoke(messages)
+    try:
+        response = await llm.ainvoke(messages)
+        llm_circuit_breaker.record_success()
+    except Exception:
+        llm_circuit_breaker.record_failure()
+        logger.warning("LLM invocation failed in tutor_node", exc_info=True)
+        return {
+            "agent_response": get_fallback_response(state.get("intent", "learn")),
+            "model_used": "none",
+        }
 
     return {
         "agent_response": response.content,
