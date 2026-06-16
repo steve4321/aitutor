@@ -2,7 +2,7 @@
 
 > 覆盖 AMC 数学竞赛 + KET 英语考试 + 语文（作文/古诗词）
 > 适配 Boox 10寸墨水屏平板
-> 版本：v1.0 | 日期：2026-05-27
+> 版本：v1.1 | 日期：2026-06-16
 
 ---
 
@@ -666,7 +666,7 @@ L4: "The correct form is 'He wants'. Let's practice more examples."
 │                       数据层                                  │
 │                                                             │
 │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────┐   │
-│  │PostgreSQL│ │  Redis   │ │ ChromaDB │ │   S3/OSS   │   │
+│  │PostgreSQL│ │  Redis   │ │ pgvector  │ │   S3/OSS   │   │
 │  │(关系数据) │ │(缓存/会话)│ │(向量检索) │ │ (文件/音频) │   │
 │  └──────────┘ └──────────┘ └──────────┘ └────────────┘   │
 │                                                             │
@@ -690,10 +690,10 @@ L4: "The correct form is 'He wants'. Let's practice more examples."
 | **前端** | 图形交互 | GeoGebra API | 动态几何, 函数图像 |
 | **后端** | API框架 | Python FastAPI | 高性能异步, AI生态好 |
 | **后端** | Agent编排 | LangGraph | 状态机+人工介入+检查点 |
-| **后端** | 任务队列 | Celery + Redis | 异步任务(评分, TTS生成) |
+| **后端** | 任务队列 | 后台任务 (asyncio + Redis) | 异步任务(评分, TTS生成) |
 | **数据库** | 主库 | PostgreSQL + pgvector | 关系数据 + 向量检索 |
-| **数据库** | 缓存 | Redis Stack | 会话状态 + 向量索引 + 发布订阅 |
-| **数据库** | 向量库 | ChromaDB (原型) → Qdrant (生产) | RAG混合检索 |
+| **数据库** | 缓存 | Redis 7 | 会话状态 + 速率限制 + 发布订阅 |
+| **数据库** | 向量库 | PostgreSQL pgvector 扩展 | RAG混合检索, 与关系数据同库 |
 | **AI** | 强模型 | GPT-4o / Claude | 解题, 课程生成, 深度对话 |
 | **AI** | 快模型 | GPT-4o-mini / 本地Llama | 意图分类, 简单批改, 分类 |
 | **AI** | ASR | Faster-Whisper | 语音识别, 发音评分 |

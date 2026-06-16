@@ -10,7 +10,7 @@ AI-powered private tutor for academic competitions: AMC (math) & KET (English).
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | Next.js 14 + TypeScript + Tailwind CSS |
+| Frontend | Next.js 15 + TypeScript + Tailwind CSS |
 | Backend | Python FastAPI + LangGraph |
 | Database | PostgreSQL 16 + pgvector |
 | Cache | Redis 7 |
