@@ -9,6 +9,7 @@ from app.models.enrollment import Enrollment
 from app.models.message import Message
 from app.models.ket import KETQuestion, KETWritingTask, KETSpeakingTask
 from app.models.memory import SessionSummary
+from app.models.achievement import Achievement
 
 __all__ = [
     "Base",
@@ -33,4 +34,5 @@ __all__ = [
     "KETWritingTask",
     "KETSpeakingTask",
     "SessionSummary",
+    "Achievement",
 ]
