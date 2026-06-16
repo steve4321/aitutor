@@ -42,6 +42,9 @@ export default function MainLayout({
 
   return (
     <div className="h-dvh bg-background flex flex-col overflow-hidden">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:shadow-lg">
+        跳转到主内容
+      </a>
       <header className="shrink-0 z-40 bg-background/95 backdrop-blur border-b border-border">
         <div className="flex items-center justify-between px-4 h-14">
           <div className="flex items-center gap-2">
@@ -60,7 +63,7 @@ export default function MainLayout({
         </div>
       </header>
 
-      <main className="flex-1 min-h-0 overflow-y-auto px-4 py-6">
+      <main id="main-content" className="flex-1 min-h-0 overflow-y-auto px-4 py-6">
         <ErrorBoundary>
           {children}
         </ErrorBoundary>

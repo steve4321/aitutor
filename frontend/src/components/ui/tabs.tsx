@@ -76,7 +76,10 @@ function TabsTrigger({
   return (
     <button
       role="tab"
+      id={`tab-${value}`}
       aria-selected={isActive}
+      aria-controls={`panel-${value}`}
+      tabIndex={isActive ? 0 : -1}
       className={cn(
         'inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium transition-all',
         isActive
@@ -104,6 +107,8 @@ function TabsContent({
   return (
     <div
       role="tabpanel"
+      aria-labelledby={`tab-${value}`}
+      id={`panel-${value}`}
       className={cn('mt-3', className)}
       {...props}
     >

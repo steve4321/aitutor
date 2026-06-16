@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Play, Pause, Volume2, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
-import { cn } from '@/lib/utils';
+
 import { renderWithLatex } from '@/lib/render-content';
 
 interface ListeningPlayerProps {
@@ -106,6 +106,7 @@ export function ListeningPlayer({ audioUrl, transcript, title }: ListeningPlayer
           <button
             onClick={handleRetry}
             className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-all hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600"
+            aria-label="重新播放"
           >
             <RefreshCw className="h-5 w-5" />
           </button>
@@ -113,6 +114,7 @@ export function ListeningPlayer({ audioUrl, transcript, title }: ListeningPlayer
           <button
             onClick={togglePlay}
             className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg transition-all hover:bg-emerald-700 hover:scale-105"
+            aria-label={isPlaying ? '暂停' : '播放'}
           >
             {isPlaying ? (
               <Pause className="h-8 w-8" />

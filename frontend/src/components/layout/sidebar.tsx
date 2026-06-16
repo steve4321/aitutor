@@ -49,6 +49,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           <button
             onClick={onClose}
             className="rounded-full p-1 text-gray-400 hover:bg-gray-100 lg:hidden"
+            aria-label="关闭侧边栏"
           >
             <X className="h-5 w-5" />
           </button>
