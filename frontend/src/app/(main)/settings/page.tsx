@@ -223,7 +223,7 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="mx-auto max-w-2xl px-4 py-8">
+      <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8 py-8">
         <header className="mb-8">
           <div className="flex items-center gap-3">
             <Settings className="h-8 w-8 text-slate-600 dark:text-slate-400" />

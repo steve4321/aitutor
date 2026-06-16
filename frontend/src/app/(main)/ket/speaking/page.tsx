@@ -381,7 +381,7 @@ export default function SpeakingPage() {
               onClick={isRecording ? stopRecording : startRecording}
               disabled={!!recognitionError && !isRecording}
               className={cn(
-                'relative flex h-20 w-20 items-center justify-center rounded-full transition-all',
+                'relative flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full transition-all',
                 isRecording
                   ? 'bg-red-500 text-white shadow-lg shadow-red-200'
                   : 'bg-rose-600 text-white hover:bg-rose-700',
