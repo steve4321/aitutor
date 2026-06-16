@@ -44,7 +44,7 @@ export default function LessonPage() {
     }
   }, [lesson]);
 
-  const createSessionMutation = useMutation<SessionResponse>({
+  const { mutate: createSession } = useMutation<SessionResponse>({
     mutationFn: () =>
       api.post<SessionResponse>('/sessions', {
         session_type: 'lesson',
@@ -58,10 +58,9 @@ export default function LessonPage() {
 
   useEffect(() => {
     if (lesson && course && !sessionId) {
-      createSessionMutation.mutate();
+      createSession();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lesson, course]);
+  }, [lesson, course, sessionId, createSession]);
 
   useEffect(() => {
     if (lessonError) {
@@ -81,7 +80,6 @@ export default function LessonPage() {
         api.post(`/sessions/${sessionId}/close`).catch(() => {});
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
 
   const handleAnswer = useCallback(

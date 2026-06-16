@@ -25,7 +25,7 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         this.props.fallback || (
-          <div className="p-4 text-center">
+          <div className="p-4 text-center" role="alert">
             <p>出错了</p>
             <button
               onClick={() => this.setState({ hasError: false })}

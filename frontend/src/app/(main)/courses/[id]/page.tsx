@@ -69,8 +69,7 @@ export default function CourseDetailPage() {
     if (units.length > 0 && expandedUnits.size === 0) {
       setExpandedUnits(new Set(units.map((u) => u.id)));
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [units]);
+  }, [units, expandedUnits, setExpandedUnits]);
 
   const loading = courseLoading;
 

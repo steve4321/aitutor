@@ -8,7 +8,7 @@ export default function GlobalError({
   reset: () => void;
 }) {
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <div className="flex min-h-screen items-center justify-center" role="alert">
       <div className="text-center space-y-4">
         <h2 className="text-xl font-semibold text-foreground">出了点问题</h2>
         <p className="text-muted-foreground">{error.message || '发生了未知错误'}</p>
