@@ -28,6 +28,8 @@ class KnowledgeState(Base):
         ),
         Index("ix_ks_student_id", "student_id"),
         Index("ix_ks_knowledge_point_id", "knowledge_point_id"),
+        Index("ix_ks_next_review", "student_id", "next_review"),
+        Index("ix_ks_mastery", "student_id", "mastery"),
     )
 
     id: Mapped[UUID] = mapped_column(
@@ -56,6 +58,9 @@ class LearningSession(Base):
     __tablename__ = "learning_sessions"
     __table_args__ = (
         Index("ix_ls_student_id", "student_id"),
+        Index("ix_ls_student_started", "student_id", "started_at"),
+        Index("ix_ls_knowledge_point_id", "knowledge_point_id"),
+        Index("ix_ls_lesson_id", "lesson_id"),
     )
 
     id: Mapped[UUID] = mapped_column(

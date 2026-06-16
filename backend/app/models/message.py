@@ -3,7 +3,7 @@ from __future__ import annotations
 # ruff: noqa: F821
 from uuid import UUID, uuid4
 
-from sqlalchemy import ForeignKey, String, Text
+from sqlalchemy import ForeignKey, Index, String, Text
 from sqlalchemy import JSON as JSONB, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -12,6 +12,7 @@ from app.models.base import Base
 
 class Message(Base):
     __tablename__ = "messages"
+    __table_args__ = (Index("ix_msg_session_id", "session_id"),)
 
     id: Mapped[UUID] = mapped_column(
         Uuid(), primary_key=True, default=uuid4
