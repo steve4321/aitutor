@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from app.agents import run_agent
 from app.api.deps import DbSession, get_current_user
@@ -90,6 +90,12 @@ async def submit_attempt(
     if attempt is None:
         # Fallback: agent didn't create attempt (shouldn't happen)
         structured = agent_result.get("structured_data", {}) or {}
+        count_result = await db.execute(
+            select(func.count(StudentAttempt.id)).where(
+                StudentAttempt.session_id == session_id
+            )
+        )
+        attempt_count = count_result.scalar() or 0
         attempt = StudentAttempt(
             session_id=session_id,
             student_id=current_user.id,
@@ -99,7 +105,7 @@ async def submit_attempt(
             ai_feedback=agent_result.get("agent_response"),
             error_type=structured.get("error_type"),
             hint_level_used=0,
-            attempt_number=1,
+            attempt_number=attempt_count + 1,
         )
         db.add(attempt)
         await db.flush()

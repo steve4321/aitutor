@@ -45,7 +45,11 @@ async def render_animation(
     metadata_path.parent.mkdir(parents=True, exist_ok=True)
     metadata_path.write_text(
         json.dumps(
-            {"id": str(animation_id), "result": result.model_dump(mode="json")},
+            {
+                "id": str(animation_id),
+                "user_id": str(current_user.id),
+                "result": result.model_dump(mode="json"),
+            },
             ensure_ascii=False,
         ),
         encoding="utf-8",
@@ -74,5 +78,13 @@ async def get_animation(
         )
 
     data = json.loads(metadata_path.read_text(encoding="utf-8"))
+
+    owner_id = data.get("user_id")
+    if owner_id is not None and owner_id != str(current_user.id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to view this animation",
+        )
+
     result = AnimationResult(**data["result"])
     return {"id": animation_id, "result": result}

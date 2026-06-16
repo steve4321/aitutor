@@ -110,14 +110,19 @@ async def _get_daily_tasks(db, student_id: UUID) -> DailyTasksResponse:
     )
     in_progress = in_progress_result.all()
 
-    for ks, kp in in_progress:
+    kp_ids = [kp.id for ks, kp in in_progress]
+    if kp_ids:
         lesson_result = await db.execute(
-            select(Lesson.id).where(
-                Lesson.knowledge_point_id == kp.id
-            ).limit(1)
+            select(Lesson.knowledge_point_id, Lesson.id).where(
+                Lesson.knowledge_point_id.in_(kp_ids)
+            )
         )
-        lesson_row = lesson_result.one_or_none()
-        lesson_id = lesson_row[0] if lesson_row else None
+        lesson_map = dict(lesson_result.all())
+    else:
+        lesson_map = {}
+
+    for ks, kp in in_progress:
+        lesson_id = lesson_map.get(kp.id)
 
         tasks.append(DailyTaskItem(
             id=f"lesson-{kp.id}",
