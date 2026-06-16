@@ -1,7 +1,7 @@
 """Curriculum node: course scheduling, recommendations, FSRS reviews."""
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from uuid import UUID
 
 from langchain_core.messages import HumanMessage, SystemMessage
@@ -448,13 +448,16 @@ def _build_learning_trends(knowledge_states: list[dict]) -> str:
 def _compute_daily_goal_progress(knowledge_states: list[dict]) -> str:
     """Estimate daily goal progress from today's activity."""
     reviewed_today = 0
+    today = date.today()
     for ks in knowledge_states:
-        last_review = ks.get("next_review")
+        last_review = ks.get("last_review_at") or ks.get("next_review")
         if last_review:
             try:
-                reviewed_today += 1
+                review_date = last_review.date() if hasattr(last_review, "date") else date.fromisoformat(str(last_review)[:10])
+                if review_date == today:
+                    reviewed_today += 1
             except (ValueError, TypeError):
-                pass
+                logger.warning("Failed to parse review date: %r", last_review)
 
     total = len(knowledge_states)
     if total == 0:
