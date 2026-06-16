@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { getToken } from '@/lib/auth';
+import { useAuthStore } from '@/stores/auth-store';
 import { fetchBinary } from '@/lib/api';
 
 export interface UseASRReturn {
@@ -20,8 +20,7 @@ export function useASR(): UseASRReturn {
       setIsTranscribing(true);
 
       try {
-        const token = getToken();
-        if (!token) {
+        if (!useAuthStore.getState().isAuthenticated) {
           throw new Error('未登录，无法使用语音识别功能');
         }
 

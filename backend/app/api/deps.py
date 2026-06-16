@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, Security, status
+from fastapi import Cookie, Depends, HTTPException, Security, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from uuid import UUID
 
@@ -12,14 +12,22 @@ from app.db.session import get_db
 from app.models.user import User
 
 DbSession = Annotated[AsyncSession, Depends(get_db)]
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 
 async def get_current_user(
     db: DbSession,
-    credentials: HTTPAuthorizationCredentials = Security(security),
+    access_token: str | None = Cookie(default=None, alias="access_token"),
+    credentials: HTTPAuthorizationCredentials | None = Security(security),
 ) -> User:
-    token = credentials.credentials
+    token = access_token
+    if token is None and credentials is not None:
+        token = credentials.credentials
+    if token is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+        )
     payload = decode_access_token(token)
     if payload is None or "sub" not in payload:
         raise HTTPException(

@@ -25,10 +25,26 @@ class TestSecretKeyValidation:
 
     def test_production_accepts_long_custom_key(self):
         key = "a" * 32
-        s = Settings(ENVIRONMENT="production", SECRET_KEY=key)
+        s = Settings(
+            ENVIRONMENT="production",
+            SECRET_KEY=key,
+            DATABASE_URL="postgresql+asyncpg://u:p@localhost/db",
+        )
         assert s.SECRET_KEY == key
 
     def test_production_accepts_uuid_key(self):
         key = str(uuid.uuid4())
-        s = Settings(ENVIRONMENT="production", SECRET_KEY=key)
+        s = Settings(
+            ENVIRONMENT="production",
+            SECRET_KEY=key,
+            DATABASE_URL="postgresql+asyncpg://u:p@localhost/db",
+        )
         assert len(s.SECRET_KEY) >= 32
+
+    def test_production_rejects_sqlite_database(self):
+        with pytest.raises(ValueError, match="DATABASE_URL"):
+            Settings(
+                ENVIRONMENT="production",
+                SECRET_KEY="a" * 32,
+                DATABASE_URL="sqlite+aiosqlite:///./test.db",
+            )

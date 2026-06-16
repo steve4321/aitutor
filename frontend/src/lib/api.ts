@@ -1,29 +1,21 @@
 import { API_BASE_URL } from './constants';
-import { getToken, getRefreshToken, setToken, setRefreshToken, clearTokens } from './auth';
 
-// Refresh mutex - prevents concurrent 401s from triggering multiple refresh attempts
-let refreshPromise: Promise<string | null> | null = null;
+let refreshPromise: Promise<boolean> | null = null;
 
-async function refreshAccessToken(): Promise<string | null> {
+async function refreshAccessToken(): Promise<boolean> {
   if (refreshPromise) return refreshPromise;
-
-  const refreshToken = getRefreshToken();
-  if (!refreshToken) return null;
 
   refreshPromise = (async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refresh_token: refreshToken }),
+        credentials: 'include',
+        body: JSON.stringify({}),
       });
-      if (!response.ok) return null;
-      const data = await response.json();
-      setToken(data.access_token);
-      if (data.refresh_token) setRefreshToken(data.refresh_token);
-      return data.access_token;
+      return response.ok;
     } catch {
-      return null;
+      return false;
     } finally {
       refreshPromise = null;
     }
@@ -65,30 +57,18 @@ function normalizeHeaders(headers: HeadersInit | undefined): Record<string, stri
   return result;
 }
 
-function buildAuthHeaders(custom?: HeadersInit): Record<string, string> {
-  const headers: Record<string, string> = custom ? normalizeHeaders(custom) : {};
-  const token = getToken();
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-  return headers;
-}
-
 async function fetchWithAuthRetry(
   url: string,
   options: RequestOptions,
   headers: Record<string, string>,
 ): Promise<Response> {
   const { signal, ...restOptions } = options;
-  let response = await fetch(url, { ...restOptions, headers, signal });
+  let response = await fetch(url, { ...restOptions, headers, signal, credentials: 'include' });
 
-  if (response.status === 401 && !url.includes('/auth/refresh')) {
-    const newToken = await refreshAccessToken();
-    if (newToken) {
-      headers['Authorization'] = `Bearer ${newToken}`;
-      response = await fetch(url, { ...restOptions, headers, signal });
-    } else {
-      clearTokens();
+  if (response.status === 401 && !url.includes('/auth/refresh') && !url.includes('/auth/login')) {
+    const refreshed = await refreshAccessToken();
+    if (refreshed) {
+      response = await fetch(url, { ...restOptions, headers, signal, credentials: 'include' });
     }
   }
 
@@ -106,17 +86,9 @@ async function request<T>(
     ...normalizeHeaders(options.headers),
   };
 
-  if (getToken()) {
-    headers['Authorization'] = `Bearer ${getToken()}`;
-  }
-
   const response = await fetchWithAuthRetry(url, options, headers);
 
   if (!response.ok) {
-    if (response.status === 401) {
-      clearTokens();
-    }
-
     let errorData: unknown;
     try {
       errorData = await response.json();
@@ -184,7 +156,7 @@ export const api = {
 
 export async function fetchBinary(endpoint: string, options: RequestOptions = {}): Promise<Blob> {
   const url = `${API_BASE_URL}${endpoint}`;
-  const headers = buildAuthHeaders(options.headers);
+  const headers = normalizeHeaders(options.headers);
 
   const response = await fetchWithAuthRetry(url, options, headers);
 

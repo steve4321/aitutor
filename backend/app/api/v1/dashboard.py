@@ -96,8 +96,9 @@ async def _get_daily_tasks(db, student_id: UUID) -> DailyTasksResponse:
         ))
 
     in_progress_result = await db.execute(
-        select(KnowledgeState, KnowledgePoint)
+        select(KnowledgeState, KnowledgePoint, Lesson.id)
         .join(KnowledgePoint, KnowledgeState.knowledge_point_id == KnowledgePoint.id)
+        .outerjoin(Lesson, Lesson.knowledge_point_id == KnowledgePoint.id)
         .where(
             and_(
                 KnowledgeState.student_id == student_id,
@@ -110,20 +111,7 @@ async def _get_daily_tasks(db, student_id: UUID) -> DailyTasksResponse:
     )
     in_progress = in_progress_result.all()
 
-    kp_ids = [kp.id for ks, kp in in_progress]
-    if kp_ids:
-        lesson_result = await db.execute(
-            select(Lesson.knowledge_point_id, Lesson.id).where(
-                Lesson.knowledge_point_id.in_(kp_ids)
-            )
-        )
-        lesson_map = dict(lesson_result.all())
-    else:
-        lesson_map = {}
-
-    for ks, kp in in_progress:
-        lesson_id = lesson_map.get(kp.id)
-
+    for ks, kp, lesson_id in in_progress:
         tasks.append(DailyTaskItem(
             id=f"lesson-{kp.id}",
             title=f"继续学习: {kp.name}",
@@ -222,24 +210,36 @@ async def _get_streak(db, student_id: UUID) -> StreakResponse:
     today = date.today()
     monday = today - timedelta(days=today.weekday())
 
+    # Single GROUP BY query instead of 7 per-day queries.
+    # func.date() works on both SQLite (returns 'YYYY-MM-DD' string) and
+    # PostgreSQL (returns a date object); we normalize keys to `date` below.
+    week_sessions = await db.execute(
+        select(
+            func.date(LearningSession.started_at).label("day"),
+            func.sum(LearningSession.duration_sec).label("total_sec"),
+        ).where(
+            and_(
+                LearningSession.student_id == student_id,
+                LearningSession.started_at >= week_start_dt,
+                LearningSession.started_at < week_end_dt,
+            )
+        )
+        .group_by(func.date(LearningSession.started_at))
+    )
+
+    day_map: dict[date, int] = {}
+    for row in week_sessions.all():
+        day_val = row.day
+        if isinstance(day_val, str):
+            day_val = date.fromisoformat(day_val)
+        day_map[day_val] = row.total_sec or 0
+
     week_data = [False] * 7
     for i in range(7):
         d = monday + timedelta(days=i)
         if d > today:
             break
-        d_start = datetime.combine(d, datetime.min.time())
-        d_end = datetime.combine(d + timedelta(days=1), datetime.min.time())
-
-        session_result = await db.execute(
-            select(func.sum(LearningSession.duration_sec)).where(
-                and_(
-                    LearningSession.student_id == student_id,
-                    LearningSession.started_at >= d_start,
-                    LearningSession.started_at < d_end,
-                )
-            )
-        )
-        total_sec = session_result.scalar() or 0
+        total_sec = day_map.get(d, 0)
         week_data[i] = (total_sec / 60.0) >= (daily_goal_minutes * 0.5)
 
     return StreakResponse(

@@ -2,7 +2,6 @@
 import logging
 import time
 from enum import Enum
-from functools import lru_cache
 
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_anthropic import ChatAnthropic
@@ -97,8 +96,34 @@ def is_llm_available() -> bool:
     return bool(settings.OPENAI_API_KEY and settings.OPENAI_API_KEY.strip())
 
 
-@lru_cache(maxsize=2)
+_llm_cache: dict[str, ChatOpenAI | ChatAnthropic | None] = {}
+_embedding_cache: OpenAIEmbeddings | None = None
+_embedding_initialized: bool = False
+
+
+def reset_llm_cache() -> None:
+    _llm_cache.clear()
+
+
+def reset_embedding_cache() -> None:
+    global _embedding_cache, _embedding_initialized
+    _embedding_cache = None
+    _embedding_initialized = False
+
+
 def get_llm(tier: str = "strong") -> ChatOpenAI | ChatAnthropic | None:
+    if tier in _llm_cache:
+        return _llm_cache[tier]
+    instance = _create_llm(tier)
+    _llm_cache[tier] = instance
+    return instance
+
+
+# Backward compatibility: existing callers/tests use the lru_cache-era API.
+get_llm.cache_clear = reset_llm_cache
+
+
+def _create_llm(tier: str = "strong") -> ChatOpenAI | ChatAnthropic | None:
     if not is_llm_available():
         logger.warning(
             "LLM API key not set (provider=%s) — AI features disabled",
@@ -146,11 +171,17 @@ def get_llm(tier: str = "strong") -> ChatOpenAI | ChatAnthropic | None:
     return ChatOpenAI(**kwargs)
 
 
-@lru_cache(maxsize=1)
 def get_embedding_model() -> OpenAIEmbeddings | None:
+    global _embedding_cache, _embedding_initialized
+    if _embedding_initialized:
+        return _embedding_cache
+    _embedding_initialized = True
+
     if not is_llm_available():
+        _embedding_cache = None
         return None
     if not settings.EMBEDDING_MODEL:
+        _embedding_cache = None
         return None
 
     kwargs: dict = {
@@ -161,9 +192,11 @@ def get_embedding_model() -> OpenAIEmbeddings | None:
         kwargs["base_url"] = settings.LLM_BASE_URL
 
     try:
-        return OpenAIEmbeddings(**kwargs)
+        _embedding_cache = OpenAIEmbeddings(**kwargs)
+        return _embedding_cache
     except Exception:
         logger.warning("Failed to initialize embedding model", exc_info=True)
+        _embedding_cache = None
         return None
 
 

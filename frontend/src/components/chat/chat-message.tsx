@@ -1,13 +1,18 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
 import { cn } from '@/lib/utils';
 import { renderWithLatex } from '@/lib/render-content';
+import { MathSkeleton } from '@/components/ui/loading-skeleton';
 import type { ChatMessage } from '@/types/problem';
 
 const KatexRenderer = dynamic(
   () => import('@/components/math/katex-renderer').then((m) => ({ default: m.KatexRenderer })),
-  { ssr: false }
+  {
+    ssr: false,
+    loading: () => <MathSkeleton />,
+  }
 );
 
 interface ChatMessageProps {
@@ -43,7 +48,9 @@ export function ChatMessage({ message, className }: ChatMessageProps) {
         <div>{renderWithLatex(message.content)}</div>
         {message.metadata?.latex && (
           <div className="mt-2 rounded bg-white/10 p-2">
-            <KatexRenderer latex={message.metadata.latex} displayMode />
+            <Suspense fallback={<MathSkeleton displayMode />}>
+              <KatexRenderer latex={message.metadata.latex} displayMode />
+            </Suspense>
           </div>
         )}
       </div>

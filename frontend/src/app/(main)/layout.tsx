@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Home, BookOpen, Target, Settings as SettingsIcon } from 'lucide-react';
-import { isAuthenticated } from '@/lib/auth';
+import { useAuthStore } from '@/stores/auth-store';
 import { ROUTES } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { ErrorBoundary } from '@/components/error-boundary';
@@ -24,19 +24,23 @@ export default function MainLayout({
   const router = useRouter();
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
+  const { isAuthenticated, isLoading } = useAuthStore();
 
   useEffect(() => {
     setMounted(true);
-    if (!isAuthenticated()) {
+  }, []);
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
       router.push(ROUTES.LOGIN);
     }
-  }, [router]);
+  }, [router, isLoading, isAuthenticated]);
 
-  if (!mounted) {
+  if (!mounted || isLoading) {
     return null;
   }
 
-  if (!isAuthenticated()) {
+  if (!isAuthenticated) {
     return null;
   }
 

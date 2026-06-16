@@ -236,25 +236,16 @@ async def _handle_next_problem(state, knowledge_states, student) -> dict:
 
     db = state.get("db_session")
     if db is None:
-        from app.db.session import async_session_factory
-        async with async_session_factory() as db:
-            problem = await select_next_problem(
-                db=db,
-                student_id=UUID(str(student_id)),
-                subject=subject,
-                target_exam=target_exam,
-                knowledge_states=knowledge_states,
-                session_problem_ids=session_problem_ids,
-            )
-    else:
-        problem = await select_next_problem(
-            db=db,
-            student_id=UUID(str(student_id)),
-            subject=subject,
-            target_exam=target_exam,
-            knowledge_states=knowledge_states,
-            session_problem_ids=session_problem_ids,
-        )
+        raise RuntimeError("db_session must be injected into agent state")
+
+    problem = await select_next_problem(
+        db=db,
+        student_id=UUID(str(student_id)),
+        subject=subject,
+        target_exam=target_exam,
+        knowledge_states=knowledge_states,
+        session_problem_ids=session_problem_ids,
+    )
 
     if problem:
         return {

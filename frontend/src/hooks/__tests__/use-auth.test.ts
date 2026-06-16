@@ -74,13 +74,6 @@ vi.mock('@/lib/api', () => ({
   },
 }));
 
-vi.mock('@/lib/auth', () => ({
-  getToken: vi.fn(),
-  setToken: vi.fn(),
-  setRefreshToken: vi.fn(),
-  clearTokens: vi.fn(),
-}));
-
 describe('useAuth', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -88,22 +81,22 @@ describe('useAuth', () => {
     mockStore.profile = null;
     mockStore.isAuthenticated = false;
     mockStore.isLoading = true;
+    (api.get as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('Unauthorized'));
+    (api.post as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('Not found'));
   });
 
-  it('sets loading to false when no token exists', async () => {
-    const { getToken } = await import('@/lib/auth');
-    (getToken as ReturnType<typeof vi.fn>).mockReturnValue(null);
-
+  it('sets loading to false and logs out when user fetch fails', async () => {
     renderHook(() => useAuth());
 
     await waitFor(() => {
       expect(mockStore.isLoading).toBe(false);
     });
+
+    expect(mockStore.user).toBeNull();
+    expect(mockStore.isAuthenticated).toBe(false);
   });
 
-  it('fetches user and profile when token exists', async () => {
-    const { getToken } = await import('@/lib/auth');
-    (getToken as ReturnType<typeof vi.fn>).mockReturnValue('valid-token');
+  it('fetches user and profile on mount', async () => {
     (api.get as ReturnType<typeof vi.fn>)
       .mockResolvedValueOnce(mockUser)
       .mockResolvedValueOnce(mockProfile);
@@ -118,11 +111,8 @@ describe('useAuth', () => {
   });
 
   it('logs in with null profile when profile fetch fails', async () => {
-    const { getToken } = await import('@/lib/auth');
-    (getToken as ReturnType<typeof vi.fn>).mockReturnValue('valid-token');
     (api.get as ReturnType<typeof vi.fn>)
-      .mockResolvedValueOnce(mockUser)
-      .mockRejectedValueOnce(new Error('Profile not found'));
+      .mockResolvedValueOnce(mockUser);
 
     renderHook(() => useAuth());
 
@@ -133,84 +123,92 @@ describe('useAuth', () => {
     });
   });
 
-  it('clears tokens and logs out on /users/me failure', async () => {
-    const { getToken, clearTokens } = await import('@/lib/auth');
-    (getToken as ReturnType<typeof vi.fn>).mockReturnValue('bad-token');
-    (api.get as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('Unauthorized'));
-
+  it('logs out when user fetch fails on mount', async () => {
     renderHook(() => useAuth());
 
     await waitFor(() => {
-      expect(clearTokens).toHaveBeenCalled();
+      expect(mockStore.user).toBeNull();
+      expect(mockStore.isAuthenticated).toBe(false);
     });
-
-    expect(mockStore.user).toBeNull();
-    expect(mockStore.isAuthenticated).toBe(false);
   });
 
   it('signIn calls API and logs in user', async () => {
-    const { getToken, setToken } = await import('@/lib/auth');
-    (getToken as ReturnType<typeof vi.fn>).mockReturnValue(null);
+    const { result } = renderHook(() => useAuth());
 
-    (api.post as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ access_token: 'new-token', refresh_token: null, token_type: 'bearer' });
+    await waitFor(() => {
+      expect(mockStore.isLoading).toBe(false);
+    });
+
+    (api.post as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      access_token: 'cookie-set',
+      refresh_token: null,
+      token_type: 'bearer',
+    });
     (api.get as ReturnType<typeof vi.fn>)
       .mockResolvedValueOnce(mockUser)
       .mockResolvedValueOnce(mockProfile);
-
-    const { result } = renderHook(() => useAuth());
 
     await act(async () => {
       await result.current.signIn({ username: 'test', password: 'pass' });
     });
 
     expect(api.post).toHaveBeenCalledWith('/auth/login', { username: 'test', password: 'pass' });
-    expect(setToken).toHaveBeenCalledWith('new-token');
-
     expect(mockStore.user).toEqual(mockUser);
     expect(mockStore.profile).toEqual(mockProfile);
     expect(mockStore.isAuthenticated).toBe(true);
   });
 
-  it('signOut clears tokens and resets state', async () => {
-    const { clearTokens } = await import('@/lib/auth');
+  it('signOut calls logout endpoint and resets state', async () => {
+    (api.post as ReturnType<typeof vi.fn>).mockResolvedValueOnce(undefined);
 
     const { result } = renderHook(() => useAuth());
 
-    act(() => {
-      result.current.signOut();
+    await waitFor(() => {
+      expect(mockStore.isLoading).toBe(false);
     });
 
-    expect(clearTokens).toHaveBeenCalled();
+    (api.post as ReturnType<typeof vi.fn>).mockResolvedValueOnce(undefined);
 
+    await act(async () => {
+      await result.current.signOut();
+    });
+
+    expect(api.post).toHaveBeenCalledWith('/auth/logout');
     expect(mockStore.user).toBeNull();
     expect(mockStore.isAuthenticated).toBe(false);
   });
 
   it('refreshProfile fetches and sets profile', async () => {
-    const { getToken } = await import('@/lib/auth');
-    (getToken as ReturnType<typeof vi.fn>).mockReturnValue(null);
     mockStore.user = mockUser;
-    (api.get as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockProfile);
 
     const { result } = renderHook(() => useAuth());
+
+    await waitFor(() => {
+      expect(mockStore.isLoading).toBe(false);
+    });
+
+    (api.get as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockProfile);
 
     await act(async () => {
       await result.current.refreshProfile();
     });
 
-    expect(api.get).toHaveBeenCalledWith('/users/me/profile');
     expect(mockStore.profile).toEqual(mockProfile);
   });
 
   it('refreshProfile does nothing when user is null', async () => {
-    mockStore.user = null;
-
     const { result } = renderHook(() => useAuth());
+
+    await waitFor(() => {
+      expect(mockStore.isLoading).toBe(false);
+    });
+
+    const callCount = (api.get as ReturnType<typeof vi.fn>).mock.calls.length;
 
     await act(async () => {
       await result.current.refreshProfile();
     });
 
-    expect(api.get).not.toHaveBeenCalledWith(expect.stringContaining('/students/'));
+    expect((api.get as ReturnType<typeof vi.fn>).mock.calls.length).toBe(callCount);
   });
 });

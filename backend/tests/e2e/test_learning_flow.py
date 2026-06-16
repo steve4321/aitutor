@@ -1,6 +1,6 @@
 """E2E learning scenario tests: full stack through API → agent → DB."""
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 from uuid import uuid4
 from datetime import datetime, timezone
 
@@ -9,13 +9,6 @@ from sqlalchemy import select
 
 from app.models.learning import LearningSession, KnowledgeState
 from app.models.message import Message
-
-
-def _make_session_factory(db_session):
-    mock_factory = MagicMock()
-    mock_factory.return_value.__aenter__ = AsyncMock(return_value=db_session)
-    mock_factory.return_value.__aexit__ = AsyncMock(return_value=False)
-    return mock_factory
 
 
 def _mock_llm_response(content: str = "AI回复"):
@@ -29,16 +22,12 @@ async def test_new_student_first_session(
     client, db_session, student, knowledge_points, mcq_problem, auth_headers
 ):
     """Create session → send chat → submit attempt → verify DB state."""
-    session_factory = _make_session_factory(db_session)
     mock_llm = _mock_llm_response("让我来帮你学习方程！")
 
     def _get_llm_side_effect(tier: str = "strong"):
         return mock_llm
 
     with (
-        patch("app.agents.graph.async_session_factory", session_factory),
-        patch("app.agents.orchestrator.async_session_factory", session_factory),
-        patch("app.db.session.async_session_factory", session_factory),
         patch("app.agents.llm.get_llm", side_effect=_get_llm_side_effect),
         patch("app.agents.llm.is_llm_available", return_value=True),
         patch("app.agents.__init__._compiled_graph", None),
@@ -91,11 +80,7 @@ async def test_fsrs_review_cycle(
     db_session.add(ks)
     await db_session.commit()
 
-    session_factory = _make_session_factory(db_session)
     with (
-        patch("app.agents.graph.async_session_factory", session_factory),
-        patch("app.agents.orchestrator.async_session_factory", session_factory),
-        patch("app.db.session.async_session_factory", session_factory),
         patch("app.agents.llm.is_llm_available", return_value=False),
         patch("app.agents.__init__._compiled_graph", None),
     ):
@@ -106,6 +91,7 @@ async def test_fsrs_review_cycle(
             student_id=student.id,
             user_message="开始学习",
             request_type="session_init",
+            db_session=db_session,
         )
 
     structured = result.get("structured_data") or {}
@@ -168,13 +154,8 @@ async def test_wrong_then_right_tracking(
     db_session.add(ks)
     await db_session.commit()
 
-    session_factory = _make_session_factory(db_session)
-
     # Wrong answer through graph
     with (
-        patch("app.agents.graph.async_session_factory", session_factory),
-        patch("app.agents.orchestrator.async_session_factory", session_factory),
-        patch("app.db.session.async_session_factory", session_factory),
         patch("app.agents.llm.is_llm_available", return_value=False),
         patch("app.agents.__init__._compiled_graph", None),
     ):
@@ -187,6 +168,7 @@ async def test_wrong_then_right_tracking(
             request_type="attempt",
             problem_id=mcq_problem.id,
             student_answer="A",
+            db_session=db_session,
         )
 
     assert wrong_result["structured_data"]["is_correct"] is False
@@ -198,9 +180,6 @@ async def test_wrong_then_right_tracking(
 
     # Correct answer through graph
     with (
-        patch("app.agents.graph.async_session_factory", session_factory),
-        patch("app.agents.orchestrator.async_session_factory", session_factory),
-        patch("app.db.session.async_session_factory", session_factory),
         patch("app.agents.llm.is_llm_available", return_value=False),
         patch("app.agents.__init__._compiled_graph", None),
     ):
@@ -213,6 +192,7 @@ async def test_wrong_then_right_tracking(
             request_type="attempt",
             problem_id=mcq_problem.id,
             student_answer="B",
+            db_session=db_session,
         )
 
     assert right_result["structured_data"]["is_correct"] is True
@@ -227,13 +207,8 @@ async def test_degraded_mode_full_flow(
     client, db_session, student, knowledge_points, mcq_problem, auth_headers
 ):
     """No LLM: chat returns fallback, MCQ still scores correctly."""
-    session_factory = _make_session_factory(db_session)
-
     # Chat in degraded mode
     with (
-        patch("app.agents.graph.async_session_factory", session_factory),
-        patch("app.agents.orchestrator.async_session_factory", session_factory),
-        patch("app.db.session.async_session_factory", session_factory),
         patch("app.agents.llm.is_llm_available", return_value=False),
         patch("app.agents.__init__._compiled_graph", None),
     ):
@@ -248,9 +223,6 @@ async def test_degraded_mode_full_flow(
 
     # MCQ attempt still works in degraded mode
     with (
-        patch("app.agents.graph.async_session_factory", session_factory),
-        patch("app.agents.orchestrator.async_session_factory", session_factory),
-        patch("app.db.session.async_session_factory", session_factory),
         patch("app.agents.llm.is_llm_available", return_value=False),
         patch("app.agents.__init__._compiled_graph", None),
     ):
@@ -263,6 +235,7 @@ async def test_degraded_mode_full_flow(
             request_type="attempt",
             problem_id=mcq_problem.id,
             student_answer="B",
+            db_session=db_session,
         )
 
     assert result["structured_data"]["is_correct"] is True

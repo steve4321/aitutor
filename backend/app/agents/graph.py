@@ -12,7 +12,6 @@ from app.agents.router_agent import router_node
 from app.agents.services.knowledge_tracker import apply_knowledge_updates
 from app.agents.state import AgentState
 from app.agents.tutor_agent import tutor_node
-from app.db.session import async_session_factory  # kept for test compat; runtime uses state injection
 from app.models.learning import StudentAttempt
 from app.models.message import Message
 
@@ -36,15 +35,13 @@ async def _response_node(state: AgentState) -> dict[str, Any]:
 
     db = state.get("db_session")
     if db is None:
-        async with async_session_factory() as db:
-            return await _persist_response(db, state, session_id, agent_response)
-    else:
-        try:
-            result = await _persist_response(db, state, session_id, agent_response)
-            return result
-        except Exception as e:
-            logger.error(f"Failed to persist response: {e}", exc_info=True)
-            return {"error": str(e)}
+        raise RuntimeError("db_session must be injected into agent state")
+
+    try:
+        return await _persist_response(db, state, session_id, agent_response)
+    except Exception as e:
+        logger.error(f"Failed to persist response: {e}", exc_info=True)
+        return {"error": str(e)}
 
 
 async def _persist_response(db, state, session_id, agent_response) -> dict[str, Any]:
@@ -87,11 +84,8 @@ async def _persist_response(db, state, session_id, agent_response) -> dict[str, 
             updates=updates,
         )
 
-    # Flush (not commit) when using injected session
-    if state.get("db_session") is not None:
-        await db.flush()
-    else:
-        await db.commit()
+    # Flush (never commit — get_db dependency handles commit)
+    await db.flush()
 
     return {"message_id": ai_msg.id if agent_response and session_id else None}
 

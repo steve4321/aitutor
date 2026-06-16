@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { getToken } from '@/lib/auth';
+import { useAuthStore } from '@/stores/auth-store';
 import { fetchBinary } from '@/lib/api';
 
 
@@ -57,8 +57,7 @@ export function useTTS(): UseTTSReturn {
         let audioUrl = cacheRef.current.get(cacheKey);
 
         if (!audioUrl) {
-          const token = getToken();
-          if (!token) {
+          if (!useAuthStore.getState().isAuthenticated) {
             throw new Error('未登录，无法使用语音功能');
           }
 

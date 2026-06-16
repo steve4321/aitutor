@@ -3,7 +3,6 @@
 import { useEffect } from 'react';
 import { useAuthStore } from '@/stores/auth-store';
 import { api } from '@/lib/api';
-import { setToken, setRefreshToken, clearTokens, getToken } from '@/lib/auth';
 import type { User, StudentProfile } from '@/types/user';
 import type { LoginRequest, LoginResponse, RegisterRequest } from '@/types/api';
 
@@ -16,27 +15,14 @@ export function useAuth() {
     login,
     logout,
     setLoading,
-    setUser,
   } = useAuthStore();
 
   useEffect(() => {
-    // Already have user data from persisted store — skip refetch
-    if (useAuthStore.getState().user) {
-      useAuthStore.getState().setLoading(false);
-      return;
-    }
-
     let isMounted = true;
     const controller = new AbortController();
 
     const fetchUser = async () => {
-      const token = getToken();
-      if (!token) {
-        useAuthStore.getState().setLoading(false);
-        return;
-      }
       try {
-        // Parallel requests instead of sequential waterfall
         const [userData, profileData] = await Promise.all([
           api.get<User>('/users/me', undefined, { signal: controller.signal }),
           api.get<StudentProfile>('/users/me/profile', undefined, { signal: controller.signal }).catch((err) => {
@@ -49,7 +35,6 @@ export function useAuth() {
         }
       } catch {
         if (isMounted) {
-          clearTokens();
           useAuthStore.getState().logout();
         }
       } finally {
@@ -68,11 +53,7 @@ export function useAuth() {
   const signIn = async (credentials: LoginRequest) => {
     setLoading(true);
     try {
-      const response = await api.post<LoginResponse>('/auth/login', credentials);
-      setToken(response.access_token);
-      if (response.refresh_token) {
-        setRefreshToken(response.refresh_token);
-      }
+      await api.post<LoginResponse>('/auth/login', credentials);
 
       const [userData, profileData] = await Promise.all([
         api.get<User>('/users/me'),
@@ -93,9 +74,6 @@ export function useAuth() {
       await api.post('/auth/register', data);
       await signIn({ username: data.username, password: data.password });
     } catch (error) {
-      // If register succeeded but signIn failed, user is registered but not logged in
-      // Clear any partial state and re-throw so the UI can show the error
-      clearTokens();
       logout();
       throw error;
     } finally {
@@ -103,8 +81,11 @@ export function useAuth() {
     }
   };
 
-  const signOut = () => {
-    clearTokens();
+  const signOut = async () => {
+    try {
+      await api.post('/auth/logout');
+    } catch {
+    }
     logout();
   };
 

@@ -13,7 +13,6 @@ from app.agents.tools import (
     load_lesson,
 )
 from app.agents.services.memory import load_recent_summaries, summary_to_dict
-from app.db.session import async_session_factory  # kept for test compat; runtime uses state injection
 
 
 async def orchestrator_node(state: AgentState) -> dict[str, Any]:
@@ -23,10 +22,8 @@ async def orchestrator_node(state: AgentState) -> dict[str, Any]:
     """
     db = state.get("db_session")
     if db is None:
-        async with async_session_factory() as db:
-            return await _load_context(db, state)
-    else:
-        return await _load_context(db, state)
+        raise RuntimeError("db_session must be injected into agent state")
+    return await _load_context(db, state)
 
 
 async def _load_context(db, state: AgentState) -> dict[str, Any]:

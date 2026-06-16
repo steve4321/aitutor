@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { api } from '@/lib/api';
-import { setToken } from '@/lib/auth';
 import { ROUTES } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { RegisterRequest, LoginResponse } from '@/types/api';
@@ -35,7 +34,6 @@ export default function RegisterPage() {
       });
 
       if (response.access_token) {
-        setToken(response.access_token);
         router.push(ROUTES.HOME);
       } else {
         setError('Invalid response from server');

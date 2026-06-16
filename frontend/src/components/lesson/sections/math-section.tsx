@@ -1,14 +1,16 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
 import { Card } from '@/components/ui/card';
+import { LoadingSkeleton, AnimationSkeleton } from '@/components/ui/loading-skeleton';
 import { Play, Sparkles } from 'lucide-react';
 import { renderWithLatex } from '@/lib/render-content';
 
 const KatexRenderer = dynamic(
   () => import('@/components/math/katex-renderer').then((m) => ({ default: m.KatexRenderer })),
   {
-    loading: () => <span className="text-muted-foreground animate-pulse">…</span>,
+    loading: () => <LoadingSkeleton className="h-6 w-24" />,
     ssr: false,
   }
 );
@@ -16,11 +18,7 @@ const KatexRenderer = dynamic(
 const AnimationPlayer = dynamic(
   () => import('@/components/math/animation-player').then((m) => ({ default: m.AnimationPlayer })),
   {
-    loading: () => (
-      <div className="aspect-video bg-[#1a1a2e] rounded-xl flex items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white" />
-      </div>
-    ),
+    loading: () => <AnimationSkeleton />,
     ssr: false,
   }
 );
@@ -35,7 +33,9 @@ export function FormulaCard({ title, latex, note }: { title?: string; latex: str
         <div className="flex-1">
           {title && <h3 className="text-lg font-bold text-[var(--color-foreground)] mb-3">{renderWithLatex(title)}</h3>}
           <div className="bg-white dark:bg-slate-800 rounded-lg p-4 flex items-center justify-center">
-            <KatexRenderer latex={latex} displayMode />
+            <Suspense fallback={<LoadingSkeleton className="h-12 w-48" />}>
+              <KatexRenderer latex={latex} displayMode />
+            </Suspense>
           </div>
           {note && (
             <p className="mt-2 text-sm text-[var(--color-muted-foreground)] italic">{note}</p>
@@ -75,13 +75,15 @@ export function AnimationCard({
         </div>
       </div>
       <div className="px-4 pb-4">
-        <AnimationPlayer
-          url={url}
-          title={title || '动画演示'}
-          animationType={animationType}
-          thumbnailUrl={thumbnailUrl}
-          durationSec={durationSec}
-        />
+        <Suspense fallback={<AnimationSkeleton />}>
+          <AnimationPlayer
+            url={url}
+            title={title || '动画演示'}
+            animationType={animationType}
+            thumbnailUrl={thumbnailUrl}
+            durationSec={durationSec}
+          />
+        </Suspense>
       </div>
     </Card>
   );

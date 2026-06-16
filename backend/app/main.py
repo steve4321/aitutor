@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import time
 import uuid
@@ -7,13 +8,20 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from pydantic import ValidationError
 from slowapi.errors import RateLimitExceeded
 from slowapi import _rate_limit_exceeded_handler
 from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.api.router import api_router
 from app.config import settings
-from app.core.exceptions import global_exception_handler
+from app.core.exceptions import (
+    global_exception_handler,
+    sqlalchemy_error_handler,
+    timeout_error_handler,
+    validation_exception_handler,
+)
 from app.core.logging_config import setup_logging
 from app.core.rate_limit import limiter
 
@@ -58,6 +66,9 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_exception_handler(HTTPException, global_exception_handler)
+app.add_exception_handler(ValidationError, validation_exception_handler)
+app.add_exception_handler(SQLAlchemyError, sqlalchemy_error_handler)
+app.add_exception_handler(asyncio.TimeoutError, timeout_error_handler)
 app.add_exception_handler(Exception, global_exception_handler)
 
 app.add_middleware(
@@ -91,11 +102,14 @@ async def request_logging_middleware(request: Request, call_next):
     duration_ms = (time.perf_counter() - start) * 1000
 
     logger.info(
-        "%s %s %s %.1fms",
-        request.method,
-        request.url.path,
-        response.status_code,
-        duration_ms,
+        "Request completed",
+        extra={
+            "request_id": request_id,
+            "method": request.method,
+            "path": request.url.path,
+            "status_code": response.status_code,
+            "duration_ms": round(duration_ms, 1),
+        },
     )
 
     response.headers["X-Request-ID"] = request_id

@@ -1,14 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { api, ApiError, AuthError } from '../api';
-
-// Mock the auth module
-vi.mock('../auth', () => ({
-  getToken: vi.fn(),
-  clearTokens: vi.fn(),
-  getRefreshToken: vi.fn(),
-  setToken: vi.fn(),
-  setRefreshToken: vi.fn(),
-}));
+import { api, ApiError } from '../api';
 
 describe('api client', () => {
   beforeEach(() => {
@@ -17,10 +8,7 @@ describe('api client', () => {
   });
 
   describe('api.get', () => {
-    it('calls fetch with correct URL and default headers', async () => {
-      const { getToken } = await import('../auth');
-      (getToken as ReturnType<typeof vi.fn>).mockReturnValue('test-token');
-
+    it('calls fetch with correct URL, default headers, and credentials include', async () => {
       (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
         ok: true,
         status: 200,
@@ -34,17 +22,14 @@ describe('api client', () => {
         expect.objectContaining({
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
-            Authorization: 'Bearer test-token',
           }),
+          credentials: 'include',
         }),
       );
       expect(result).toEqual({ data: 'test' });
     });
 
     it('appends query params when provided', async () => {
-      const { getToken } = await import('../auth');
-      (getToken as ReturnType<typeof vi.fn>).mockReturnValue(null);
-
       (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
         ok: true,
         status: 200,
@@ -61,10 +46,7 @@ describe('api client', () => {
   });
 
   describe('api.post', () => {
-    it('sends POST request with correct body', async () => {
-      const { getToken } = await import('../auth');
-      (getToken as ReturnType<typeof vi.fn>).mockReturnValue(null);
-
+    it('sends POST request with correct body and credentials', async () => {
       (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
         ok: true,
         status: 200,
@@ -79,6 +61,7 @@ describe('api client', () => {
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify(body),
+          credentials: 'include',
         }),
       );
       expect(result).toEqual({ id: 1 });
@@ -86,45 +69,58 @@ describe('api client', () => {
   });
 
   describe('error handling', () => {
-    it('throws AuthError on 401 response', async () => {
-      const { getToken, clearTokens } = await import('../auth');
-      (getToken as ReturnType<typeof vi.fn>).mockReturnValue('expired-token');
-      (clearTokens as ReturnType<typeof vi.fn>).mockImplementation(() => {});
+    it('throws AuthError on 401 after refresh fails', async () => {
+      // 1st fetch: original request returns 401
+      // 2nd fetch: refresh attempt returns 401 (fails)
+      (globalThis.fetch as ReturnType<typeof vi.fn>)
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 401,
+          statusText: 'Unauthorized',
+          json: () => Promise.resolve({ detail: 'Invalid token' }),
+        })
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 401,
+          statusText: 'Unauthorized',
+          json: () => Promise.resolve({}),
+        });
 
-      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-        ok: false,
-        status: 401,
-        statusText: 'Unauthorized',
-        json: () => Promise.resolve({ detail: 'Invalid token' }),
-      });
-
-      await expect(api.get('/protected')).rejects.toThrow(AuthError);
       await expect(api.get('/protected')).rejects.toMatchObject({
         name: 'AuthError',
         status: 401,
       });
     });
 
-    it('clears tokens on 401', async () => {
-      const { getToken, clearTokens } = await import('../auth');
-      (getToken as ReturnType<typeof vi.fn>).mockReturnValue('token');
-      (clearTokens as ReturnType<typeof vi.fn>).mockImplementation(() => {});
+    it('retries original request after successful token refresh', async () => {
+      // 1st fetch: original request returns 401
+      // 2nd fetch: refresh attempt returns 200 (success)
+      // 3rd fetch: retried original request returns 200
+      (globalThis.fetch as ReturnType<typeof vi.fn>)
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 401,
+          statusText: 'Unauthorized',
+          json: () => Promise.resolve({}),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({}),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({ data: 'retried' }),
+        });
 
-      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-        ok: false,
-        status: 401,
-        statusText: 'Unauthorized',
-        json: () => Promise.resolve({}),
-      });
+      const result = await api.get('/users/me');
 
-      await expect(api.get('/me')).rejects.toThrow();
-      expect(clearTokens).toHaveBeenCalled();
+      expect(result).toEqual({ data: 'retried' });
+      expect(fetch).toHaveBeenCalledTimes(3);
     });
 
     it('throws ApiError on non-401 error', async () => {
-      const { getToken } = await import('../auth');
-      (getToken as ReturnType<typeof vi.fn>).mockReturnValue(null);
-
       (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
         ok: false,
         status: 404,

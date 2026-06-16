@@ -127,5 +127,15 @@ class Settings(BaseSettings):
             )
         return self
 
+    @model_validator(mode="after")
+    def _validate_production_database(self) -> "Settings":
+        if self.ENVIRONMENT == "production" and not self.DATABASE_URL.startswith("postgresql"):
+            raise ValueError(
+                "DATABASE_URL must be a PostgreSQL connection string "
+                "(e.g., postgresql+asyncpg://...) in production. "
+                f"Got: {self.DATABASE_URL[:50]}..."
+            )
+        return self
+
 
 settings = Settings()

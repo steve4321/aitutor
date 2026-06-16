@@ -12,7 +12,7 @@ def get_graph():
     return _compiled_graph
 
 
-async def run_agent(*, db_session=None, **kwargs) -> dict:
+async def run_agent(*, db_session, **kwargs) -> dict:
     state = initial_state(**kwargs, db_session=db_session)
     graph = get_graph()
     result = await graph.ainvoke(state)

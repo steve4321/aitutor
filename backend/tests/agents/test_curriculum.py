@@ -1,7 +1,7 @@
 """Tests for curriculum_agent — session init, next problem, general queries."""
 from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 from uuid import uuid4
 
 import pytest
@@ -90,15 +90,12 @@ async def test_next_problem_with_mock():
         difficulty=3,
     )
     mock_db = AsyncMock()
-    mock_db.__aenter__ = AsyncMock(return_value=mock_db)
-    mock_db.__aexit__ = AsyncMock(return_value=False)
-    mock_factory = MagicMock(return_value=mock_db)
 
-    with patch("app.agents.curriculum_agent.select_next_problem", return_value=fake_problem), \
-         patch("app.db.session.async_session_factory", mock_factory):
+    with patch("app.agents.curriculum_agent.select_next_problem", return_value=fake_problem):
         result = await curriculum_node(_make_state(
             intent="practice",
             request_type="chat",
+            db_session=mock_db,
         ))
 
     assert "3x = 9" in result["agent_response"]
@@ -108,15 +105,12 @@ async def test_next_problem_with_mock():
 @pytest.mark.asyncio
 async def test_next_problem_none():
     mock_db = AsyncMock()
-    mock_db.__aenter__ = AsyncMock(return_value=mock_db)
-    mock_db.__aexit__ = AsyncMock(return_value=False)
-    mock_factory = MagicMock(return_value=mock_db)
 
-    with patch("app.agents.curriculum_agent.select_next_problem", return_value=None), \
-         patch("app.db.session.async_session_factory", mock_factory):
+    with patch("app.agents.curriculum_agent.select_next_problem", return_value=None):
         result = await curriculum_node(_make_state(
             intent="practice",
             request_type="chat",
+            db_session=mock_db,
         ))
 
     assert "No more problems" in result["agent_response"]
