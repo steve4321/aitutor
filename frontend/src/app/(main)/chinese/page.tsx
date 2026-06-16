@@ -124,14 +124,8 @@ export default function ChinesePage() {
                     <span className="text-sm font-normal text-slate-400"> 个任务</span>
                   </p>
                 )}
-                <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-                  <div
-                    className={cn('h-full rounded-full transition-all', colors.progress)}
-                    style={{ width: '0%' }}
-                  />
-                </div>
                 <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                  {hasContent ? `${count} 个任务` : '0% 完成'}
+                  {hasContent ? `${count} 个任务可用` : '暂无内容'}
                 </p>
                 <ChevronRight className="absolute bottom-6 right-6 h-5 w-5 text-slate-300 transition-transform group-hover:translate-x-1 group-hover:text-slate-400" />
               </a>
@@ -150,7 +144,7 @@ export default function ChinesePage() {
             </div>
           ) : (
             <div className="flex items-center justify-center py-8">
-              <p className="text-center text-slate-500 dark:text-slate-400">暂无练习记录</p>
+              <p className="text-center text-slate-500 dark:text-slate-400">完成练习后，这里会显示你的进度</p>
             </div>
           )}
         </section>
@@ -163,7 +157,7 @@ export default function ChinesePage() {
             </h2>
           </div>
           <div className="flex items-center justify-center py-12">
-            <p className="text-center text-slate-500 dark:text-slate-400">暂无练习记录</p>
+            <p className="text-center text-slate-500 dark:text-slate-400">完成练习后，这里会显示最近记录</p>
           </div>
         </section>
       </div>
