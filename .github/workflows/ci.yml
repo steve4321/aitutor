@@ -64,7 +64,6 @@ jobs:
       - name: Frontend dependency audit
         run: npm audit --audit-level=high
         working-directory: frontend
-        continue-on-error: true
 
       - name: Trivy filesystem scan
         uses: aquasecurity/trivy-action@master
@@ -76,6 +75,21 @@ jobs:
 
   backend-test:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: aitutor_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
 
@@ -99,6 +113,7 @@ jobs:
         working-directory: backend
         env:
           OPENAI_API_KEY: ""
+          DATABASE_URL: postgresql+asyncpg://postgres:test@localhost:5432/aitutor_test
 
   frontend-test:
     runs-on: ubuntu-latest
