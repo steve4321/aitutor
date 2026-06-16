@@ -59,6 +59,8 @@ class Settings(BaseSettings):
 
     ENVIRONMENT: str = "development"
     SENTRY_DSN: str = ""
+    SENTRY_TRACES_SAMPLE_RATE: float = 0.1
+    SENTRY_PROFILES_SAMPLE_RATE: float = 0.1
     CORS_ORIGINS: list[str] = ["http://localhost:3000"]
 
     # Connection pool (PostgreSQL only; ignored for SQLite)
